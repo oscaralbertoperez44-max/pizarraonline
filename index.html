@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - Audio Ultimate</title>
+    <title>MathBoard Pro - Portal Seguro</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script>
@@ -37,6 +37,49 @@
             height: auto; max-height: 100vh; object-fit: contain;
         }
         
+        /* ================= NUEVO: PANTALLA DE ACCESO (LOGIN) ================= */
+        #login-overlay {
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
+            background: rgba(10, 10, 10, 0.95); z-index: 9999;
+            display: flex; justify-content: center; align-items: center;
+            backdrop-filter: blur(10px); transition: opacity 0.5s;
+        }
+        .login-box {
+            background: #1a1a1a; padding: 40px; border-radius: 15px;
+            box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333;
+            text-align: center; width: 90%; max-width: 400px;
+        }
+        .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
+        .login-subtitle { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
+        
+        .role-btn {
+            display: block; width: 100%; padding: 15px; margin-bottom: 15px;
+            border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
+            transition: 0.3s; border: none;
+        }
+        .btn-student { background: #2563eb; color: white; }
+        .btn-student:hover { background: #1d4ed8; }
+        .btn-teacher { background: #10b981; color: white; }
+        .btn-teacher:hover { background: #059669; }
+        
+        /* Formularios ocultos dentro del login */
+        .auth-form { display: none; margin-top: 20px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        
+        .auth-input {
+            width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 5px;
+            border: 1px solid #444; background: #000; color: white;
+            font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase;
+        }
+        .auth-input:focus { outline: 2px solid #3b82f6; }
+        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; }
+        .back-btn:hover { color: white; background: transparent; }
+        
+        /* Ocultar UI principal al inicio */
+        #ui-panel { display: none; }
+        #toolbar { display: none; } /* Solo se muestra cuando la clase inicia */
+        /* ===================================================================== */
+
         /* Paneles Flotantes */
         .floating-panel {
             position: absolute; background: rgba(30, 30, 30, 0.95);
@@ -49,8 +92,7 @@
             display: flex; justify-content: space-between; align-items: center;
         }
         
-        #ui-panel { top: 15px; left: 15px; padding: 20px; transition: opacity 0.5s; text-align: center; }
-        #setup-controls { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
+        #ui-panel { top: 15px; left: 15px; padding: 20px; text-align: center; }
         
         #pdf-panel { top: 80px; left: 30px; width: 550px; display: none; max-height: 85vh; resize: both; overflow: hidden; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 15px; display: flex; justify-content: center; flex-grow: 1; }
@@ -58,24 +100,20 @@
         
         .pdf-controls { padding: 10px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 10px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 5px; border-radius: 5px; }
-        .pdf-controls-group span { font-size: 0.9em; min-width: 40px; text-align: center; }
         
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
 
         #stamper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 20; }
         #stamper-content { position: relative; border: 3px dashed #10b981; background: white; box-shadow: 0 15px 40px rgba(0,0,0,0.9); cursor: grab; min-width: 100px; min-height: 50px; }
-        #stamper-content:active { cursor: grabbing; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; }
-        
         .resize-handle { position: absolute; right: -15px; bottom: -15px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .stamper-toolbar { position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: rgba(30,30,30,0.95); padding: 8px 15px; border-radius: 30px; border: 1px solid #555; white-space: nowrap; }
 
-        button { background: #2563eb; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.95rem; }
+        button { background: #2563eb; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:hover { background: #1d4ed8; }
         .tool-btn { background: #444; }
         .tool-btn.active { background: #10b981; }
-        .tool-btn:hover { background: #555; }
         .danger-btn { background: #dc2626; }
         
         #toolbar {
@@ -85,20 +123,15 @@
             border: 1px solid #444; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; flex-wrap: wrap;
         }
         
-        input[type="text"] { padding: 10px; border-radius: 5px; border: 1px solid #444; background: #222; color: white; width: 100px; text-align: center; font-size: 1rem; text-transform: uppercase;}
         .hidden-file { display: none; }
 
         @media (max-width: 768px) {
-            #ui-panel { top: 30%; left: 50%; transform: translate(-50%, -50%); width: 85%; padding: 15px; }
-            #setup-controls { flex-direction: column; width: 100%; }
-            #setup-controls button, #setup-controls input { width: 100%; box-sizing: border-box; }
             #toolbar { width: 95%; bottom: 10px; padding: 8px 10px; gap: 5px; border-radius: 15px; }
             button { padding: 6px 10px; font-size: 0.85rem; }
             .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
         }
         
-        /* Botón de emergencia para iPhone/Safari */
         .audio-unlock-btn {
             position: absolute; top: 20px; right: 20px; z-index: 9999;
             background: #10b981; color: white; padding: 15px 25px; 
@@ -111,17 +144,41 @@
 </head>
 <body>
 
-    <div id="ui-panel" class="floating-panel">
-        <h2 style="margin: 0 0 15px 0;">📐 MathBoard</h2>
-        <div id="setup-controls">
-            <button onclick="createRoom()">👨‍🏫 Crear Clase</button>
-            <input type="text" id="roomIdInput" placeholder="CÓDIGO" maxlength="4">
-            <button onclick="joinRoom()" style="background:#10b981;">🙋‍♂️ Unirse</button>
+    <!-- ================= PANTALLA DE ACCESO (ADMIN/ALUMNO) ================= -->
+    <div id="login-overlay">
+        <div class="login-box">
+            <div class="login-title">📐 MathBoard</div>
+            <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
+            
+            <div id="role-selection">
+                <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
+                <button class="role-btn btn-teacher" onclick="showTeacherForm()">👨‍🏫 Soy Profesor</button>
+            </div>
+
+            <!-- Formulario Alumno -->
+            <div id="form-student" class="auth-form">
+                <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO DE CLASE" maxlength="4">
+                <button class="role-btn btn-student" onclick="joinRoom()">Entrar a la Clase</button>
+                <button class="back-btn" onclick="goBack()">Volver atrás</button>
+            </div>
+
+            <!-- Formulario Profesor -->
+            <div id="form-teacher" class="auth-form">
+                <input type="password" id="adminPin" class="auth-input" placeholder="PIN SECRETO (2026)">
+                <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
+                <button class="back-btn" onclick="goBack()">Volver atrás</button>
+            </div>
         </div>
-        <div id="status-text" style="font-size: 0.9em; color: #4ade80; margin-top: 15px;">Alumnos: Giren el celular en horizontal</div>
     </div>
 
-    <!-- PDF PANEL -->
+    <!-- Info del sistema (Oculto al inicio) -->
+    <div id="ui-panel" class="floating-panel">
+        <div id="status-text" style="font-size: 1.2em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
+        <div id="room-code-display" style="font-size: 2rem; letter-spacing: 5px; margin: 10px 0; font-weight:bold; color:white; display:none;"></div>
+        <div style="font-size: 0.8em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
+    </div>
+
+    <!-- Visor de PDF (Solo Admin) -->
     <div id="pdf-panel" class="floating-panel">
         <div class="panel-header" id="pdf-header">
             <span>📄 PDF</span>
@@ -145,7 +202,7 @@
         </div>
     </div>
 
-    <!-- ESTAMPADOR -->
+    <!-- Estampador -->
     <div id="stamper">
         <div id="stamper-content">
             <img id="stamp-img" src="">
@@ -157,50 +214,90 @@
         </div>
     </div>
 
-    <!-- TOOLBAR -->
+    <!-- Toolbar Principal -->
     <div id="toolbar">
-        <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="display:none; background:#10b981;">🎙️ Mic On</button>
+        <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic On</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
         <div class="hide-mobile" style="width: 2px; height: 30px; background: #555; margin: 0 5px;"></div>
         
-        <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz">✏️</button>
-        <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Goma">🧼</button>
-        <input type="color" id="colorPicker" value="#ffffff" style="border-radius:50%;cursor:pointer;">
-        <input type="range" id="brushSize" min="1" max="15" value="4">
-        
-        <div style="width: 2px; height: 30px; background: #555; margin: 0 5px;"></div>
-        
-        <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-        <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 Abrir PDF</button>
-        <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
-        <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 Ver PDF</button>
-        
-        <button class="danger-btn" onclick="clearCanvas()" style="margin-left:5px;" title="Borrar Todo">🗑️</button>
+        <!-- Herramientas (Solo visibles para Profesor) -->
+        <div id="admin-tools" style="display:none; align-items:center; gap:10px;">
+            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz">✏️</button>
+            <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Goma">🧼</button>
+            <input type="color" id="colorPicker" value="#ffffff" style="border-radius:50%;cursor:pointer;">
+            <input type="range" id="brushSize" min="1" max="15" value="4">
+            
+            <div style="width: 2px; height: 30px; background: #555; margin: 0 5px;"></div>
+            
+            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
+            <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 Abrir PDF</button>
+            <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
+            <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 Ver PDF</button>
+            
+            <button class="danger-btn" onclick="clearCanvas()" style="margin-left:5px;" title="Borrar Todo">🗑️</button>
+        </div>
     </div>
 
-    <!-- CONTENEDOR MÁGICO 16:9 -->
+    <!-- CONTENEDOR 16:9 -->
     <div id="canvas-container">
         <canvas id="board" width="1920" height="1080"></canvas>
     </div>
 
     <script>
-        /* ================= CONFIGURACIÓN DE SERVIDORES DE RED (STUN) ================= */
-        // Esto permite que el audio pase por firewalls y funcione bien con 4G/5G en celulares
+        // CONFIGURACIÓN RED STUN
         const peerNetworkOptions = {
             config: {
                 'iceServers': [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' }
+                    { urls: 'stun:stun1.l.google.com:19302' }
                 ]
             }
         };
 
+        // VARIABLES GLOBALES
+        let isAdmin = false; // Define si el usuario activo es el profesor
+        
+        /* ================= 0. LÓGICA DE LOGIN Y ROLES ================= */
+        function showStudentForm() {
+            document.getElementById('role-selection').style.display = 'none';
+            document.getElementById('form-student').style.display = 'block';
+            document.getElementById('login-msg').innerText = "Ingresa el código que te dio el profesor";
+        }
+
+        function showTeacherForm() {
+            document.getElementById('role-selection').style.display = 'none';
+            document.getElementById('form-teacher').style.display = 'block';
+            document.getElementById('login-msg').innerText = "Ingresa el PIN de Administrador";
+        }
+
+        function goBack() {
+            document.getElementById('form-student').style.display = 'none';
+            document.getElementById('form-teacher').style.display = 'none';
+            document.getElementById('role-selection').style.display = 'block';
+            document.getElementById('login-msg').innerText = "Selecciona tu perfil para ingresar";
+            document.getElementById('adminPin').value = "";
+            document.getElementById('roomIdInput').value = "";
+        }
+
+        function verifyAdmin() {
+            const pin = document.getElementById('adminPin').value;
+            // Aquí definimos la clave de administrador
+            if (pin === "2026") {
+                isAdmin = true;
+                document.getElementById('admin-tools').style.display = 'flex';
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                
+                // Iniciar la sala automáticamente como Profesor
+                createRoom();
+            } else {
+                alert("PIN Incorrecto. Acceso denegado.");
+            }
+        }
+
         /* ================= 1. MOTOR GRÁFICO ================= */
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
-        const statusText = document.getElementById('status-text');
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         let isDrawing = false, currentTool = 'pen', myColor = '#ffffff', mySize = 4;
@@ -233,7 +330,7 @@
         window.addEventListener('pointerup', stopDrawing);
 
         function startDrawing(e) { 
-            if(e.target !== canvas) return; 
+            if(e.target !== canvas || !isAdmin) return; // SOLO EL ADMIN PUEDE DIBUJAR
             isDrawing = true; 
             const pos = getMousePos(e);
             ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
@@ -242,7 +339,7 @@
         }
 
         function draw(e) {
-            if (!isDrawing) return;
+            if (!isDrawing || !isAdmin) return;
             const pos = getMousePos(e);
             const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
             const finalSize = (currentTool === 'eraser' ? mySize * 8 : mySize) * (pressure * 1.5);
@@ -255,31 +352,19 @@
         }
         
         function stopDrawing() { if(!isDrawing) return; isDrawing = false; ctx.beginPath(); broadcastData({ type: 'stop' }); }
-        function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); broadcastData({ type: 'clear' }); }
+        function clearCanvas() { if(isAdmin) { ctx.clearRect(0, 0, canvas.width, canvas.height); broadcastData({ type: 'clear' }); } }
 
-        /* ================= 2. MOTOR DE AUDIO EXTREMO (Móviles & PC) ================= */
+        /* ================= 2. MOTOR DE AUDIO ================= */
         async function getMicrophone() {
-            if (!navigator.mediaDevices) { alert("Navegador no soporta micrófono seguro."); return false; }
+            if (!navigator.mediaDevices) return false;
             try { 
-                // Configuración de audio extrema para claridad de voz
                 localStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { 
-                        echoCancellation: true, 
-                        noiseSuppression: true, 
-                        autoGainControl: true,
-                        channelCount: 1, // Mono (ahorra datos en celulares)
-                        sampleRate: 48000 // Alta calidad
-                    }, 
+                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1, sampleRate: 48000 }, 
                     video: false 
                 }); 
-                document.getElementById('btn-mic').style.display = 'inline-block';
                 return true; 
             } 
-            catch(e) { 
-                console.warn(e); 
-                alert("Por favor, permite el acceso al micrófono en tu navegador."); 
-                return false; 
-            }
+            catch(e) { alert("Sin permisos de micrófono. No habrá voz."); return false; }
         }
 
         function toggleMic() {
@@ -294,31 +379,22 @@
 
         function playAudio(stream) { 
             const audio = document.createElement('audio'); 
-            audio.srcObject = stream; 
-            audio.autoplay = true; 
-            audio.playsInline = true; // REQUISITO ABSOLUTO PARA iOS
-            audio.controls = false;
+            audio.srcObject = stream; audio.autoplay = true; audio.playsInline = true; audio.controls = false;
             document.body.appendChild(audio); 
             
-            // Forzar play para detectar bloqueos de iPhone/Safari
             let playPromise = audio.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
-                    console.log("Audio bloqueado por celular. Solicitando interacción.");
-                    // Botón de emergencia para desbloquear audio
                     const unlockBtn = document.createElement('button');
                     unlockBtn.className = "audio-unlock-btn";
-                    unlockBtn.innerHTML = "🔊 Toca aquí para escuchar al profesor";
-                    unlockBtn.onclick = () => {
-                        audio.play();
-                        unlockBtn.remove();
-                    };
+                    unlockBtn.innerHTML = "🔊 Toca aquí para escuchar la clase";
+                    unlockBtn.onclick = () => { audio.play(); unlockBtn.remove(); };
                     document.body.appendChild(unlockBtn);
                 });
             }
         }
 
-        /* ================= 3. PDF Y RECORTE ================= */
+        /* ================= 3. PDF Y RECORTE (Solo se cargan las funciones, Admin tiene acceso UI) ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfCanvas.getContext('2d');
@@ -367,10 +443,8 @@
         let isCroppingMode = false, isDraggingCrop = false, startCropX, startCropY;
 
         function toggleCropMode() {
-            isCroppingMode = !isCroppingMode;
-            document.getElementById('btn-crop').classList.toggle('active', isCroppingMode);
-            cropOverlay.style.display = isCroppingMode ? 'block' : 'none';
-            if(!isCroppingMode) cropBox.style.display = 'none';
+            isCroppingMode = !isCroppingMode; document.getElementById('btn-crop').classList.toggle('active', isCroppingMode);
+            cropOverlay.style.display = isCroppingMode ? 'block' : 'none'; if(!isCroppingMode) cropBox.style.display = 'none';
         }
 
         cropOverlay.addEventListener('pointerdown', (e) => {
@@ -410,7 +484,6 @@
             }
         });
 
-        /* ================= 4. PEGAR EN PIZARRA CON PROPORCIÓN DE RED ================= */
         const stamper = document.getElementById('stamper');
         const stamperContent = document.getElementById('stamper-content');
         const resizeHandle = document.getElementById('resize-handle');
@@ -420,40 +493,22 @@
             if (e.target === resizeHandle) return; e.preventDefault(); isDraggingStamp = true;
             stampStartX = e.clientX - stamper.offsetLeft; stampStartY = e.clientY - stamper.offsetTop;
         });
-        window.addEventListener('pointermove', (e) => {
-            if (isDraggingStamp) { stamper.style.left = (e.clientX - stampStartX) + 'px'; stamper.style.top = (e.clientY - stampStartY) + 'px'; }
-        });
+        window.addEventListener('pointermove', (e) => { if (isDraggingStamp) { stamper.style.left = (e.clientX - stampStartX) + 'px'; stamper.style.top = (e.clientY - stampStartY) + 'px'; } });
         window.addEventListener('pointerup', () => { isDraggingStamp = false; });
 
         let isResizingStamp = false, startW, startH, startX, startY;
-        resizeHandle.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); e.stopPropagation(); isResizingStamp = true;
-            startW = stamperContent.offsetWidth; startH = stamperContent.offsetHeight; startX = e.clientX; startY = e.clientY;
-        });
-        window.addEventListener('pointermove', (e) => {
-            if (isResizingStamp) {
-                const diffX = e.clientX - startX; const ratio = startW / startH;
-                let newW = startW + diffX; let newH = newW / ratio;
-                if (newW > 50) { stamperContent.style.width = newW + 'px'; stamperContent.style.height = newH + 'px'; }
-            }
-        });
+        resizeHandle.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); isResizingStamp = true; startW = stamperContent.offsetWidth; startH = stamperContent.offsetHeight; startX = e.clientX; startY = e.clientY; });
+        window.addEventListener('pointermove', (e) => { if (isResizingStamp) { const diffX = e.clientX - startX; const ratio = startW / startH; let newW = startW + diffX; let newH = newW / ratio; if (newW > 50) { stamperContent.style.width = newW + 'px'; stamperContent.style.height = newH + 'px'; } } });
         window.addEventListener('pointerup', () => { isResizingStamp = false; });
 
         function applyStamp() {
             const img = document.getElementById('stamp-img');
-            const rect = stamperContent.getBoundingClientRect();
-            const canvasRect = canvas.getBoundingClientRect();
+            const rect = stamperContent.getBoundingClientRect(); const canvasRect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / canvasRect.width; const scaleY = canvas.height / canvasRect.height;
+            const realX = (rect.left - canvasRect.left) * scaleX; const realY = (rect.top - canvasRect.top) * scaleY;
+            const realW = rect.width * scaleX; const realH = rect.height * scaleY;
             
-            const scaleX = canvas.width / canvasRect.width;
-            const scaleY = canvas.height / canvasRect.height;
-            
-            const realX = (rect.left - canvasRect.left) * scaleX;
-            const realY = (rect.top - canvasRect.top) * scaleY;
-            const realW = rect.width * scaleX;
-            const realH = rect.height * scaleY;
-            
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.drawImage(img, realX, realY, realW, realH);
+            ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, realX, realY, realW, realH);
             ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
             
             broadcastData({ type: 'image', src: img.src, x: realX, y: realY, w: realW, h: realH });
@@ -461,7 +516,7 @@
         }
         function cancelStamp() { stamper.style.display = 'none'; }
 
-        /* ================= 5. CONEXIÓN ALUMNOS CON STUN ================= */
+        /* ================= 4. CONEXIÓN (PEERJS) ================= */
         function drawRemote(data) {
             if (data.type === 'clear') return ctx.clearRect(0, 0, canvas.width, canvas.height);
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
@@ -480,16 +535,21 @@
         }
 
         async function createRoom() {
-            const micOk = await getMicrophone();
-            if(!micOk) return;
-
+            await getMicrophone();
+            document.getElementById('toolbar').style.display = 'flex';
+            if(window.innerWidth <= 768) { document.getElementById('btn-open-pdf-mobile').style.display = 'inline-block'; }
+            
             peer = new Peer(Math.random().toString(36).substring(2, 6).toUpperCase(), peerNetworkOptions);
             
             peer.on('open', (id) => {
-                document.getElementById('ui-panel').style.opacity = '0';
-                setTimeout(() => document.getElementById('ui-panel').style.display = 'none', 500);
-                if(window.innerWidth <= 768) { document.getElementById('btn-open-pdf-mobile').style.display = 'inline-block'; }
-                alert(`¡Clase Creada Exitosamente!\n\nCÓDIGO: ${id}`);
+                document.getElementById('ui-panel').style.display = 'block';
+                document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO:";
+                const codeDisplay = document.getElementById('room-code-display');
+                codeDisplay.innerText = id;
+                codeDisplay.style.display = 'block';
+                
+                // Ocultar info despues de unos segundos
+                setTimeout(() => { document.getElementById('ui-panel').style.opacity = '0'; setTimeout(() => document.getElementById('ui-panel').style.display = 'none', 500); }, 15000);
             });
             peer.on('connection', (conn) => { connections.push(conn); conn.on('data', drawRemote); });
             peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
@@ -497,14 +557,21 @@
 
         async function joinRoom() {
             const roomId = document.getElementById('roomIdInput').value.toUpperCase();
-            if (!roomId) return;
+            if (!roomId) return alert("Ingresa un código");
             
-            const micOk = await getMicrophone();
-            if(!micOk) return;
+            const btn = document.querySelector('#form-student button');
+            btn.innerText = "Conectando...";
+            btn.disabled = true;
 
+            await getMicrophone();
             peer = new Peer(peerNetworkOptions);
+            
             peer.on('open', () => {
-                document.getElementById('ui-panel').style.display = 'none';
+                // Alumno entró, quitar el login
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                document.getElementById('toolbar').style.display = 'flex';
+                
                 const conn = peer.connect(roomId); connections.push(conn);
                 conn.on('data', drawRemote);
                 if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
