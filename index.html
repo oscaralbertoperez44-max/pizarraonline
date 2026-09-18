@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - La Pizarra Definitiva</title>
+    <title>MathBoard Pro — Pizarra Matemática Profesional</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -118,6 +118,54 @@
         
         .hidden-file { display: none; }
 
+        /* ===== Herramientas geométricas y buscador de fórmulas ===== */
+        .shape-tools {
+            display: flex; align-items: center; gap: 4px;
+            padding: 3px; background: #111; border-radius: 7px;
+        }
+        .shape-tools .tool-btn { min-width: 34px; }
+        .shape-tools .tool-btn.active {
+            background: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245,158,11,.22);
+        }
+        #formula-search {
+            margin: 10px 15px 0;
+            width: calc(100% - 30px);
+            box-sizing: border-box;
+            padding: 10px 12px;
+            border: 1px solid #3a3a3a;
+            border-radius: 8px;
+            background: #101010;
+            color: #fff;
+            outline: none;
+            font-size: .9rem;
+        }
+        #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+        .formula-count {
+            padding: 6px 15px 0;
+            color: #777;
+            font-size: .7rem;
+            text-align: right;
+        }
+        .shape-hint {
+            position: fixed; top: 12px; left: 50%;
+            transform: translateX(-50%);
+            z-index: 100;
+            display: none;
+            padding: 7px 12px;
+            border-radius: 20px;
+            background: rgba(17,17,17,.92);
+            border: 1px solid #444;
+            color: #ddd;
+            font-size: .75rem;
+            pointer-events: none;
+            backdrop-filter: blur(8px);
+        }
+        @media (max-width: 900px) {
+            .shape-tools { max-width: 100%; overflow-x: auto; }
+            #formula-search { font-size: .85rem; }
+        }
+
         @media (max-width: 900px) {
             #toolbar { width: 95%; bottom: 5px; padding: 6px; gap: 4px; border-radius: 12px; }
             button { padding: 5px 8px; font-size: 0.8rem; }
@@ -171,7 +219,15 @@
             <button class="f-tab" onclick="loadFormulas('calculus', this)">Cálculo</button>
             <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
             <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
+            <button class="f-tab" onclick="loadFormulas('arithmetic', this)">Aritmética</button>
+            <button class="f-tab" onclick="loadFormulas('matrices', this)">Matrices</button>
+            <button class="f-tab" onclick="loadFormulas('vectors', this)">Vectores</button>
+            <button class="f-tab" onclick="loadFormulas('discrete', this)">Discreta</button>
+            <button class="f-tab" onclick="loadFormulas('number_theory', this)">Números</button>
+            <button class="f-tab" onclick="loadFormulas('financial', this)">Financiera</button>
         </div>
+        <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula, tema o palabra clave..." autocomplete="off">
+        <div class="formula-count" id="formula-count"></div>
         <div class="formula-grid" id="formula-grid-container">
             <!-- Cargadas por JavaScript -->
         </div>
@@ -226,6 +282,16 @@
         <div id="admin-tools" style="display:none; align-items:center; gap:5px;">
             <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
+
+            <div class="shape-tools" title="Dibujo geométrico">
+                <button id="btn-line" class="tool-btn" onclick="setTool('line')" title="Recta / segmento" aria-label="Recta / segmento">╱</button>
+                <button id="btn-arrow" class="tool-btn" onclick="setTool('arrow')" title="Flecha">➜</button>
+                <button id="btn-rect" class="tool-btn" onclick="setTool('rect')" title="Rectángulo">▭</button>
+                <button id="btn-circle" class="tool-btn" onclick="setTool('circle')" title="Círculo">○</button>
+                <button id="btn-ellipse" class="tool-btn" onclick="setTool('ellipse')" title="Elipse">⬭</button>
+                <button id="btn-triangle" class="tool-btn" onclick="setTool('triangle')" title="Triángulo">△</button>
+                <button id="btn-grid-shape" class="tool-btn" onclick="setTool('grid')" title="Cuadrícula">▦</button>
+            </div>
             
             <input type="color" id="colorPicker" value="#ffffff" title="Color">
             
@@ -356,60 +422,307 @@
         canvas.addEventListener('pointermove', draw);
         window.addEventListener('pointerup', stopDrawing);
 
-        function startDrawing(e) { 
-            if(e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return; 
-            isDrawing = true; 
+        let shapeStart = null;
+        let shapePreview = null;
+
+        const drawingTools = ['pen','eraser','line','arrow','rect','circle','ellipse','triangle','grid'];
+
+        function updateToolButtons(tool) {
+            drawingTools.forEach(t => {
+                const el = document.getElementById('btn-' + t);
+                if (el) el.classList.toggle('active', tool === t);
+            });
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            updateToolButtons(tool);
+            const isPenLike = tool === 'pen';
+            const isEraser = tool === 'eraser';
+
+            canvas.style.cursor = isEraser ? 'cell' :
+                drawingTools.includes(tool) ? 'crosshair' : 'default';
+
+            if (isPenLike) {
+                toolSizeSlider.min = 1; toolSizeSlider.max = 20;
+                toolSizeSlider.value = penSize; sliderLabel.innerText = 'Lápiz';
+            } else if (isEraser) {
+                toolSizeSlider.min = 20; toolSizeSlider.max = 150;
+                toolSizeSlider.value = eraserSize; sliderLabel.innerText = 'Goma';
+            } else {
+                toolSizeSlider.min = 1; toolSizeSlider.max = 12;
+                toolSizeSlider.value = Math.min(12, penSize);
+                sliderLabel.innerText = 'Trazo';
+            }
+
+            const labels = {
+                line: 'Recta: arrastra desde un punto hasta otro',
+                arrow: 'Flecha: arrastra desde el origen hasta el extremo',
+                rect: 'Rectángulo: arrastra para definir sus esquinas',
+                circle: 'Círculo: arrastra desde el centro hasta el radio',
+                ellipse: 'Elipse: arrastra para definir ancho y alto',
+                triangle: 'Triángulo: arrastra para definir la base y altura',
+                grid: 'Cuadrícula: arrastra para definir el área'
+            };
+            const hint = document.getElementById('shape-hint');
+            if (labels[tool]) {
+                hint.textContent = labels[tool];
+                hint.style.display = 'block';
+                clearTimeout(window.__shapeHintTimer);
+                window.__shapeHintTimer = setTimeout(() => hint.style.display = 'none', 2200);
+            } else {
+                hint.style.display = 'none';
+            }
+        }
+
+        document.getElementById('colorPicker').addEventListener('change', (e) => {
+            myColor = e.target.value;
+            setTool('pen');
+        });
+
+        function prepareStroke(color = myColor, size = penSize) {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.strokeStyle = color;
+            ctx.fillStyle = color;
+            ctx.lineWidth = size;
+            ctx.shadowBlur = Math.min(size * 0.4, 8);
+            ctx.shadowColor = color;
+            ctx.globalAlpha = 0.88;
+        }
+
+        function drawArrowHead(x1, y1, x2, y2, size) {
+            const angle = Math.atan2(y2-y1, x2-x1);
+            const head = Math.max(10, size * 4);
+            ctx.beginPath();
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - head*Math.cos(angle-Math.PI/6), y2 - head*Math.sin(angle-Math.PI/6));
+            ctx.moveTo(x2, y2);
+            ctx.lineTo(x2 - head*Math.cos(angle+Math.PI/6), y2 - head*Math.sin(angle+Math.PI/6));
+            ctx.stroke();
+        }
+
+        function drawShape(targetCtx, type, x1, y1, x2, y2, color, size, preview=false) {
+            targetCtx.save();
+            targetCtx.lineCap = 'round';
+            targetCtx.lineJoin = 'round';
+            targetCtx.globalCompositeOperation = 'source-over';
+            targetCtx.strokeStyle = color;
+            targetCtx.lineWidth = size;
+            targetCtx.globalAlpha = preview ? 0.55 : 0.9;
+            targetCtx.shadowBlur = preview ? 0 : Math.min(size * .35, 6);
+            targetCtx.shadowColor = color;
+
+            const left = Math.min(x1,x2), top = Math.min(y1,y2);
+            const w = Math.abs(x2-x1), h = Math.abs(y2-y1);
+
+            targetCtx.beginPath();
+            if (type === 'line' || type === 'arrow') {
+                targetCtx.moveTo(x1,y1); targetCtx.lineTo(x2,y2); targetCtx.stroke();
+                if (type === 'arrow') drawArrowHead.call(null, x1,y1,x2,y2,size);
+            } else if (type === 'rect') {
+                targetCtx.strokeRect(left, top, w, h);
+            } else if (type === 'circle') {
+                const r = Math.hypot(x2-x1, y2-y1);
+                targetCtx.arc(x1, y1, r, 0, Math.PI*2); targetCtx.stroke();
+            } else if (type === 'ellipse') {
+                targetCtx.ellipse((x1+x2)/2, (y1+y2)/2, Math.max(w/2,1), Math.max(h/2,1), 0, 0, Math.PI*2);
+                targetCtx.stroke();
+            } else if (type === 'triangle') {
+                const bx = (x1+x2)/2;
+                targetCtx.moveTo(bx, y1);
+                targetCtx.lineTo(x2, y2);
+                targetCtx.lineTo(x1, y2);
+                targetCtx.closePath();
+                targetCtx.stroke();
+            } else if (type === 'grid') {
+                const step = Math.max(15, 30);
+                for (let x=left; x<=left+w; x+=step) {
+                    targetCtx.moveTo(x,top); targetCtx.lineTo(x,top+h);
+                }
+                for (let y=top; y<=top+h; y+=step) {
+                    targetCtx.moveTo(left,y); targetCtx.lineTo(left+w,y);
+                }
+                targetCtx.stroke();
+                targetCtx.strokeRect(left,top,w,h);
+            }
+            targetCtx.restore();
+        }
+
+        function getCanvasPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
+        }
+
+        canvas.addEventListener('pointerdown', startDrawing);
+        canvas.addEventListener('pointermove', draw);
+        window.addEventListener('pointerup', stopDrawing);
+
+        function startDrawing(e) {
+            if (e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return;
+            isDrawing = true;
+            canvas.setPointerCapture?.(e.pointerId);
             const pos = getCanvasPos(e);
-            ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
-            broadcastData({ type: 'start', x: pos.x, y: pos.y }); 
-            draw(e); 
+
+            if (['line','arrow','rect','circle','ellipse','triangle','grid'].includes(currentTool)) {
+                shapeStart = pos;
+                shapePreview = document.createElement('canvas');
+                shapePreview.width = canvas.width;
+                shapePreview.height = canvas.height;
+                shapePreview.getContext('2d').drawImage(canvas, 0, 0);
+                return;
+            }
+
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            broadcastData({ type:'start', x:pos.x, y:pos.y });
+            draw(e);
         }
 
         function draw(e) {
             if (!isDrawing || !isAdmin || e.pointerType === 'touch') return;
             const pos = getCanvasPos(e);
-            const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
-            const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
 
-            ctx.lineWidth = finalSize; 
+            if (shapeStart) {
+                // Restaurar el lienzo antes de cada previsualización.
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(shapePreview, 0, 0);
+                drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor,
+                    Number(toolSizeSlider.value) || penSize, true);
+                return;
+            }
+
+            const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1;
+            const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
+            ctx.lineWidth = finalSize;
 
             if (currentTool !== 'eraser') {
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.strokeStyle = myColor;
-                ctx.shadowBlur = finalSize * 0.4; 
+                ctx.shadowBlur = finalSize * 0.4;
                 ctx.shadowColor = myColor;
-                ctx.globalAlpha = 0.85; 
+                ctx.globalAlpha = 0.85;
             } else {
                 ctx.globalCompositeOperation = 'destination-out';
-                ctx.shadowBlur = 0; 
+                ctx.shadowBlur = 0;
                 ctx.globalAlpha = 1.0;
             }
-            
-            ctx.lineTo(pos.x, pos.y); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
-            
-            broadcastData({ type: 'draw', x: pos.x, y: pos.y, color: myColor, size: finalSize, tool: currentTool });
+
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            broadcastData({ type:'draw', x:pos.x, y:pos.y, color:myColor, size:finalSize, tool:currentTool });
         }
-        
-        function stopDrawing(e) { 
-            if(!isDrawing || e.pointerType === 'touch') return; 
-            isDrawing = false; 
-            ctx.beginPath(); 
-            ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
-            broadcastData({ type: 'stop' }); 
+
+        function stopDrawing(e) {
+            if (!isDrawing || (e && e.pointerType === 'touch')) return;
+
+            if (shapeStart) {
+                const pos = getCanvasPos(e);
+                const size = Number(toolSizeSlider.value) || penSize;
+
+                // Recuperamos la imagen limpia que había antes de la previsualización.
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(shapePreview, 0, 0);
+                drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor, size);
+
+                broadcastData({
+                    type:'shape',
+                    shape: currentTool,
+                    x1:shapeStart.x, y1:shapeStart.y,
+                    x2:pos.x, y2:pos.y,
+                    color:myColor, size:size
+                });
+
+                shapeStart = null;
+                shapePreview = null;
+            } else {
+                ctx.beginPath();
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1.0;
+                broadcastData({ type:'stop' });
+            }
+            isDrawing = false;
         }
-        function clearCanvas() { if(isAdmin) { ctx.clearRect(0, 0, canvas.width, canvas.height); broadcastData({ type: 'clear' }); } }
+
+        function clearCanvas() {
+            if(isAdmin) {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                broadcastData({ type:'clear' });
+            }
+        }
 
         /* ================= BASE DE DATOS DE FÓRMULAS ÉPICA ================= */
         const mathFormulas = {
+
+            arithmetic: [
+                { name: "Regla de tres", eq: "x = (b·c) / a" },
+                { name: "Porcentaje", eq: "p% de N = (p/100)·N" },
+                { name: "MCD por Euclides", eq: "mcd(a,b) = mcd(b, a mod b)" },
+                { name: "MCM", eq: "mcm(a,b) = |ab| / mcd(a,b)" },
+                { name: "Valor absoluto", eq: "|x| = x si x≥0; |x| = -x si x<0" },
+                { name: "Potencia de potencia", eq: "(a^m)^n = a^(mn)" },
+                { name: "Producto de potencias", eq: "a^m·a^n = a^(m+n)" },
+                { name: "Cociente de potencias", eq: "a^m/a^n = a^(m-n)" },
+                { name: "Raíz como potencia", eq: "ⁿ√a = a^(1/n)" },
+                { name: "Progresión aritmética", eq: "a_n = a_1 + (n-1)d" },
+                { name: "Progresión geométrica", eq: "a_n = a_1·r^(n-1)" }
+            ],
+            matrices: [
+                { name: "Suma de matrices", eq: "(A+B)ᵢⱼ = aᵢⱼ + bᵢⱼ" },
+                { name: "Producto de matrices", eq: "(AB)ᵢⱼ = Σₖ aᵢₖbₖⱼ" },
+                { name: "Determinante 2×2", eq: "det(A) = ad - bc" },
+                { name: "Matriz inversa 2×2", eq: "A⁻¹ = 1/(ad-bc) · [[d,-b],[-c,a]]" },
+                { name: "Traza", eq: "tr(A) = Σᵢ aᵢᵢ" },
+                { name: "Transpuesta", eq: "(Aᵀ)ᵢⱼ = aⱼᵢ" },
+                { name: "Determinante por cofactores", eq: "det(A) = Σⱼ aᵢⱼCᵢⱼ" },
+                { name: "Valores propios", eq: "det(A - λI) = 0" }
+            ],
+            vectors: [
+                { name: "Módulo de vector", eq: "||v|| = √(v₁² + v₂² + ··· + vₙ²)" },
+                { name: "Producto escalar", eq: "u·v = Σᵢ uᵢvᵢ" },
+                { name: "Ángulo entre vectores", eq: "cos θ = (u·v)/(||u||·||v||)" },
+                { name: "Producto vectorial", eq: "u×v = (u₂v₃-u₃v₂, u₃v₁-u₁v₃, u₁v₂-u₂v₁)" },
+                { name: "Proyección", eq: "proj_v(u) = (u·v)/(v·v) · v" },
+                { name: "Distancia entre vectores", eq: "d(u,v) = ||u-v||" }
+            ],
+            discrete: [
+                { name: "Permutaciones", eq: "P(n,r) = n!/(n-r)!" },
+                { name: "Combinaciones", eq: "C(n,r) = n!/[r!(n-r)!]" },
+                { name: "Principio multiplicativo", eq: "N = n₁·n₂·...·nₖ" },
+                { name: "Principio de inclusión-exclusión", eq: "|A∪B| = |A| + |B| - |A∩B|" },
+                { name: "Binomio de Newton", eq: "(a+b)^n = Σₖ C(n,k)a^(n-k)b^k" },
+                { name: "Recurrencia lineal", eq: "aₙ = c₁aₙ₋₁ + ··· + cₖaₙ₋ₖ" },
+                { name: "Grado de un vértice", eq: "deg(v) = número de aristas incidentes" }
+            ],
+            number_theory: [
+                { name: "Teorema fundamental", eq: "n = p₁^a¹·p₂^a²·...·pₖ^aᵏ" },
+                { name: "Congruencia", eq: "a ≡ b (mod n) ⇔ n | (a-b)" },
+                { name: "Pequeño teorema de Fermat", eq: "a^(p-1) ≡ 1 (mod p)" },
+                { name: "Función phi de Euler", eq: "φ(n) = n·∏_{p|n}(1 - 1/p)" },
+                { name: "Divisibilidad", eq: "a|b ⇔ b = ak, k∈ℤ" },
+                { name: "Identidad de Bézout", eq: "ax + by = mcd(a,b)" }
+            ],
+            financial: [
+                { name: "Interés simple", eq: "I = C·i·t" },
+                { name: "Monto simple", eq: "M = C(1 + i·t)" },
+                { name: "Interés compuesto", eq: "M = C(1+i)^n" },
+                { name: "Valor presente", eq: "VP = VF/(1+i)^n" },
+                { name: "Valor futuro", eq: "VF = VP(1+i)^n" },
+                { name: "Anualidad", eq: "VF = R·[(1+i)^n - 1]/i" }
+            ],
             algebra: [
-                { name: "Fórmula Cuadrática", eq: "x = (-b ± √(b² - 4ac)) / 2a" },
+                { name: "Fórmula Cuadrática", eq: "x = (-b ± √(b² - 4ac)) / (2a)" },
                 { name: "Binomio al Cuadrado", eq: "(a ± b)² = a² ± 2ab + b²" },
                 { name: "Diferencia de Cuadrados", eq: "a² - b² = (a - b)(a + b)" },
                 { name: "Propiedad de Logaritmos", eq: "log_b(x·y) = log_b(x) + log_b(y)" },
                 { name: "Cambio de Base (Log)", eq: "log_b(x) = log_c(x) / log_c(b)" },
                 { name: "Suma Serie Aritmética", eq: "S_n = n/2 · (a_1 + a_n)" },
-                { name: "Suma Serie Geométrica", eq: "S_n = a_1 · (1 - r^n) / (1 - r)" },
+                { name: "Suma Serie Geométrica", eq: "S_n = a₁(1-rⁿ)/(1-r), r≠1" },
                 { name: "Número Complejo", eq: "z = a + bi" },
                 { name: "Fórmula de De Moivre", eq: "[r(cos θ + i sin θ)]^n = r^n(cos nθ + i sin nθ)" }
             ],
@@ -489,21 +802,42 @@
             }
         }
 
+        let activeFormulaCategory = 'algebra';
+
         function loadFormulas(category, tabBtn) {
+            activeFormulaCategory = category;
             document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
-            tabBtn.classList.add('active');
-            
+            if (tabBtn) tabBtn.classList.add('active');
+            renderFormulaList();
+        }
+
+        function renderFormulaList() {
             const grid = document.getElementById('formula-grid-container');
-            grid.innerHTML = ''; // Limpiar grilla
-            
-            mathFormulas[category].forEach(f => {
+            const query = (document.getElementById('formula-search')?.value || '').trim().toLowerCase();
+            const list = mathFormulas[activeFormulaCategory] || [];
+            const filtered = list.filter(f =>
+                !query ||
+                f.name.toLowerCase().includes(query) ||
+                f.eq.toLowerCase().includes(query)
+            );
+
+            grid.innerHTML = '';
+            filtered.forEach(f => {
                 const btn = document.createElement('button');
                 btn.className = 'f-btn';
                 btn.innerHTML = `<span class="f-title">${f.name}</span>${f.eq}`;
-                // Solo el profe puede estampar fórmulas para evitar troleos de alumnos
-                btn.onclick = () => { if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede pegar fórmulas en la pizarra."); };
+                btn.onclick = () => {
+                    if(isAdmin) renderFormulaToStamp(f.eq);
+                    else alert("Solo el profesor puede pegar fórmulas en la pizarra.");
+                };
                 grid.appendChild(btn);
             });
+
+            const count = document.getElementById('formula-count');
+            if (count) count.textContent = `${filtered.length} fórmula${filtered.length === 1 ? '' : 's'}`;
+        }
+
+        document.getElementById('formula-search')?.addEventListener('input', renderFormulaList););
         }
 
         // MOTOR DE ESTAMPADO DE TEXTO MATEMÁTICO
@@ -819,6 +1153,13 @@
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
             if (data.type === 'stop') { ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return; }
             
+            if (data.type === 'shape') {
+                drawShape(ctx, data.shape, data.x1, data.y1, data.x2, data.y2, data.color, data.size);
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1.0;
+                return;
+            }
+
             if (data.type === 'image') {
                 const img = new Image();
                 img.onload = () => { 
@@ -901,6 +1242,7 @@
             function elementTouchDrag(e) { pos1 = pos3 - e.touches[0].clientX; pos2 = pos4 - e.touches[0].clientY; pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; }
             function closeDragElement() { document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null; }
         }
+        renderFormulaList();
         makeDraggable(pdfPanel, document.getElementById('pdf-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
 
@@ -908,5 +1250,6 @@
             el.addEventListener('pointerdown', e => e.stopPropagation()); el.addEventListener('touchstart', e => e.stopPropagation(), {passive: false});
         });
     </script>
+<div id="shape-hint" class="shape-hint"></div>
 </body>
 </html>
