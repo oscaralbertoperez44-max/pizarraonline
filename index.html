@@ -25,7 +25,7 @@
             overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
             background-color: #f8fafc;
         }
-        #canvas-container::-webkit-scrollbar { width: 12px; }
+        #canvas-container::-webkit-scrollbar { width: 10px; }
         #canvas-container::-webkit-scrollbar-track { background: #f1f5f9; border-left: 1px solid #cbd5e1; }
         #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 8px; border: 2px solid #f1f5f9; }
         
@@ -45,68 +45,53 @@
 
         /* Banner Creador */
         #creator-banner {
-            position: fixed;
-            top: 15px;
-            right: 20px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(59, 130, 246, 0.4);
-            color: #e2e8f0;
-            padding: 8px 18px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            letter-spacing: 0.5px;
-            backdrop-filter: blur(8px);
-            z-index: 9998;
+            position: fixed; top: 15px; right: 20px;
+            background: rgba(15, 23, 42, 0.85); border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #e2e8f0; padding: 8px 16px; border-radius: 20px;
+            font-size: 0.8rem; font-weight: 600; letter-spacing: 0.5px;
+            backdrop-filter: blur(8px); z-index: 9998;
             transition: opacity 0.4s ease, transform 0.4s ease;
-            pointer-events: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            display: flex;
-            align-items: center;
-            gap: 8px;
+            pointer-events: none; box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            display: flex; align-items: center; gap: 8px;
         }
-        .banner-hidden { 
-            opacity: 0 !important; 
-            transform: translateY(-10px);
-        }
+        .banner-hidden { opacity: 0 !important; transform: translateY(-10px); }
 
         #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
-        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; }
+        .login-box { background: #1a1a1a; color: #fff; padding: 35px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; }
         .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
-        .login-subtitle { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
-        .role-btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
+        .login-subtitle { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
+        .role-btn { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
         .btn-student { background: #2563eb; color: white; }
         .btn-student:hover { background: #1d4ed8; }
         .btn-teacher { background: #10b981; color: white; }
         .btn-teacher:hover { background: #059669; }
-        .auth-form { display: none; margin-top: 20px; animation: fadeIn 0.3s; }
+        .auth-form { display: none; margin-top: 15px; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; }
         .auth-input:focus { outline: 2px solid #3b82f6; }
-        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; border: none; cursor: pointer; }
+        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 10px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
         
-        #ui-panel, #toolbar { display: none; }
+        #ui-panel, #toolbar, .mobile-write-tools { display: none; }
 
-        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
-        .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
+        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
+        .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
         /* Panel del Código de la clase */
         #ui-panel { 
             top: 20px; left: 20px; padding: 20px; 
             text-align: center; background: rgba(15, 23, 42, 0.95); 
-            border: 1px solid #3b82f6; border-radius: 12px;
+            border: 1px solid #3b82f6; border-radius: 16px;
             transition: opacity 1s ease; 
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
-        #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
+        #pdf-panel { top: 80px; left: 30px; width: 450px; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
-        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
-        #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
+        #formulas-panel { top: 80px; right: 30px; width: 450px; max-height: 85vh; overflow: hidden; }
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
@@ -123,49 +108,37 @@
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
-        .stamper-toolbar button { touch-action: manipulation; }
 
-        /* Toolbar general */
-        button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
+        /* Botones Base */
+        button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
-        .tool-btn { background: #334155; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 8px;}
+        .tool-btn { background: #334155; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 10px;}
         .tool-btn.active { background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.3); }
         .danger-btn { background: #dc2626; color: #fff; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
-        /* BARRA DEL PROFESOR OPTIMIZADA (Estilo Isla) */
+        /* === BARRA SUPERIOR DEL PROFESOR (ENCIMADA Y ACHICADA) === */
         #toolbar {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.95); padding: 8px 16px;
-            border-radius: 30px; display: flex; gap: 8px; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 50;
-            backdrop-filter: blur(12px);
-            max-width: 95vw;
-            overflow-x: auto;
-            white-space: nowrap;
+            position: fixed; bottom: 65px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95); padding: 6px 14px;
+            border-radius: 25px; display: flex; gap: 6px; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 25px rgba(0,0,0,0.25); z-index: 50;
+            backdrop-filter: blur(10px);
+            max-width: 95vw; overflow-x: auto; white-space: nowrap;
         }
-        /* Para ocultar scrollbar en la barra si hay scroll */
         #toolbar::-webkit-scrollbar { display: none; }
-        
-        .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 55px; }
-        .slider-label { font-size: 0.55rem; color: #94a3b8; margin-bottom: 2px; font-weight: bold; text-transform: uppercase; }
-        input[type="color"] { width: 30px; height: 30px; border: none; border-radius: 50%; padding: 0; cursor: pointer; flex-shrink: 0; background: transparent; }
-        input[type="range"] { width: 65px; height: 4px; accent-color: #3b82f6; flex-shrink: 0; cursor: pointer; }
+        #toolbar .tool-btn { padding: 5px 10px; font-size: 0.8rem; }
         
         .hidden-file { display: none; }
-
         #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
         #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
         .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
-        #formulas-panel { width: min(430px, 38vw) !important; max-height: min(72vh, 760px) !important; overflow: hidden; z-index: 50; }
-        #formulas-panel .panel-body { max-height: calc(min(72vh, 760px) - 90px); overflow-y: auto; overflow-x: hidden; }
-
         @media (max-width: 900px) {
             #formula-search { font-size: .85rem; }
-            #toolbar { width: max-content; max-width: 95vw; bottom: 12px; padding: 6px 12px; gap: 6px; border-radius: 25px; }
-            button { padding: 6px 10px; font-size: 0.8rem; }
+            #toolbar { bottom: 60px; padding: 5px 10px; gap: 5px; border-radius: 20px; }
+            #toolbar .tool-btn { padding: 5px 8px; font-size: 0.75rem; }
             .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
             #formulas-panel { width: 92vw !important; max-height:66vh !important; }
@@ -182,68 +155,32 @@
         .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
         .formula-card-actions button:hover{background:rgba(139,92,246,.25);}
 
-        #formulas-panel{overscroll-behavior:contain;}
-        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
-
-        #pdf-panel canvas, #pdf-panel .pdf-page canvas, #pdf-viewer canvas { image-rendering: auto !important; image-rendering: -webkit-optimize-contrast !important; }
-        #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
-        #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
-
-/* === BARRA DE ESCRITURA UNIVERSAL (ALUMNO Y PROFESOR) === */
-.mobile-write-tools {
-  display: flex;
-  position: fixed;
-  bottom: 15px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 9999;
-  gap: 8px;
-  padding: 8px 16px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 30px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
-  align-items: center;
-  backdrop-filter: blur(12px);
-  max-width: 95vw;
-  overflow-x: auto;
-}
-.mobile-write-tools::-webkit-scrollbar { display: none; }
-
-.mobile-write-tools button {
-  min-width: 44px;
-  min-height: 42px;
-  border: 0;
-  border-radius: 12px;
-  padding: 6px 12px;
-  font-size: 16px;
-  color: #fff;
-  background: #334155;
-  cursor: pointer;
-  transition: 0.2s;
-}
-.mobile-write-tools button.active {
-  outline: 2px solid #3b82f6;
-  background: #2563eb;
-}
-.mobile-write-tools input[type="range"] { width: 90px; cursor: pointer; }
-.mobile-write-tools input[type="color"] {
-  width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer;
-}
-.mobile-write-hint {
-  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; font-size: 12px;
-  z-index: 9998; pointer-events: none; display: none;
-}
-
-.audio-unlock-btn {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
-    padding: 20px 30px; font-size: 1.2rem; font-weight: bold; background: #2563eb; color: #fff;
-    border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer;
-    animation: pulseAudio 2s infinite;
-}
-@keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
-</style>
+        /* === BARRA DE ESCRITURA UNIVERSAL (ABAJO, ALUMNO Y PROFESOR) === */
+        .mobile-write-tools {
+            position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+            z-index: 9999; gap: 8px; padding: 6px 14px;
+            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.15);
+            border-radius: 25px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            align-items: center; backdrop-filter: blur(12px);
+            max-width: 95vw; overflow-x: auto;
+        }
+        .mobile-write-tools::-webkit-scrollbar { display: none; }
+        .mobile-write-tools button {
+            min-width: 40px; min-height: 38px; border: 0; border-radius: 10px;
+            padding: 5px 10px; font-size: 15px; color: #fff; background: #334155; cursor: pointer; transition: 0.2s;
+        }
+        .mobile-write-tools button.active { outline: 2px solid #3b82f6; background: #2563eb; }
+        .mobile-write-tools input[type="range"] { width: 80px; cursor: pointer; accent-color: #3b82f6;}
+        .mobile-write-tools input[type="color"] { width: 32px; height: 32px; border: 0; padding: 0; border-radius: 8px; background: transparent; cursor: pointer; }
+        
+        .audio-unlock-btn {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
+            padding: 20px 30px; font-size: 1.2rem; font-weight: bold; background: #2563eb; color: #fff;
+            border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer;
+            animation: pulseAudio 2s infinite;
+        }
+        @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+    </style>
 </head>
 <body>
 
@@ -358,58 +295,42 @@
         </div>
     </div>
 
-    <!-- Toolbar Principal (Profesor PC) -->
+    <!-- Toolbar Administrativa Superior (Profesor) -->
     <div id="toolbar">
         <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
         <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;" title="Librería de Fórmulas">🧮 <span class="hide-mobile">Fórmulas</span></button>
         
-        <div class="hide-mobile" style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        <div class="hide-mobile" style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
         
-        <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
-            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Fibrón">✏️</button>
-            <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
-
-            <input type="color" id="colorPicker" value="#0f172a" title="Color de Tinta">
-            
-            <div class="slider-container">
-                <span id="slider-label" class="slider-label">Trazo</span>
-                <input type="range" id="toolSize" min="1" max="25" value="5">
-            </div>
-            
-            <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
-            
-            <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
-            <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar en MP4">⏺️ <span class="hide-mobile">MP4</span></button>
-            
-            <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
-            
-            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-            <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 PDF</button>
-            <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
-            <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
-
-            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
-            <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-            <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir foto">🖼️ <span class="hide-mobile">Foto</span></button>
-            <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Cámara">📷 <span class="hide-mobile">Cámara</span></button>
-            
-            <button class="danger-btn" onclick="clearCanvas()" title="Borrar Todo la Pizarra">🗑️</button>
-        </div>
+        <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
+        <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar en MP4">⏺️ <span class="hide-mobile">MP4</span></button>
+        
+        <div class="hide-mobile" style="width: 1px; height: 20px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        
+        <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
+        <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 PDF</button>
+        
+        <input type="file" id="imageInput" class="hidden-file" accept="image/*">
+        <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
+        <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir foto">🖼️ <span class="hide-mobile">Foto</span></button>
+        <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Cámara">📷 <span class="hide-mobile">Cámara</span></button>
     </div>
 
-    <!-- Barra de Escritura Universal (Alumnos / Móvil) -->
+    <!-- Barra de Escritura Universal e Integrada (Abajo) -->
     <div class="mobile-write-tools" id="mobile-write-tools">
       <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
       <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
       <button type="button" id="mw-eraser" title="Borrador">🧼</button>
-      <button type="button" id="mw-undo" title="Deshacer">↩️</button>
-      <button type="button" id="mw-clear" title="Limpiar Trazos">🗑️</button>
       <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 2px;"></div>
       <input id="mw-color" type="color" value="#0f172a" title="Color de Tinta">
-      <input id="mw-size" type="range" min="2" max="30" value="5" title="Grosor">
+      <input id="mw-size" type="range" min="2" max="35" value="6" title="Grosor">
+      <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 2px;"></div>
+      <button type="button" id="mw-undo" title="Deshacer">↩️</button>
+      <button type="button" id="mw-clear" title="Limpiar Trazos" class="danger-btn">🗑️</button>
     </div>
 
+    <!-- Pizarra Blanca -->
     <div id="canvas-container">
         <canvas id="board" width="1920" height="4000"></canvas>
     </div>
@@ -443,7 +364,6 @@
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
-                document.getElementById('admin-tools').style.display = 'flex';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 createRoom();
@@ -455,9 +375,6 @@
         const container = document.getElementById('canvas-container');
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        
-        let isDrawing = false, currentTool = 'pen', myColor = '#0f172a'; // Tinta oscura real
-        let penSize = 5, eraserSize = 60; 
 
         let cachedCanvasRect = canvas.getBoundingClientRect();
         let cachedScaleX = canvas.width / cachedCanvasRect.width;
@@ -479,9 +396,6 @@
             };
         }
 
-        let pLastPosX = 0, pLastPosY = 0;
-        let pLastMidX = 0, pLastMidY = 0;
-
         let broadcastQueue = [];
         setInterval(() => {
             if(broadcastQueue.length > 0 && connections.length > 0) {
@@ -499,132 +413,16 @@
             }
         }
 
-        let ctxState = { color: '', size: -1, tool: '' };
-        function applyCtxState(targetCtx, color, size, tool) {
-            if (ctxState.color === color && ctxState.size === size && ctxState.tool === tool) return;
-                
-            targetCtx.lineWidth = size;
-            if (tool === 'eraser') {
-                targetCtx.globalCompositeOperation = 'destination-out';
-                targetCtx.globalAlpha = 1.0;
-                targetCtx.shadowBlur = 0;
-            } else {
-                targetCtx.globalCompositeOperation = 'source-over';
-                targetCtx.strokeStyle = color;
-                // Efecto fibrón ultra-realista
-                targetCtx.shadowColor = color;
-                targetCtx.shadowBlur = size * 0.15; // Difuminado sutil como tinta húmeda en pizarra blanca
-                targetCtx.globalAlpha = tool === 'marker' ? 0.35 : 0.88;
-            }
-            ctxState.color = color; ctxState.size = size; ctxState.tool = tool;
-        }
-
-        const toolSizeSlider = document.getElementById('toolSize');
-        const sliderLabel = document.getElementById('slider-label');
-
-        toolSizeSlider.addEventListener('input', (e) => {
-            if (currentTool === 'pen') penSize = Number(e.target.value);
-            else eraserSize = Number(e.target.value);
-        });
-
-        function setTool(tool) {
-            currentTool = tool;
-            document.getElementById('btn-pen').classList.toggle('active', tool === 'pen');
-            document.getElementById('btn-eraser').classList.toggle('active', tool === 'eraser');
-            canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
-            
-            if (tool === 'pen') {
-                toolSizeSlider.min = 1; toolSizeSlider.max = 30;
-                toolSizeSlider.value = penSize; sliderLabel.innerText = 'Trazo';
-            } else {
-                toolSizeSlider.min = 20; toolSizeSlider.max = 150;
-                toolSizeSlider.value = eraserSize; sliderLabel.innerText = 'Goma';
-            }
-        }
-
-        document.getElementById('colorPicker').addEventListener('change', (e) => { 
-            myColor = e.target.value; 
-            document.getElementById('mw-color').value = myColor;
-            setTool('pen'); 
-        });
-
         function toggleFullScreen() {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => {});
             else if (document.exitFullscreen) document.exitFullscreen();
         }
 
-        canvas.addEventListener('pointerdown', startDrawing, { passive: false });
-        canvas.addEventListener('pointermove', draw, { passive: false });
-        window.addEventListener('pointerup', stopDrawing);
-
-        function startDrawing(e) {
-            if (!isAdmin) return;
-            isDrawing = true;
-            hideBanner();
-            canvas.setPointerCapture?.(e.pointerId);
-            
-            updateCanvasRect(); 
-            const pos = getCanvasPos(e);
-
-            pLastPosX = pos.x; pLastPosY = pos.y;
-            pLastMidX = pos.x; pLastMidY = pos.y;
-            
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-            broadcastData({ type:'start', x:pos.x, y:pos.y });
-            draw(e);
-        }
-
-        function draw(e) {
-            if (!isDrawing || !isAdmin) return;
-            
-            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
-            if(events.length === 0) return;
-            
-            let ev, pos, pressure, pFactor, finalSize, midX, midY;
-
-            ctx.beginPath();
-            ctx.moveTo(pLastMidX, pLastMidY);
-
-            for (let i = 0; i < events.length; i++) {
-                ev = events[i];
-                pos = getCanvasPos(ev);
-
-                pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 0.5;
-                pFactor = ev.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
-                finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
-                
-                applyCtxState(ctx, myColor, finalSize, currentTool);
-
-                midX = (pLastPosX + pos.x) * 0.5;
-                midY = (pLastPosY + pos.y) * 0.5;
-
-                ctx.quadraticCurveTo(pLastPosX, pLastPosY, midX, midY);
-
-                pLastPosX = pos.x;
-                pLastPosY = pos.y;
-                pLastMidX = midX;
-                pLastMidY = midY;
-                
-                broadcastData({ type:'drawBezier', lastMidX: pLastMidX, lastMidY: pLastMidY, lastPosX: pLastPosX, lastPosY: pLastPosY, midX: midX, midY: midY, color: myColor, size: finalSize, tool: currentTool });
-            }
-            
-            ctx.stroke();
-        }
-
-        function stopDrawing(e) {
-            if (!isDrawing || !isAdmin) return;
-            showBanner(); 
-            ctx.beginPath();
-            broadcastData({ type:'stop' });
-            isDrawing = false;
-        }
-
         function clearCanvas() {
-            if(isAdmin) {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                broadcastData({ type:'clear' });
-            }
+            if(!confirm('¿Limpiar toda la escritura de la pizarra?')) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            if(typeof saveState === 'function') saveState(); // Llama a saveState de alumno si existe
+            if(isAdmin) broadcastData({ type:'clear' });
         }
 
         /* ================= BIBLIOTECA MATEMÁTICA ================= */
@@ -823,7 +621,7 @@
             tempCanvas.width = width; tempCanvas.height = height;
             tCtx.font = 'bold 40px serif';
             tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
-            tCtx.fillStyle = myColor || '#0f172a';
+            tCtx.fillStyle = '#0f172a';
             tCtx.fillText(formulaText, width / 2, height / 2);
 
             const img = document.getElementById('stamp-img');
@@ -842,7 +640,7 @@
             tempCanvas.width = 1920; tempCanvas.height = 4000;
             const tCtx = tempCanvas.getContext('2d');
             
-            // Forzar fondo blanco
+            // Fondo Blanco forzado
             tCtx.fillStyle = '#ffffff'; 
             tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
@@ -949,7 +747,7 @@
             const realY = (rect.top - cachedCanvasRect.top) * scaleY;
             const realW = rect.width * scaleX; const realH = rect.height * scaleY;
             
-            ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
             ctx.drawImage(img, realX, realY, realW, realH);
             broadcastData({ type: 'image', src: img.src, x: realX, y: realY, w: realW, h: realH });
             document.getElementById('stamper').style.display = 'none';
@@ -965,11 +763,23 @@
             if (data.type === 'stop') { ctx.beginPath(); return; }
             if (data.type === 'image') {
                 const img = new Image();
-                img.onload = () => { ctx.drawImage(img, data.x, data.y, data.w, data.h); };
+                img.onload = () => { ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.drawImage(img, data.x, data.y, data.w, data.h); };
                 img.src = data.src; return;
             }
             if (data.type === 'drawBezier') {
-                applyCtxState(ctx, data.color, data.size, data.tool);
+                if(data.tool === 'eraser'){
+                    ctx.lineWidth = data.size;
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.globalAlpha = 1;
+                    ctx.shadowBlur = 0;
+                } else {
+                    ctx.lineWidth = data.size;
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = data.color;
+                    ctx.shadowColor = data.color;
+                    ctx.shadowBlur = data.size * 0.15;
+                    ctx.globalAlpha = data.tool === 'marker' ? 0.38 : 0.92;
+                }
                 ctx.beginPath();
                 ctx.moveTo(data.lastMidX, data.lastMidY);
                 ctx.quadraticCurveTo(data.lastPosX, data.lastPosY, data.midX, data.midY);
@@ -998,13 +808,13 @@
         async function createRoom() {
             await getMicrophone();
             document.getElementById('toolbar').style.display = 'flex';
+            document.getElementById('mobile-write-tools').style.display = 'flex';
             
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
             peer = new Peer(randomCode, peerNetworkOptions);
             
             peer.on('open', (id) => {
                 document.getElementById('ui-panel').style.display = 'block';
-                document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO DE ACCESO:";
                 const codeDisplay = document.getElementById('room-code-display');
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
@@ -1016,7 +826,7 @@
                         uiPanel.style.opacity = '0'; 
                         setTimeout(() => uiPanel.style.display = 'none', 1000); 
                     }
-                }, 40000);
+                }, 40000); // 40 SEGUNDOS
             });
             peer.on('connection', (conn) => { 
                 connections.push(conn); 
@@ -1060,12 +870,14 @@
 
   let mwMode = 'pen';
   let mwColor = '#0f172a';
-  let mwSize = 5;
+  let mwSize = 6;
   let mwDrawing = false;
   
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
   let mwCtxState = { color: '', size: -1, mode: '' };
+
+  const mwUndo = [];
 
   let cachedMwRect = board.getBoundingClientRect();
   let cachedMwScaleX = board.width / cachedMwRect.width;
@@ -1087,6 +899,24 @@
     };
   }
 
+  function saveState(){
+    try{
+      if(mwUndo.length > 12) mwUndo.shift();
+      mwUndo.push(board.toDataURL('image/png'));
+    }catch(e){}
+  }
+  window.saveState = saveState; // Para borrar desde el panel de admin
+
+  function restoreData(url){
+    const img = new Image();
+    img.onload = function(){
+      const c = board.getContext('2d');
+      c.clearRect(0,0,board.width,board.height);
+      c.drawImage(img,0,0);
+    };
+    img.src = url;
+  }
+
   function setMode(mode){
     mwMode = mode;
     ['mw-pen','mw-marker','mw-eraser'].forEach(id=>{
@@ -1096,11 +926,11 @@
   }
   
   function start(ev){
-    // Evitar dibujar si se toca un botón de las barras flotantes
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT') return;
+    if(ev.target !== board) return;
     ev.preventDefault();
     hideBanner();
     updateMwRect();
+    saveState();
 
     mwDrawing = true;
     const p = pos(ev);
@@ -1111,6 +941,10 @@
     const c=board.getContext('2d');
     c.beginPath();
     c.moveTo(mwLastPosX, mwLastPosY);
+    
+    if (typeof broadcastData === 'function') {
+        broadcastData({ type:'start', x: p.x, y: p.y });
+    }
   }
 
   function move(ev){
@@ -1129,6 +963,7 @@
         e = events[i];
         p = pos(e);
         
+        // Curva de presión hiper-sensible
         pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 0.5;
         pFactor = e.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
         baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
@@ -1144,7 +979,7 @@
                 c.globalCompositeOperation = 'source-over';
                 c.strokeStyle = mwColor;
                 c.shadowColor = mwColor;
-                c.shadowBlur = finalSize * 0.15;
+                c.shadowBlur = finalSize * 0.15; // Efecto tinta
                 c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
             }
             mwCtxState.color = mwColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode;
@@ -1157,7 +992,7 @@
         mwLastPosX = p.x; mwLastPosY = p.y;
         mwLastMidX = midX; mwLastMidY = midY;
         
-        if (!isAdmin && typeof broadcastData === 'function') {
+        if (typeof broadcastData === 'function') {
             broadcastData({ type:'drawBezier', lastMidX: midX, lastMidY: midY, lastPosX: p.x, lastPosY: p.y, midX: midX, midY: midY, color: mwColor, size: finalSize, tool: mwMode });
         }
     }
@@ -1172,11 +1007,17 @@
     const c=board.getContext('2d');
     c.globalAlpha=1; c.globalCompositeOperation='source-over'; c.shadowBlur = 0;
     try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
+    
+    if (typeof broadcastData === 'function') {
+        broadcastData({ type:'stop' });
+    }
   }
 
   board.addEventListener('pointerdown', start, {passive:false});
   board.addEventListener('pointermove', move, {passive:false});
   board.addEventListener('pointerup', end, {passive:false});
+  board.addEventListener('pointercancel', end, {passive:false});
+  board.addEventListener('contextmenu', e=>e.preventDefault());
 
   const pen=document.getElementById('mw-pen');
   const marker=document.getElementById('mw-marker');
@@ -1184,6 +1025,7 @@
   const clear=document.getElementById('mw-clear');
   const color=document.getElementById('mw-color');
   const size=document.getElementById('mw-size');
+  const undo=document.getElementById('mw-undo');
 
   pen && pen.addEventListener('click',()=>setMode('pen'));
   marker && marker.addEventListener('click',()=>setMode('marker'));
@@ -1196,10 +1038,17 @@
   });
   
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
+  
+  undo && undo.addEventListener('click',()=>{
+    const last=mwUndo.pop();
+    if(last) {
+        restoreData(last);
+        if (typeof broadcastData === 'function') broadcastData({ type: 'image', src: last, x: 0, y: 0, w: board.width, h: board.height });
+    }
+  });
+
   clear && clear.addEventListener('click',()=>{
-    if(!confirm('¿Limpiar toda la escritura?')) return;
-    const c=board.getContext('2d');
-    c.clearRect(0,0,board.width,board.height);
+    if(typeof clearCanvas === 'function') clearCanvas();
   });
 })();
 </script>
