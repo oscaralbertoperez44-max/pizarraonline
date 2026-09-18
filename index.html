@@ -33,7 +33,6 @@
             display: block; touch-action: none;
             width: 100%; height: auto; min-height: 300vh; 
             transition: background 0.3s ease;
-            /* Renderizado dedicado por GPU */
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -643,7 +642,7 @@
         }
 
         const canvas = document.getElementById('board');
-        // Aceleración de Hardware Activada (Desynchronized canvas bypasses the DOM for zero-latency stylus drawing)
+        // Aceleración de Hardware Activada (Desynchronized canvas)
         const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
         const container = document.getElementById('canvas-container');
         
@@ -656,8 +655,8 @@
         let chalkPattern = null;
 
         // =========================================================================
-        // OPTIMIZACIÓN EXTREMA: CACHÉ ESPACIAL (LAYOUT CACHING)
-        // Evita recalcular getBoundingClientRect en el bucle de dibujo (Ahorra 90% CPU)
+        // OPTIMIZACIÓN 1: CACHÉ ESPACIAL (LAYOUT CACHING)
+        // Evita el uso repetitivo de getBoundingClientRect() (Ahorro enorme de CPU)
         // =========================================================================
         let cachedCanvasRect = canvas.getBoundingClientRect();
         let cachedScaleX = canvas.width / cachedCanvasRect.width;
@@ -679,11 +678,14 @@
             };
         }
 
-        // Puntos para curva de Bezier hiper-suave (Profesor)
-        let pLastPos = null;
-        let pLastMid = null;
+        // =========================================================================
+        // OPTIMIZACIÓN 2: ZERO GARBAGE COLLECTION
+        // Variables crudas en vez de crear nuevos objetos {x,y} en cada fotograma
+        // =========================================================================
+        let pLastPosX = 0, pLastPosY = 0;
+        let pLastMidX = 0, pLastMidY = 0;
 
-        // BATCHING DE RED: Evita congelar el navegador enviando 200 eventos por segundo
+        // BATCHING DE RED: Evita congelar el navegador
         let broadcastQueue = [];
         setInterval(() => {
             if(broadcastQueue.length > 0 && connections.length > 0) {
@@ -694,7 +696,6 @@
         }, 16); // ~60fps flush
 
         function broadcastData(data) { 
-            // Acciones inmediatas (start, stop, clear) se envían directo. Dibujos se agrupan.
             if(data.type === 'drawBezier' || data.type === 'draw') {
                 broadcastQueue.push(data);
             } else {
@@ -702,7 +703,7 @@
             }
         }
 
-        // SISTEMA DE CACHÉ DE CONTEXTO CANVAS (Elimina asignaciones redundantes en la GPU)
+        // SISTEMA DE CACHÉ DE CONTEXTO CANVAS (Optimiza llamadas a la placa de video)
         let ctxState = { color: '', size: -1, tool: '', isChalk: null };
         function applyCtxState(targetCtx, color, size, tool, isChalk) {
             if (ctxState.color === color && ctxState.size === size && ctxState.tool === tool && ctxState.isChalk === isChalk) return;
@@ -710,25 +711,20 @@
             targetCtx.lineWidth = size;
             if (tool === 'eraser') {
                 targetCtx.globalCompositeOperation = 'destination-out';
-                targetCtx.shadowBlur = 0;
                 targetCtx.globalAlpha = 1.0;
             } else {
                 targetCtx.globalCompositeOperation = 'source-over';
                 if (isChalk && chalkPattern) {
                     targetCtx.strokeStyle = chalkPattern;
-                    targetCtx.shadowBlur = 0;
                     targetCtx.globalAlpha = 0.9;
                 } else {
                     targetCtx.strokeStyle = color;
-                    targetCtx.shadowBlur = size * 0.4;
-                    targetCtx.shadowColor = color;
-                    targetCtx.globalAlpha = tool === 'marker' ? 0.42 : 0.85;
+                    targetCtx.globalAlpha = tool === 'marker' ? 0.42 : 0.95; // Sin shadowBlur
                 }
             }
             ctxState.color = color; ctxState.size = size; ctxState.tool = tool; ctxState.isChalk = isChalk;
         }
 
-        // Genera un patrón de ruido (granos de tiza) dinámico según el color seleccionado
         function generateChalkPattern(colorHex) {
             const pCanvas = document.createElement('canvas');
             pCanvas.width = 50; pCanvas.height = 50;
@@ -884,8 +880,6 @@
             targetCtx.strokeStyle = color;
             targetCtx.lineWidth = size;
             targetCtx.globalAlpha = preview ? 0.55 : 0.9;
-            targetCtx.shadowBlur = preview ? 0 : Math.min(size * .35, 6);
-            targetCtx.shadowColor = color;
 
             const left = Math.min(x1,x2), top = Math.min(y1,y2);
             const w = Math.abs(x2-x1), h = Math.abs(y2-y1);
@@ -926,11 +920,10 @@
         function startDrawing(e) {
             if (e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return;
             isDrawing = true;
-            hideBanner(); // Ocultar banner dinámico
+            hideBanner();
             canvas.setPointerCapture?.(e.pointerId);
             
-            // Forzamos actualización de coordenadas por seguridad al primer toque
-            updateCanvasRect();
+            updateCanvasRect(); // Asegurar coordenadas precisas
             const pos = getCanvasPos(e);
 
             if (['line','arrow','rect','circle','ellipse','triangle','grid'].includes(currentTool)) {
@@ -942,8 +935,8 @@
                 return;
             }
 
-            pLastPos = pos;
-            pLastMid = pos;
+            pLastPosX = pos.x; pLastPosY = pos.y;
+            pLastMidX = pos.x; pLastMidY = pos.y;
             
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
@@ -951,7 +944,7 @@
             draw(e);
         }
 
-        // ====== VERSIÓN ULTRA-OPTIMIZADA (PROFESOR PC/WACOM) ======
+        // ====== DIBUJO DEL PROFESOR (PC/WACOM) ULTRA OPTIMIZADO ======
         function draw(e) {
             if (!isDrawing || !isAdmin || e.pointerType === 'touch') return;
             
@@ -960,11 +953,14 @@
             
             const isChalkTheme = themes[currentThemeIdx].id === 'chalk';
 
-            ctx.beginPath();
-            ctx.moveTo(pLastMid.x, pLastMid.y);
+            let ev, pos, pressure, pFactor, finalSize, midX, midY;
 
-            for (let ev of events) {
-                const pos = getCanvasPos(ev);
+            ctx.beginPath();
+            ctx.moveTo(pLastMidX, pLastMidY);
+
+            for (let i = 0; i < events.length; i++) {
+                ev = events[i];
+                pos = getCanvasPos(ev);
 
                 if (shapeStart) {
                     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -974,33 +970,33 @@
                     return; 
                 }
 
-                // Presión Wacom refinada
-                const pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 0.5;
-                const pFactor = ev.pointerType === 'pen' ? (0.3 + Math.pow(pressure, 1.5) * 1.2) : 1;
-                const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
+                // Matemática simplificada y más rápida
+                pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 0.5;
+                pFactor = ev.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
+                finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
                 
-                // Actualizar contexto solo si cambia el pincel/presión (Salva 80% CPU)
                 applyCtxState(ctx, myColor, finalSize, currentTool, isChalkTheme);
 
-                // Cálculo de punto medio para interpolación Quadratic Bezier
-                const mid = { x: (pLastPos.x + pos.x) * 0.5, y: (pLastPos.y + pos.y) * 0.5 };
+                midX = (pLastPosX + pos.x) * 0.5;
+                midY = (pLastPosY + pos.y) * 0.5;
 
-                ctx.quadraticCurveTo(pLastPos.x, pLastPos.y, mid.x, mid.y);
+                ctx.quadraticCurveTo(pLastPosX, pLastPosY, midX, midY);
 
-                pLastPos = pos;
-                pLastMid = mid;
+                pLastPosX = pos.x;
+                pLastPosY = pos.y;
+                pLastMidX = midX;
+                pLastMidY = midY;
                 
-                broadcastData({ type:'drawBezier', lastMidX: pLastMid.x, lastMidY: pLastMid.y, lastPosX: pLastPos.x, lastPosY: pLastPos.y, midX: mid.x, midY: mid.y, color: myColor, size: finalSize, tool: currentTool });
+                broadcastData({ type:'drawBezier', lastMidX: pLastMidX, lastMidY: pLastMidY, lastPosX: pLastPosX, lastPosY: pLastPosY, midX: midX, midY: midY, color: myColor, size: finalSize, tool: currentTool });
             }
             
-            // Un solo stroke por grupo de eventos agiliza el render!
             ctx.stroke();
         }
 
         function stopDrawing(e) {
             if (!isDrawing || (e && e.pointerType === 'touch')) return;
             
-            showBanner(); // Mostrar banner
+            showBanner(); 
 
             if (shapeStart) {
                 const pos = getCanvasPos(e);
@@ -1679,10 +1675,8 @@
 
             const stamper = document.getElementById('stamper');
             
-            // Usamos las dimensiones base ya que getBoundingClientRect es computacionalmente caro.
-            const boardRect = canvas.getBoundingClientRect();
-            const centerX = boardRect.left + boardRect.width / 2;
-            const centerY = Math.max(120, boardRect.top + Math.min(boardRect.height / 2, window.innerHeight / 2));
+            const centerX = cachedCanvasRect.left + cachedCanvasRect.width / 2;
+            const centerY = Math.max(120, cachedCanvasRect.top + Math.min(cachedCanvasRect.height / 2, window.innerHeight / 2));
             stamper.style.position = 'fixed';
             stamper.style.left = centerX + 'px';
             stamper.style.top = centerY + 'px';
@@ -1882,10 +1876,9 @@
                         sc.style.height = h + 'px';
 
                         const stamper = document.getElementById('stamper');
-                        const boardRect = canvas.getBoundingClientRect();
                         stamper.style.position = 'fixed';
-                        stamper.style.left = (boardRect.left + boardRect.width / 2) + 'px';
-                        stamper.style.top = Math.max(120, boardRect.top + Math.min(boardRect.height / 2, window.innerHeight / 2)) + 'px';
+                        stamper.style.left = (cachedCanvasRect.left + cachedCanvasRect.width / 2) + 'px';
+                        stamper.style.top = Math.max(120, cachedCanvasRect.top + Math.min(cachedCanvasRect.height / 2, window.innerHeight / 2)) + 'px';
                         stamper.style.transform = 'translate(-50%, -50%)';
                         stamper.style.display = 'block';
 
@@ -2179,19 +2172,20 @@
         function applyStamp() {
             const img = document.getElementById('stamp-img');
             const rect = stamperContent.getBoundingClientRect(); 
-            const canvasRect = canvas.getBoundingClientRect();
             
-            const scaleX = canvas.width / canvasRect.width; 
-            const scaleY = canvas.height / canvasRect.height;
+            const scaleX = canvas.width / cachedCanvasRect.width; 
+            const scaleY = canvas.height / cachedCanvasRect.height;
             
-            const realX = (rect.left - canvasRect.left) * scaleX; 
-            const realY = (rect.top - canvasRect.top) * scaleY;
+            const realX = (rect.left - cachedCanvasRect.left) * scaleX; 
+            const realY = (rect.top - cachedCanvasRect.top) * scaleY;
             const realW = rect.width * scaleX; 
             const realH = rect.height * scaleY;
             
-            ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
-            ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, realX, realY, realW, realH);
-            ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
+            ctx.globalCompositeOperation = 'source-over'; 
+            ctx.globalAlpha = 1.0;
+            ctx.drawImage(img, realX, realY, realW, realH);
+            
+            ctxState = { color: '', size: -1, tool: '', isChalk: null }; // force state refresh
             
             broadcastData({ type: 'image', src: img.src, x: realX, y: realY, w: realW, h: realH });
             stamper.style.display = 'none';
@@ -2207,13 +2201,15 @@
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
-            if (data.type === 'stop') { ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return; }
+            if (data.type === 'stop') { ctx.beginPath(); return; }
             
             if (data.type === 'image') {
                 const img = new Image();
                 img.onload = () => { 
-                    ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
-                    ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, data.x, data.y, data.w, data.h); 
+                    ctx.globalCompositeOperation = 'source-over'; 
+                    ctx.globalAlpha = 1.0;
+                    ctx.drawImage(img, data.x, data.y, data.w, data.h); 
+                    ctxState = { color: '', size: -1, tool: '', isChalk: null };
                 };
                 img.src = data.src; return;
             }
@@ -2237,11 +2233,43 @@
             }
         }
 
+        // =========================================================================
+        // OPTIMIZACIÓN 3: REMOTE BATCH RENDER CON requestAnimationFrame
+        // Si entran muchísimos trazos de golpe por red, no congela el dispositivo
+        // =========================================================================
+        let remoteRenderQueue = [];
+        let isRemoteRendering = false;
+
+        function processRemoteRender() {
+            if (remoteRenderQueue.length === 0) {
+                isRemoteRendering = false;
+                return;
+            }
+            
+            // Procesamos hasta 500 trazos por fotograma para mantener 60fps fijos
+            const commands = remoteRenderQueue.splice(0, 500); 
+            
+            for (let i = 0; i < commands.length; i++) {
+                processRemoteCommand(commands[i]);
+            }
+
+            if (remoteRenderQueue.length > 0) {
+                requestAnimationFrame(processRemoteRender);
+            } else {
+                isRemoteRendering = false;
+            }
+        }
+
         function drawRemote(data) {
             if (data.type === 'batch') {
-                data.data.forEach(d => processRemoteCommand(d));
+                for(let i=0; i<data.data.length; i++) remoteRenderQueue.push(data.data[i]);
             } else {
-                processRemoteCommand(data);
+                remoteRenderQueue.push(data);
+            }
+            
+            if (!isRemoteRendering) {
+                isRemoteRendering = true;
+                requestAnimationFrame(processRemoteRender);
             }
         }
 
@@ -2322,18 +2350,14 @@
   let mwSize = 5;
   let mwDrawing = false;
   
-  // Puntos para curva de Bezier ultra-suave
-  let mwLastPos = null;
-  let mwLastMid = null;
+  // Variables crudas (No objetos) para evitar recolector de basura
+  let mwLastPosX = 0, mwLastPosY = 0;
+  let mwLastMidX = 0, mwLastMidY = 0;
   
   const mwUndo = [];
 
-  // CACHÉ DE ESTADO ALUMNO MÓVIL
   let mwCtxState = { color: '', size: -1, mode: '', isChalk: null };
 
-  // =========================================================================
-  // OPTIMIZACIÓN EXTREMA MÓVIL: CACHÉ ESPACIAL (LAYOUT CACHING)
-  // =========================================================================
   let cachedMwRect = board.getBoundingClientRect();
   let cachedMwScaleX = board.width / cachedMwRect.width;
   let cachedMwScaleY = board.height / cachedMwRect.height;
@@ -2379,6 +2403,7 @@
         (id==='mw-eraser'&&mode==='eraser'));
     });
   }
+  
   function start(ev){
     if(ev.pointerType === 'mouse' && window.matchMedia('(pointer:fine)').matches) return;
     if(ev.target !== board) return;
@@ -2387,20 +2412,20 @@
     
     if(typeof hideBanner === 'function') hideBanner();
     
-    // Forzar actualización de área de dibujo al primer toque por seguridad
     updateMwRect();
 
     mwDrawing = true;
-    mwLastPos = pos(ev);
-    mwLastMid = pos(ev);
+    const p = pos(ev);
+    mwLastPosX = p.x; mwLastPosY = p.y;
+    mwLastMidX = p.x; mwLastMidY = p.y;
 
     try{ board.setPointerCapture(ev.pointerId); }catch(e){}
     const c=board.getContext('2d');
     c.beginPath();
-    c.moveTo(mwLastPos.x, mwLastPos.y);
+    c.moveTo(mwLastPosX, mwLastPosY);
   }
 
-  // ====== VERSIÓN MÓVIL ALUMNO OPTIMIZADA CON CACHÉ Y BÉZIER ======
+  // ====== VERSIÓN MÓVIL ALUMNO OPTIMIZADA AL MÁXIMO ======
   function move(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
@@ -2417,45 +2442,46 @@
     const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
 
     c.beginPath();
-    c.moveTo(mwLastMid.x, mwLastMid.y);
+    c.moveTo(mwLastMidX, mwLastMidY);
 
-    for (let e of events) {
-        const p = pos(e);
+    let e, p, pressure, pFactor, baseSize, finalSize, midX, midY;
+
+    for (let i=0; i<events.length; i++) {
+        e = events[i];
+        p = pos(e);
         
-        const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 0.5;
-        const pFactor = e.pointerType === 'pen' ? (0.3 + Math.pow(pressure, 1.5) * 1.2) : 1;
-        const baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
-        const finalSize = mwMode === 'eraser' ? Math.max(18, mwSize * 3.5) : baseSize * pFactor;
+        pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 0.5;
+        pFactor = e.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
+        baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
+        finalSize = mwMode === 'eraser' ? Math.max(18, mwSize * 3.5) : baseSize * pFactor;
 
-        // Caché del estado gráfico del Canvas del alumno (Evita lag en móviles gama media)
         if (mwCtxState.color !== mwColor || mwCtxState.size !== finalSize || mwCtxState.mode !== mwMode || mwCtxState.isChalk !== isChalkTheme) {
             c.lineWidth = finalSize;
             if(mwMode === 'eraser'){
                 c.globalCompositeOperation = 'destination-out';
-                c.shadowBlur = 0;
                 c.globalAlpha = 1;
             } else {
                 c.globalCompositeOperation = 'source-over';
                 if (isChalkTheme && mwMode === 'pen' && typeof chalkPattern !== 'undefined') {
                     c.strokeStyle = chalkPattern || mwColor;
-                    c.shadowBlur = 0;
                     c.globalAlpha = 0.9;
                 } else {
                     c.strokeStyle = mwColor;
-                    c.shadowBlur = finalSize * 0.4;
-                    c.shadowColor = mwColor;
-                    c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.85;
+                    c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.95;
                 }
             }
             mwCtxState.color = mwColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode; mwCtxState.isChalk = isChalkTheme;
         }
 
-        const mid = { x: (mwLastPos.x + p.x) * 0.5, y: (mwLastPos.y + p.y) * 0.5 };
+        midX = (mwLastPosX + p.x) * 0.5;
+        midY = (mwLastPosY + p.y) * 0.5;
 
-        c.quadraticCurveTo(mwLastPos.x, mwLastPos.y, mid.x, mid.y);
+        c.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
 
-        mwLastPos = p;
-        mwLastMid = mid;
+        mwLastPosX = p.x;
+        mwLastPosY = p.y;
+        mwLastMidX = midX;
+        mwLastMidY = midY;
     }
     c.stroke();
   }
@@ -2464,8 +2490,6 @@
     if(!mwDrawing) return;
     ev.preventDefault();
     mwDrawing=false;
-    mwLastPos=null;
-    mwLastMid=null;
     
     if(typeof showBanner === 'function') showBanner();
 
@@ -2497,7 +2521,7 @@
       mwColor = e.target.value; 
       if(typeof generateChalkPattern !== 'undefined') chalkPattern = generateChalkPattern(mwColor);
       setMode('pen');
-      mwCtxState = { color: '', size: -1, mode: '', isChalk: null }; // forzar update
+      mwCtxState = { color: '', size: -1, mode: '', isChalk: null }; 
   });
   
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
