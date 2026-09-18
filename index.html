@@ -65,6 +65,7 @@
             transform: translateY(-10px);
         }
 
+        /* Estilos de Pizarra Reales y Texturizados */
         .theme-dark { background-color: #121212; background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 30px 30px; }
         .theme-chalk { background-color: #1e382b; background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>'); background-size: cover, 150px 150px; }
         .theme-white { background-color: #ffffff; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 30px 30px; }
@@ -127,16 +128,18 @@
         
         #toolbar {
             position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-            background: rgba(20, 20, 20, 0.9); padding: 6px 12px;
-            border-radius: 20px; display: flex; gap: 6px; align-items: center; justify-content: center;
-            border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 50; flex-wrap: wrap;
-            backdrop-filter: blur(5px);
+            background: rgba(20, 20, 20, 0.95); padding: 8px 16px;
+            border-radius: 20px; display: flex; gap: 8px; align-items: center; justify-content: center;
+            border: 1px solid #444; box-shadow: 0 4px 20px rgba(0,0,0,0.7); z-index: 50; flex-wrap: nowrap;
+            backdrop-filter: blur(8px);
+            max-width: 98vw;
+            overflow-x: auto;
         }
         
         .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 50px; }
         .slider-label { font-size: 0.55rem; color: #aaa; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
-        input[type="color"] { width: 24px; height: 24px; border: none; border-radius: 50%; padding: 0; cursor: pointer; }
-        input[type="range"] { width: 55px; height: 4px; accent-color: #3b82f6; }
+        input[type="color"] { width: 26px; height: 26px; border: none; border-radius: 50%; padding: 0; cursor: pointer; flex-shrink: 0; }
+        input[type="range"] { width: 60px; height: 4px; accent-color: #3b82f6; flex-shrink: 0; }
         
         .hidden-file { display: none; }
 
@@ -144,20 +147,16 @@
         #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
         .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
-        @media (max-width: 900px) {
-            #formula-search { font-size: .85rem; }
-            #toolbar { width: 95%; bottom: 5px; padding: 6px; gap: 4px; border-radius: 12px; }
-            button { padding: 5px 8px; font-size: 0.8rem; }
-            .hide-mobile { display: none; }
-            #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
-            #formulas-panel { width: 95%; left: 2.5%; top: 5%; }
-        }
-    
         #formulas-panel { width: min(430px, 38vw) !important; max-height: min(72vh, 760px) !important; overflow: hidden; z-index: 50; }
         #formulas-panel .panel-body { max-height: calc(min(72vh, 760px) - 90px); overflow-y: auto; overflow-x: hidden; }
 
         @media (max-width: 900px) {
-            #formulas-panel { width:92vw !important; max-height:66vh !important; }
+            #formula-search { font-size: .85rem; }
+            #toolbar { width: 98%; bottom: 6px; padding: 6px 10px; gap: 6px; border-radius: 12px; }
+            button { padding: 5px 8px; font-size: 0.78rem; }
+            .hide-mobile { display: none; }
+            #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
+            #formulas-panel { width: 92vw !important; max-height:66vh !important; }
         }
     
         .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
@@ -376,7 +375,7 @@
         
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
-        <div id="admin-tools" style="display:none; align-items:center; gap:5px;">
+        <div id="admin-tools" style="display:none; align-items:center; gap:6px;">
             <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
 
@@ -389,8 +388,8 @@
             
             <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
             
-            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 80px;">
-                <span id="theme-icon">🌙</span> <span id="theme-name" class="hide-mobile">Oscura</span>
+            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 90px;">
+                <span id="theme-icon">🌙</span> <span id="theme-name">Oscura</span>
             </button>
             
             <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
@@ -399,7 +398,7 @@
             <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-            <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 Abrir PDF</button>
+            <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 PDF</button>
             <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
             <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
 
@@ -947,7 +946,6 @@
             await getMicrophone();
             document.getElementById('toolbar').style.display = 'flex';
             
-            // Generar código aleatorio de 4 dígitos para los alumnos
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
             peer = new Peer(randomCode, peerNetworkOptions);
             
@@ -958,7 +956,6 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
-                // Mostrar código y desaparecer tras 15 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
@@ -994,7 +991,7 @@
                 conn.on('data', drawRemote);
                 if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
             });
-            peer.on('error', (err) => {
+            peer.on('error', () => {
                 alert("No se pudo conectar a la clase. Verifica el código.");
                 window.location.reload();
             });
