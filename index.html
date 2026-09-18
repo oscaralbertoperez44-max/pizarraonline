@@ -37,7 +37,7 @@
             height: auto; max-height: 100vh; object-fit: contain;
         }
         
-        /* ================= NUEVO: PANTALLA DE ACCESO (LOGIN) ================= */
+        /* ================= PANTALLA DE ACCESO (LOGIN) ================= */
         #login-overlay {
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
             background: rgba(10, 10, 10, 0.95); z-index: 9999;
@@ -62,7 +62,6 @@
         .btn-teacher { background: #10b981; color: white; }
         .btn-teacher:hover { background: #059669; }
         
-        /* Formularios ocultos dentro del login */
         .auth-form { display: none; margin-top: 20px; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         
@@ -72,12 +71,11 @@
             font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase;
         }
         .auth-input:focus { outline: 2px solid #3b82f6; }
-        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; }
-        .back-btn:hover { color: white; background: transparent; }
+        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; border: none; cursor: pointer; }
+        .back-btn:hover { color: white; }
         
-        /* Ocultar UI principal al inicio */
         #ui-panel { display: none; }
-        #toolbar { display: none; } /* Solo se muestra cuando la clase inicia */
+        #toolbar { display: none; }
         /* ===================================================================== */
 
         /* Paneles Flotantes */
@@ -162,23 +160,23 @@
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
 
-            <!-- Formulario Profesor -->
+            <!-- Formulario Profesor (SIN PISTAS DEL PIN) -->
             <div id="form-teacher" class="auth-form">
-                <input type="password" id="adminPin" class="auth-input" placeholder="PIN SECRETO (2026)">
+                <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN">
                 <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
         </div>
     </div>
 
-    <!-- Info del sistema (Oculto al inicio) -->
+    <!-- Info del sistema -->
     <div id="ui-panel" class="floating-panel">
         <div id="status-text" style="font-size: 1.2em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
         <div id="room-code-display" style="font-size: 2rem; letter-spacing: 5px; margin: 10px 0; font-weight:bold; color:white; display:none;"></div>
         <div style="font-size: 0.8em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
     </div>
 
-    <!-- Visor de PDF (Solo Admin) -->
+    <!-- Visor de PDF -->
     <div id="pdf-panel" class="floating-panel">
         <div class="panel-header" id="pdf-header">
             <span>📄 PDF</span>
@@ -255,7 +253,7 @@
         };
 
         // VARIABLES GLOBALES
-        let isAdmin = false; // Define si el usuario activo es el profesor
+        let isAdmin = false; 
         
         /* ================= 0. LÓGICA DE LOGIN Y ROLES ================= */
         function showStudentForm() {
@@ -267,7 +265,7 @@
         function showTeacherForm() {
             document.getElementById('role-selection').style.display = 'none';
             document.getElementById('form-teacher').style.display = 'block';
-            document.getElementById('login-msg').innerText = "Ingresa el PIN de Administrador";
+            document.getElementById('login-msg').innerText = "Acceso restringido";
         }
 
         function goBack() {
@@ -281,14 +279,13 @@
 
         function verifyAdmin() {
             const pin = document.getElementById('adminPin').value;
-            // Aquí definimos la clave de administrador
-            if (pin === "2026") {
+            // NUEVA CLAVE ESTABLECIDA
+            if (pin === "1977$") {
                 isAdmin = true;
                 document.getElementById('admin-tools').style.display = 'flex';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 
-                // Iniciar la sala automáticamente como Profesor
                 createRoom();
             } else {
                 alert("PIN Incorrecto. Acceso denegado.");
@@ -330,7 +327,7 @@
         window.addEventListener('pointerup', stopDrawing);
 
         function startDrawing(e) { 
-            if(e.target !== canvas || !isAdmin) return; // SOLO EL ADMIN PUEDE DIBUJAR
+            if(e.target !== canvas || !isAdmin) return; 
             isDrawing = true; 
             const pos = getMousePos(e);
             ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
@@ -394,7 +391,7 @@
             }
         }
 
-        /* ================= 3. PDF Y RECORTE (Solo se cargan las funciones, Admin tiene acceso UI) ================= */
+        /* ================= 3. PDF Y RECORTE ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfCanvas.getContext('2d');
@@ -548,7 +545,6 @@
                 codeDisplay.innerText = id;
                 codeDisplay.style.display = 'block';
                 
-                // Ocultar info despues de unos segundos
                 setTimeout(() => { document.getElementById('ui-panel').style.opacity = '0'; setTimeout(() => document.getElementById('ui-panel').style.display = 'none', 500); }, 15000);
             });
             peer.on('connection', (conn) => { connections.push(conn); conn.on('data', drawRemote); });
@@ -567,7 +563,6 @@
             peer = new Peer(peerNetworkOptions);
             
             peer.on('open', () => {
-                // Alumno entró, quitar el login
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 document.getElementById('toolbar').style.display = 'flex';
