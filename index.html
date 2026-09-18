@@ -14,7 +14,7 @@
         /* Base General */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
-            background-color: #050505; color: #fff;
+            background-color: #f8fafc; color: #1e293b;
             font-family: 'Segoe UI', sans-serif; overflow: hidden;
             position: fixed; inset: 0; touch-action: none;
         }
@@ -23,16 +23,19 @@
             width: 100vw; height: 100vh;
             position: absolute; top: 0; left: 0; z-index: 1;
             overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
+            background-color: #f8fafc;
         }
         #canvas-container::-webkit-scrollbar { width: 14px; }
-        #canvas-container::-webkit-scrollbar-track { background: #121212; border-left: 1px solid #333; }
-        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #121212; }
+        #canvas-container::-webkit-scrollbar-track { background: #e2e8f0; border-left: 1px solid #cbd5e1; }
+        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #e2e8f0; }
         #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
         canvas#board {
             display: block; touch-action: none;
             width: 100%; height: auto; min-height: 300vh; 
-            transition: background 0.3s ease;
+            background-color: #ffffff;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            background-size: 35px 35px;
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -55,7 +58,7 @@
             z-index: 9998;
             transition: opacity 0.4s ease, transform 0.4s ease;
             pointer-events: none;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
             display: flex;
             align-items: center;
             gap: 8px;
@@ -65,13 +68,8 @@
             transform: translateY(-10px);
         }
 
-        /* Estilos de Pizarra Reales y Texturizados */
-        .theme-dark { background-color: #121212; background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 30px 30px; }
-        .theme-chalk { background-color: #1e382b; background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>'); background-size: cover, 150px 150px; }
-        .theme-white { background-color: #ffffff; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 30px 30px; }
-        
-        #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
-        .login-box { background: #1a1a1a; padding: 40px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; }
+        #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
+        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; }
         .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
         .login-subtitle { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
         .role-btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
@@ -88,9 +86,9 @@
         
         #ui-panel, #toolbar { display: none; }
 
-        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
+        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
-        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; background: rgba(20,20,20,0.9); border: 1px solid #333; transition: opacity 0.8s ease; }
+        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; background: rgba(20,20,20,0.95); border: 1px solid #444; transition: opacity 0.8s ease; }
         
         #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
@@ -120,26 +118,27 @@
         /* Toolbar */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
-        .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 4px; }
+        .tool-btn { background: #444; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .tool-btn.active { background: #10b981; }
-        .danger-btn { background: #dc2626; }
+        .danger-btn { background: #dc2626; color: #fff; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         #toolbar {
-            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-            background: rgba(20, 20, 20, 0.95); padding: 8px 16px;
-            border-radius: 20px; display: flex; gap: 8px; align-items: center; justify-content: center;
-            border: 1px solid #444; box-shadow: 0 4px 20px rgba(0,0,0,0.7); z-index: 50; flex-wrap: nowrap;
-            backdrop-filter: blur(8px);
+            position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95); padding: 10px 20px;
+            border-radius: 25px; display: flex; gap: 10px; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 8px 30px rgba(0,0,0,0.25); z-index: 50;
+            backdrop-filter: blur(10px);
             max-width: 98vw;
             overflow-x: auto;
+            white-space: nowrap;
         }
         
-        .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 50px; }
-        .slider-label { font-size: 0.55rem; color: #aaa; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
-        input[type="color"] { width: 26px; height: 26px; border: none; border-radius: 50%; padding: 0; cursor: pointer; flex-shrink: 0; }
-        input[type="range"] { width: 60px; height: 4px; accent-color: #3b82f6; flex-shrink: 0; }
+        .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 55px; }
+        .slider-label { font-size: 0.55rem; color: #cbd5e1; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
+        input[type="color"] { width: 28px; height: 28px; border: none; border-radius: 50%; padding: 0; cursor: pointer; flex-shrink: 0; background: transparent; }
+        input[type="range"] { width: 65px; height: 4px; accent-color: #3b82f6; flex-shrink: 0; }
         
         .hidden-file { display: none; }
 
@@ -152,8 +151,8 @@
 
         @media (max-width: 900px) {
             #formula-search { font-size: .85rem; }
-            #toolbar { width: 98%; bottom: 6px; padding: 6px 10px; gap: 6px; border-radius: 12px; }
-            button { padding: 5px 8px; font-size: 0.78rem; }
+            #toolbar { width: 98%; bottom: 8px; padding: 8px 12px; gap: 8px; border-radius: 16px; }
+            button { padding: 6px 10px; font-size: 0.8rem; }
             .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
             #formulas-panel { width: 92vw !important; max-height:66vh !important; }
@@ -181,27 +180,28 @@
 .mobile-write-tools {
   display: flex;
   position: fixed;
-  bottom: 8px;
+  bottom: 12px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
-  gap: 6px;
-  padding: 6px 10px;
-  background: rgba(15,23,42,.94);
-  border: 1px solid rgba(255,255,255,.14);
-  border-radius: 14px;
-  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  gap: 8px;
+  padding: 8px 14px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
   align-items: center;
+  backdrop-filter: blur(10px);
 }
 .mobile-write-tools button {
-  min-width: 42px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 42px;
   border: 0;
-  border-radius: 10px;
-  padding: 6px 10px;
-  font-size: 15px;
+  border-radius: 12px;
+  padding: 6px 12px;
+  font-size: 16px;
   color: #fff;
-  background: #263449;
+  background: #334155;
   cursor: pointer;
 }
 .mobile-write-tools button.active {
@@ -209,14 +209,14 @@
   background: #2563eb;
 }
 .mobile-write-tools input[type="range"] {
-  width: 80px;
+  width: 90px;
 }
 .mobile-write-tools input[type="color"] {
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border: 0;
   padding: 0;
-  border-radius: 8px;
+  border-radius: 10px;
   background: transparent;
   cursor: pointer;
 }
@@ -283,8 +283,8 @@
 
     <div id="ui-panel" class="floating-panel">
         <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
-        <div id="room-code-display" style="font-size: 2rem; letter-spacing: 6px; margin: 8px 0; font-weight:bold; color:#60a5fa; display:none;"></div>
-        <div style="font-size: 0.7em; color: #aaa;">Usa la barra inferior para escribir</div>
+        <div id="room-code-display" style="font-size: 2.2rem; letter-spacing: 6px; margin: 8px 0; font-weight:bold; color:#60a5fa; display:none;"></div>
+        <div style="font-size: 0.75em; color: #aaa;">El código se ocultará en 40 segundos</div>
     </div>
 
     <!-- WIDGET DE FÓRMULAS -->
@@ -375,11 +375,11 @@
         
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
-        <div id="admin-tools" style="display:none; align-items:center; gap:6px;">
+        <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
 
-            <input type="color" id="colorPicker" value="#ffffff" title="Color">
+            <input type="color" id="colorPicker" value="#0f172a" title="Color">
             
             <div class="slider-container">
                 <span id="slider-label" class="slider-label">Lápiz</span>
@@ -388,8 +388,8 @@
             
             <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
             
-            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 90px;">
-                <span id="theme-icon">🌙</span> <span id="theme-name">Oscura</span>
+            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 95px;">
+                <span id="theme-icon">⚪</span> <span id="theme-name">Blanca</span>
             </button>
             
             <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
@@ -418,13 +418,13 @@
       <button type="button" id="mw-eraser" title="Borrador">🧼</button>
       <button type="button" id="mw-undo" title="Deshacer">↩️</button>
       <button type="button" id="mw-clear" title="Limpiar">🗑️</button>
-      <input id="mw-color" type="color" value="#ffffff" title="Color">
+      <input id="mw-color" type="color" value="#0f172a" title="Color">
       <input id="mw-size" type="range" min="2" max="28" value="5" title="Grosor">
     </div>
     <div class="mobile-write-hint" id="mobile-write-hint">📱 Tocá y escribí sobre la pizarra</div>
 
     <div id="canvas-container">
-        <canvas id="board" width="1920" height="4000" class="theme-dark"></canvas>
+        <canvas id="board" width="1920" height="4000" class="theme-white"></canvas>
     </div>
 
 <script>
@@ -469,7 +469,7 @@
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         
-        let isDrawing = false, currentTool = 'pen', myColor = '#ffffff';
+        let isDrawing = false, currentTool = 'pen', myColor = '#0f172a'; // Fibrón oscuro por defecto para pizarra blanca
         let penSize = 4, eraserSize = 60; 
         let chalkPattern = null;
 
@@ -528,7 +528,7 @@
                     targetCtx.globalAlpha = 0.9;
                 } else {
                     targetCtx.strokeStyle = color;
-                    targetCtx.globalAlpha = tool === 'marker' ? 0.42 : 0.95;
+                    targetCtx.globalAlpha = tool === 'marker' ? 0.38 : 0.92; // Fibrón suave y real
                 }
             }
             ctxState.color = color; ctxState.size = size; ctxState.tool = tool; ctxState.isChalk = isChalk;
@@ -576,9 +576,9 @@
         });
 
         const themes = [
+            { id: 'white', class: 'theme-white', icon: '⚪', name: 'Blanca', bg: '#ffffff', pen: '#0f172a', grid: true },
             { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff', grid: true },
-            { id: 'chalk', class: 'theme-chalk', icon: '🏫', name: 'Tiza', bg: '#1e382b', pen: '#f4f4f4', grid: false },
-            { id: 'white', class: 'theme-white', icon: '⚪', name: 'Blanca', bg: '#ffffff', pen: '#000000', grid: true }
+            { id: 'chalk', class: 'theme-chalk', icon: '🏫', name: 'Tiza', bg: '#1e382b', pen: '#f4f4f4', grid: false }
         ];
         let currentThemeIdx = 0;
 
@@ -593,6 +593,7 @@
             
             myColor = newTheme.pen;
             document.getElementById('colorPicker').value = myColor;
+            document.getElementById('mw-color').value = myColor;
             chalkPattern = generateChalkPattern(myColor);
             setTool('pen');
             
@@ -776,7 +777,7 @@
             tempCanvas.width = width; tempCanvas.height = height;
             tCtx.font = 'bold 40px serif';
             tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
-            tCtx.fillStyle = myColor || '#ffffff';
+            tCtx.fillStyle = myColor || '#0f172a';
             tCtx.fillText(formulaText, width / 2, height / 2);
 
             const img = document.getElementById('stamp-img');
@@ -956,13 +957,14 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
+                // Desaparecer código en 40 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
                         uiPanel.style.opacity = '0'; 
                         setTimeout(() => uiPanel.style.display = 'none', 800); 
                     }
-                }, 15000);
+                }, 40000);
             });
             peer.on('connection', (conn) => { 
                 connections.push(conn); 
@@ -1006,7 +1008,7 @@
   if(!board || !container) return;
 
   let mwMode = 'pen';
-  let mwColor = '#ffffff';
+  let mwColor = '#0f172a';
   let mwSize = 5;
   let mwDrawing = false;
   
@@ -1097,7 +1099,7 @@
                     c.globalAlpha = 0.9;
                 } else {
                     c.strokeStyle = mwColor;
-                    c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.95;
+                    c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
                 }
             }
             mwCtxState.color = mwColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode; mwCtxState.isChalk = isChalkTheme;
