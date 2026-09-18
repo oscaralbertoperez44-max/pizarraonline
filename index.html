@@ -25,17 +25,19 @@
             overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
             background-color: #f8fafc;
         }
-        #canvas-container::-webkit-scrollbar { width: 14px; }
-        #canvas-container::-webkit-scrollbar-track { background: #e2e8f0; border-left: 1px solid #cbd5e1; }
-        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #e2e8f0; }
-        #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
-
+        #canvas-container::-webkit-scrollbar { width: 12px; }
+        #canvas-container::-webkit-scrollbar-track { background: #f1f5f9; border-left: 1px solid #cbd5e1; }
+        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 8px; border: 2px solid #f1f5f9; }
+        
         canvas#board {
             display: block; touch-action: none;
             width: 100%; height: auto; min-height: 300vh; 
+            /* Diseño Pizarra Blanca con Cuadrícula Fija */
             background-color: #ffffff;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+            background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
             background-size: 35px 35px;
+            /* Aceleración de Hardware dedicada */
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -46,8 +48,8 @@
             position: fixed;
             top: 15px;
             right: 20px;
-            background: rgba(15, 23, 42, 0.85);
-            border: 1px solid rgba(59, 130, 246, 0.3);
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(59, 130, 246, 0.4);
             color: #e2e8f0;
             padding: 8px 18px;
             border-radius: 20px;
@@ -88,7 +90,15 @@
 
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
-        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; background: rgba(20,20,20,0.95); border: 1px solid #444; transition: opacity 0.8s ease; }
+        
+        /* Panel del Código de la clase */
+        #ui-panel { 
+            top: 20px; left: 20px; padding: 20px; 
+            text-align: center; background: rgba(15, 23, 42, 0.95); 
+            border: 1px solid #3b82f6; border-radius: 12px;
+            transition: opacity 1s ease; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
         
         #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
@@ -115,30 +125,33 @@
         .stamper-toolbar { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
         .stamper-toolbar button { touch-action: manipulation; }
 
-        /* Toolbar */
+        /* Toolbar general */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
-        .tool-btn { background: #444; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; }
-        .tool-btn.active { background: #10b981; }
+        .tool-btn { background: #334155; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 8px;}
+        .tool-btn.active { background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.3); }
         .danger-btn { background: #dc2626; color: #fff; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
+        /* BARRA DEL PROFESOR OPTIMIZADA (Estilo Isla) */
         #toolbar {
-            position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.95); padding: 10px 20px;
-            border-radius: 25px; display: flex; gap: 10px; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 8px 30px rgba(0,0,0,0.25); z-index: 50;
-            backdrop-filter: blur(10px);
-            max-width: 98vw;
+            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.95); padding: 8px 16px;
+            border-radius: 30px; display: flex; gap: 8px; align-items: center; justify-content: center;
+            border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 10px 30px rgba(0,0,0,0.25); z-index: 50;
+            backdrop-filter: blur(12px);
+            max-width: 95vw;
             overflow-x: auto;
             white-space: nowrap;
         }
+        /* Para ocultar scrollbar en la barra si hay scroll */
+        #toolbar::-webkit-scrollbar { display: none; }
         
         .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 55px; }
-        .slider-label { font-size: 0.55rem; color: #cbd5e1; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
-        input[type="color"] { width: 28px; height: 28px; border: none; border-radius: 50%; padding: 0; cursor: pointer; flex-shrink: 0; background: transparent; }
-        input[type="range"] { width: 65px; height: 4px; accent-color: #3b82f6; flex-shrink: 0; }
+        .slider-label { font-size: 0.55rem; color: #94a3b8; margin-bottom: 2px; font-weight: bold; text-transform: uppercase; }
+        input[type="color"] { width: 30px; height: 30px; border: none; border-radius: 50%; padding: 0; cursor: pointer; flex-shrink: 0; background: transparent; }
+        input[type="range"] { width: 65px; height: 4px; accent-color: #3b82f6; flex-shrink: 0; cursor: pointer; }
         
         .hidden-file { display: none; }
 
@@ -151,7 +164,7 @@
 
         @media (max-width: 900px) {
             #formula-search { font-size: .85rem; }
-            #toolbar { width: 98%; bottom: 8px; padding: 8px 12px; gap: 8px; border-radius: 16px; }
+            #toolbar { width: max-content; max-width: 95vw; bottom: 12px; padding: 6px 12px; gap: 6px; border-radius: 25px; }
             button { padding: 6px 10px; font-size: 0.8rem; }
             .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
@@ -176,23 +189,27 @@
         #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
         #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
 
-/* === ESCRITURA TÁCTIL Y MÓVIL (ALUMNO Y PROFESOR) === */
+/* === BARRA DE ESCRITURA UNIVERSAL (ALUMNO Y PROFESOR) === */
 .mobile-write-tools {
   display: flex;
   position: fixed;
-  bottom: 12px;
+  bottom: 15px;
   left: 50%;
   transform: translateX(-50%);
   z-index: 9999;
   gap: 8px;
-  padding: 8px 14px;
+  padding: 8px 16px;
   background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 20px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.35);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
   align-items: center;
-  backdrop-filter: blur(10px);
+  backdrop-filter: blur(12px);
+  max-width: 95vw;
+  overflow-x: auto;
 }
+.mobile-write-tools::-webkit-scrollbar { display: none; }
+
 .mobile-write-tools button {
   min-width: 44px;
   min-height: 42px;
@@ -203,52 +220,26 @@
   color: #fff;
   background: #334155;
   cursor: pointer;
+  transition: 0.2s;
 }
 .mobile-write-tools button.active {
-  outline: 2px solid #60a5fa;
+  outline: 2px solid #3b82f6;
   background: #2563eb;
 }
-.mobile-write-tools input[type="range"] {
-  width: 90px;
-}
+.mobile-write-tools input[type="range"] { width: 90px; cursor: pointer; }
 .mobile-write-tools input[type="color"] {
-  width: 38px;
-  height: 38px;
-  border: 0;
-  padding: 0;
-  border-radius: 10px;
-  background: transparent;
-  cursor: pointer;
+  width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer;
 }
 .mobile-write-hint {
-  position: fixed;
-  top: 10px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: rgba(0,0,0,0.8);
-  padding: 5px 12px;
-  border-radius: 15px;
-  font-size: 12px;
-  z-index: 9998;
-  pointer-events: none;
-  display: none;
+  position: fixed; top: 10px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.8); padding: 5px 12px; border-radius: 15px; font-size: 12px;
+  z-index: 9998; pointer-events: none; display: none;
 }
 
 .audio-unlock-btn {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    z-index: 10000;
-    padding: 20px 30px;
-    font-size: 1.2rem;
-    font-weight: bold;
-    background: #2563eb;
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-    cursor: pointer;
+    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
+    padding: 20px 30px; font-size: 1.2rem; font-weight: bold; background: #2563eb; color: #fff;
+    border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer;
     animation: pulseAudio 2s infinite;
 }
 @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
@@ -283,15 +274,15 @@
 
     <div id="ui-panel" class="floating-panel">
         <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
-        <div id="room-code-display" style="font-size: 2.2rem; letter-spacing: 6px; margin: 8px 0; font-weight:bold; color:#60a5fa; display:none;"></div>
-        <div style="font-size: 0.75em; color: #aaa;">El código se ocultará en 40 segundos</div>
+        <div id="room-code-display" style="font-size: 2.5rem; letter-spacing: 6px; margin: 10px 0; font-weight:bold; color:#60a5fa; display:none;"></div>
+        <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
 
     <!-- WIDGET DE FÓRMULAS -->
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
-            <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px;">_</button>
+            <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px; background: transparent;">_</button>
         </div>
         <div class="formula-tab-btns">
             <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
@@ -333,7 +324,7 @@
     <div id="pdf-panel" class="floating-panel">
         <div class="panel-header" id="pdf-header">
             <span>📄 Lector de PDF</span>
-            <button class="tool-btn" onclick="togglePdfMinimize()" style="padding: 2px 6px;">_</button>
+            <button class="tool-btn" onclick="togglePdfMinimize()" style="padding: 2px 6px; background: transparent;">_</button>
         </div>
         <div class="pdf-controls">
             <div class="pdf-controls-group">
@@ -367,35 +358,31 @@
         </div>
     </div>
 
-    <!-- Toolbar Principal (Profesor) -->
+    <!-- Toolbar Principal (Profesor PC) -->
     <div id="toolbar">
         <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
         <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;" title="Librería de Fórmulas">🧮 <span class="hide-mobile">Fórmulas</span></button>
         
-        <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
+        <div class="hide-mobile" style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
         
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
-            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
+            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Fibrón">✏️</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
 
-            <input type="color" id="colorPicker" value="#0f172a" title="Color">
+            <input type="color" id="colorPicker" value="#0f172a" title="Color de Tinta">
             
             <div class="slider-container">
-                <span id="slider-label" class="slider-label">Lápiz</span>
-                <input type="range" id="toolSize" min="1" max="20" value="4">
+                <span id="slider-label" class="slider-label">Trazo</span>
+                <input type="range" id="toolSize" min="1" max="25" value="5">
             </div>
             
-            <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
-            
-            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 95px;">
-                <span id="theme-icon">⚪</span> <span id="theme-name">Blanca</span>
-            </button>
+            <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
             
             <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
             <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar en MP4">⏺️ <span class="hide-mobile">MP4</span></button>
             
-            <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
+            <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
             <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 PDF</button>
@@ -407,24 +394,24 @@
             <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir foto">🖼️ <span class="hide-mobile">Foto</span></button>
             <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Cámara">📷 <span class="hide-mobile">Cámara</span></button>
             
-            <button class="danger-btn" onclick="clearCanvas()" title="Borrar Todo">🗑️</button>
+            <button class="danger-btn" onclick="clearCanvas()" title="Borrar Todo la Pizarra">🗑️</button>
         </div>
     </div>
 
-    <!-- Barra de Escritura Universal (Profesor y Alumno) -->
+    <!-- Barra de Escritura Universal (Alumnos / Móvil) -->
     <div class="mobile-write-tools" id="mobile-write-tools">
-      <button type="button" id="mw-pen" class="active" title="Lápiz">✏️</button>
-      <button type="button" id="mw-marker" title="Marcador">🖍️</button>
+      <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
+      <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
       <button type="button" id="mw-eraser" title="Borrador">🧼</button>
       <button type="button" id="mw-undo" title="Deshacer">↩️</button>
-      <button type="button" id="mw-clear" title="Limpiar">🗑️</button>
-      <input id="mw-color" type="color" value="#0f172a" title="Color">
-      <input id="mw-size" type="range" min="2" max="28" value="5" title="Grosor">
+      <button type="button" id="mw-clear" title="Limpiar Trazos">🗑️</button>
+      <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 2px;"></div>
+      <input id="mw-color" type="color" value="#0f172a" title="Color de Tinta">
+      <input id="mw-size" type="range" min="2" max="30" value="5" title="Grosor">
     </div>
-    <div class="mobile-write-hint" id="mobile-write-hint">📱 Tocá y escribí sobre la pizarra</div>
 
     <div id="canvas-container">
-        <canvas id="board" width="1920" height="4000" class="theme-white"></canvas>
+        <canvas id="board" width="1920" height="4000"></canvas>
     </div>
 
 <script>
@@ -469,9 +456,8 @@
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
         
-        let isDrawing = false, currentTool = 'pen', myColor = '#0f172a'; // Fibrón oscuro por defecto para pizarra blanca
-        let penSize = 4, eraserSize = 60; 
-        let chalkPattern = null;
+        let isDrawing = false, currentTool = 'pen', myColor = '#0f172a'; // Tinta oscura real
+        let penSize = 5, eraserSize = 60; 
 
         let cachedCanvasRect = canvas.getBoundingClientRect();
         let cachedScaleX = canvas.width / cachedCanvasRect.width;
@@ -513,37 +499,24 @@
             }
         }
 
-        let ctxState = { color: '', size: -1, tool: '', isChalk: null };
-        function applyCtxState(targetCtx, color, size, tool, isChalk) {
-            if (ctxState.color === color && ctxState.size === size && ctxState.tool === tool && ctxState.isChalk === isChalk) return;
+        let ctxState = { color: '', size: -1, tool: '' };
+        function applyCtxState(targetCtx, color, size, tool) {
+            if (ctxState.color === color && ctxState.size === size && ctxState.tool === tool) return;
                 
             targetCtx.lineWidth = size;
             if (tool === 'eraser') {
                 targetCtx.globalCompositeOperation = 'destination-out';
                 targetCtx.globalAlpha = 1.0;
+                targetCtx.shadowBlur = 0;
             } else {
                 targetCtx.globalCompositeOperation = 'source-over';
-                if (isChalk && chalkPattern) {
-                    targetCtx.strokeStyle = chalkPattern;
-                    targetCtx.globalAlpha = 0.9;
-                } else {
-                    targetCtx.strokeStyle = color;
-                    targetCtx.globalAlpha = tool === 'marker' ? 0.38 : 0.92; // Fibrón suave y real
-                }
+                targetCtx.strokeStyle = color;
+                // Efecto fibrón ultra-realista
+                targetCtx.shadowColor = color;
+                targetCtx.shadowBlur = size * 0.15; // Difuminado sutil como tinta húmeda en pizarra blanca
+                targetCtx.globalAlpha = tool === 'marker' ? 0.35 : 0.88;
             }
-            ctxState.color = color; ctxState.size = size; ctxState.tool = tool; ctxState.isChalk = isChalk;
-        }
-
-        function generateChalkPattern(colorHex) {
-            const pCanvas = document.createElement('canvas');
-            pCanvas.width = 50; pCanvas.height = 50;
-            const pCtx = pCanvas.getContext('2d');
-            pCtx.fillStyle = colorHex;
-            for(let i = 0; i < 1000; i++) {
-                pCtx.globalAlpha = Math.random() * 0.7 + 0.1;
-                pCtx.fillRect(Math.random() * 50, Math.random() * 50, Math.random() * 1.5, Math.random() * 2);
-            }
-            return ctx.createPattern(pCanvas, 'repeat');
+            ctxState.color = color; ctxState.size = size; ctxState.tool = tool;
         }
 
         const toolSizeSlider = document.getElementById('toolSize');
@@ -561,8 +534,8 @@
             canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
             
             if (tool === 'pen') {
-                toolSizeSlider.min = 1; toolSizeSlider.max = 20;
-                toolSizeSlider.value = penSize; sliderLabel.innerText = 'Lápiz';
+                toolSizeSlider.min = 1; toolSizeSlider.max = 30;
+                toolSizeSlider.value = penSize; sliderLabel.innerText = 'Trazo';
             } else {
                 toolSizeSlider.min = 20; toolSizeSlider.max = 150;
                 toolSizeSlider.value = eraserSize; sliderLabel.innerText = 'Goma';
@@ -571,43 +544,9 @@
 
         document.getElementById('colorPicker').addEventListener('change', (e) => { 
             myColor = e.target.value; 
-            chalkPattern = generateChalkPattern(myColor);
+            document.getElementById('mw-color').value = myColor;
             setTool('pen'); 
         });
-
-        const themes = [
-            { id: 'white', class: 'theme-white', icon: '⚪', name: 'Blanca', bg: '#ffffff', pen: '#0f172a', grid: true },
-            { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff', grid: true },
-            { id: 'chalk', class: 'theme-chalk', icon: '🏫', name: 'Tiza', bg: '#1e382b', pen: '#f4f4f4', grid: false }
-        ];
-        let currentThemeIdx = 0;
-
-        function cycleTheme() {
-            canvas.classList.remove(themes[currentThemeIdx].class);
-            currentThemeIdx = (currentThemeIdx + 1) % themes.length;
-            const newTheme = themes[currentThemeIdx];
-            
-            canvas.classList.add(newTheme.class);
-            document.getElementById('theme-icon').innerText = newTheme.icon;
-            document.getElementById('theme-name').innerText = newTheme.name;
-            
-            myColor = newTheme.pen;
-            document.getElementById('colorPicker').value = myColor;
-            document.getElementById('mw-color').value = myColor;
-            chalkPattern = generateChalkPattern(myColor);
-            setTool('pen');
-            
-            ctxState = { color: '', size: -1, tool: '', isChalk: null };
-            broadcastData({ type: 'theme', index: currentThemeIdx });
-        }
-
-        function applyTheme(index) {
-            canvas.classList.remove(themes[currentThemeIdx].class);
-            currentThemeIdx = index;
-            canvas.classList.add(themes[currentThemeIdx].class);
-            chalkPattern = generateChalkPattern(themes[currentThemeIdx].pen);
-            ctxState = { color: '', size: -1, tool: '', isChalk: null };
-        }
 
         function toggleFullScreen() {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => {});
@@ -642,8 +581,6 @@
             const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
             if(events.length === 0) return;
             
-            const isChalkTheme = themes[currentThemeIdx].id === 'chalk';
-
             let ev, pos, pressure, pFactor, finalSize, midX, midY;
 
             ctx.beginPath();
@@ -657,7 +594,7 @@
                 pFactor = ev.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
                 finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
                 
-                applyCtxState(ctx, myColor, finalSize, currentTool, isChalkTheme);
+                applyCtxState(ctx, myColor, finalSize, currentTool);
 
                 midX = (pLastPosX + pos.x) * 0.5;
                 midY = (pLastPosY + pos.y) * 0.5;
@@ -696,17 +633,126 @@
                 {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
                 {name:"Identidad notable: cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
                 {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
-                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"}
+                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
+                {name:"Cubo de una diferencia",eq:"(a-b)³=a³-3a²b+3ab²-b³"},
+                {name:"Suma de cubos",eq:"a³+b³=(a+b)(a²-ab+b²)"},
+                {name:"Diferencia de cubos",eq:"a³-b³=(a-b)(a²+ab+b²)"},
+                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
+                {name:"Discriminante",eq:"Δ=b²-4ac"},
+                {name:"Binomio general",eq:"(a+b)^n=Σₖ C(n,k)a^(n-k)b^k"},
+                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"},
+                {name:"Logaritmo del cociente",eq:"log(a/b)=log a-log b"},
+                {name:"Cambio de base",eq:"log_b(a)=ln(a)/ln(b)"},
+                {name:"Exponencial y logaritmo",eq:"ln(e^x)=x; e^(ln x)=x"}
             ],
             geometry: [
                 {name:"Pitágoras",eq:"a²+b²=c²"},
-                {name:"Área del Círculo",eq:"A = π · r²"},
-                {name:"Perímetro del Círculo",eq:"P = 2πr"}
+                {name:"Distancia entre puntos",eq:"d=√((x₂-x₁)²+(y₂-y₁)²)"},
+                {name:"Punto medio",eq:"M=((x₁+x₂)/2,(y₁+y₂)/2)"},
+                {name:"Pendiente",eq:"m=(y₂-y₁)/(x₂-x₁)"},
+                {name:"Recta",eq:"y-y₁=m(x-x₁)"},
+                {name:"Forma pendiente-intersección",eq:"y=mx+b"},
+                {name:"Área del triángulo",eq:"A=bh/2"},
+                {name:"Área del círculo",eq:"A=πr²"},
+                {name:"Longitud de circunferencia",eq:"C=2πr"},
+                {name:"Área del rectángulo",eq:"A=bh"},
+                {name:"Área del trapecio",eq:"A=(B+b)h/2"},
+                {name:"Área del rombo",eq:"A=Dd/2"},
+                {name:"Volumen del prisma",eq:"V=A_b h"},
+                {name:"Volumen del cilindro",eq:"V=πr²h"},
+                {name:"Volumen de la esfera",eq:"V=4πr³/3"},
+                {name:"Área de esfera",eq:"A=4πr²"}
+            ],
+            trigonometry: [
+                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
+                {name:"Tangente",eq:"tan x=sin x/cos x"},
+                {name:"Secante",eq:"sec x=1/cos x"},
+                {name:"Cosecante",eq:"csc x=1/sin x"},
+                {name:"Ley de senos",eq:"a/sin A=b/sin B=c/sin C"},
+                {name:"Ley de cosenos",eq:"c²=a²+b²-2ab cos C"},
+                {name:"Suma del seno",eq:"sin(a+b)=sin a cos b+cos a sin b"},
+                {name:"Diferencia del seno",eq:"sin(a-b)=sin a cos b-cos a sin b"},
+                {name:"Suma del coseno",eq:"cos(a+b)=cos a cos b-sin a sin b"},
+                {name:"Diferencia del coseno",eq:"cos(a-b)=cos a cos b+sin a sin b"}
             ],
             calculus: [
-                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
-                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
-                {name:"Integración por Partes",eq:"∫ u dv = u·v - ∫ v du"}
+                {name:"Derivada de potencia",eq:"d(x^n)/dx=nx^(n-1)"},
+                {name:"Derivada de exponencial",eq:"d(e^x)/dx=e^x"},
+                {name:"Derivada de logaritmo",eq:"d(ln x)/dx=1/x"},
+                {name:"Derivada del seno",eq:"d(sin x)/dx=cos x"},
+                {name:"Derivada del coseno",eq:"d(cos x)/dx=-sin x"},
+                {name:"Regla del producto",eq:"(fg)'=f'g+fg'"},
+                {name:"Regla del cociente",eq:"(f/g)'=(f'g-fg')/g²"},
+                {name:"Regla de la cadena",eq:"(f(g(x)))'=f'(g(x))g'(x)"},
+                {name:"Integral de potencia",eq:"∫x^n dx=x^(n+1)/(n+1)+C, n≠-1"},
+                {name:"Integral de 1/x",eq:"∫dx/x=ln|x|+C"},
+                {name:"Integral exponencial",eq:"∫e^x dx=e^x+C"},
+                {name:"Integral seno",eq:"∫sin x dx=-cos x+C"},
+                {name:"Integral coseno",eq:"∫cos x dx=sin x+C"},
+                {name:"Teorema fundamental",eq:"∫_a^b f(x)dx=F(b)-F(a), F'=f"},
+                {name:"Integración por partes",eq:"∫u dv=uv-∫v du"},
+                {name:"Sustitución",eq:"∫f(g(x))g'(x)dx=∫f(u)du"}
+            ],
+            statistics: [
+                {name:"Media",eq:"x̄=Σxᵢ/n"},
+                {name:"Media ponderada",eq:"x̄=Σwᵢxᵢ/Σwᵢ"},
+                {name:"Varianza poblacional",eq:"σ²=Σ(xᵢ-μ)²/N"},
+                {name:"Desviación estándar",eq:"σ=√σ²"},
+                {name:"Varianza muestral",eq:"s²=Σ(xᵢ-x̄)²/(n-1)"},
+                {name:"Puntaje Z",eq:"z=(x-μ)/σ"},
+                {name:"Regla empírica",eq:"≈68%-95%-99.7%"},
+                {name:"Covarianza",eq:"Cov(X,Y)=E[(X-μx)(Y-μy)]"},
+                {name:"Correlación",eq:"r=Cov(X,Y)/(σxσy)"}
+            ],
+            probability: [
+                {name:"Probabilidad clásica",eq:"P(A)=casos favorables/casos posibles"},
+                {name:"Complemento",eq:"P(Aᶜ)=1-P(A)"},
+                {name:"Unión",eq:"P(A∪B)=P(A)+P(B)-P(A∩B)"},
+                {name:"Condicional",eq:"P(A|B)=P(A∩B)/P(B)"},
+                {name:"Independencia",eq:"P(A∩B)=P(A)P(B)"},
+                {name:"Probabilidad total",eq:"P(B)=ΣᵢP(B|Aᵢ)P(Aᵢ)"},
+                {name:"Binomial: esperanza",eq:"E[X]=np"},
+                {name:"Binomial: varianza",eq:"Var(X)=np(1-p)"},
+                {name:"Geométrica",eq:"P(X=k)=(1-p)^(k-1)p"},
+                {name:"Poisson",eq:"P(X=k)=e^-λ λ^k/k!"},
+                {name:"Uniforme",eq:"f(x)=1/(b-a), a≤x≤b"}
+            ],
+            discrete: [
+                {name:"Factorial",eq:"n!=n(n-1)···2·1"},
+                {name:"Permutaciones",eq:"n!"},
+                {name:"Combinaciones",eq:"C(n,k)=n!/[k!(n-k)!]"},
+                {name:"Principio del palomar",eq:"n+1 objetos en n cajas ⇒ alguna caja tiene ≥2"},
+                {name:"Relación de recurrencia",eq:"aₙ=c₁aₙ₋₁+···+c_kaₙ₋ₖ"},
+                {name:"Euler para grafos planares",eq:"V-E+F=2"}
+            ],
+            numbers: [
+                {name:"MCD y MCM",eq:"mcd(a,b)·mcm(a,b)=|ab|"},
+                {name:"División euclídea",eq:"a=bq+r, 0≤r<b"},
+                {name:"Congruencia",eq:"a≡b (mod n) ⇔ n|(a-b)"},
+                {name:"Fermat",eq:"a^(p-1)≡1 (mod p), p∤a"},
+                {name:"Euler",eq:"a^φ(n)≡1 (mod n), mcd(a,n)=1"}
+            ],
+            financial: [
+                {name:"Interés simple",eq:"I=Prt"},
+                {name:"Monto simple",eq:"A=P(1+rt)"},
+                {name:"Interés compuesto",eq:"A=P(1+r/n)^(nt)"},
+                {name:"Valor presente",eq:"P=A/(1+r/n)^(nt)"},
+                {name:"Tasa efectiva",eq:"i_eff=(1+r/n)^n-1"}
+            ],
+            complex: [
+                {name:"Número complejo",eq:"z=a+bi"},
+                {name:"Módulo",eq:"|z|=√(a²+b²)"},
+                {name:"Conjugado",eq:"z̄=a-bi"},
+                {name:"Forma polar",eq:"z=r(cosθ+i sinθ)"},
+                {name:"Euler",eq:"e^(iθ)=cosθ+i sinθ"}
+            ],
+            physics: [
+                {name:"Velocidad",eq:"v=Δx/Δt"},
+                {name:"Aceleración",eq:"a=Δv/Δt"},
+                {name:"MRUA",eq:"x=x₀+v₀t+at²/2"},
+                {name:"Fuerza",eq:"F=ma"},
+                {name:"Energía cinética",eq:"E_k=mv²/2"},
+                {name:"Energía potencial",eq:"E_p=mgh"}
             ]
         };
 
@@ -795,8 +841,16 @@
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = 1920; tempCanvas.height = 4000;
             const tCtx = tempCanvas.getContext('2d');
-            const theme = themes[currentThemeIdx];
-            tCtx.fillStyle = theme.bg; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // Forzar fondo blanco
+            tCtx.fillStyle = '#ffffff'; 
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            tCtx.strokeStyle = 'rgba(0,0,0,0.06)';
+            tCtx.lineWidth = 1.5;
+            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
+            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
+            
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [1920, 4000] });
@@ -906,7 +960,6 @@
 
         function processRemoteCommand(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
-            if (data.type === 'theme') { applyTheme(data.index); return; }
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
             if (data.type === 'stop') { ctx.beginPath(); return; }
@@ -916,8 +969,7 @@
                 img.src = data.src; return;
             }
             if (data.type === 'drawBezier') {
-                const isChalkTheme = canvas.classList.contains('theme-chalk');
-                applyCtxState(ctx, data.color, data.size, data.tool, isChalkTheme);
+                applyCtxState(ctx, data.color, data.size, data.tool);
                 ctx.beginPath();
                 ctx.moveTo(data.lastMidX, data.lastMidY);
                 ctx.quadraticCurveTo(data.lastPosX, data.lastPosY, data.midX, data.midY);
@@ -957,19 +1009,18 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
-                // Desaparecer código en 40 segundos
+                // Desaparecer código en exactamente 40 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
                         uiPanel.style.opacity = '0'; 
-                        setTimeout(() => uiPanel.style.display = 'none', 800); 
+                        setTimeout(() => uiPanel.style.display = 'none', 1000); 
                     }
                 }, 40000);
             });
             peer.on('connection', (conn) => { 
                 connections.push(conn); 
                 conn.on('open', () => { 
-                    conn.send({ type: 'theme', index: currentThemeIdx });
                     conn.send({ type: 'scroll', top: container.scrollTop });
                 }); 
                 conn.on('data', drawRemote); 
@@ -986,7 +1037,7 @@
             peer.on('open', () => {
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
-                document.getElementById('toolbar').style.display = 'flex';
+                document.getElementById('mobile-write-tools').style.display = 'flex';
                 
                 const conn = peer.connect(roomId); 
                 connections.push(conn);
@@ -1014,7 +1065,7 @@
   
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
-  let mwCtxState = { color: '', size: -1, mode: '', isChalk: null };
+  let mwCtxState = { color: '', size: -1, mode: '' };
 
   let cachedMwRect = board.getBoundingClientRect();
   let cachedMwScaleX = board.width / cachedMwRect.width;
@@ -1045,7 +1096,8 @@
   }
   
   function start(ev){
-    if(ev.target !== board) return;
+    // Evitar dibujar si se toca un botón de las barras flotantes
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT') return;
     ev.preventDefault();
     hideBanner();
     updateMwRect();
@@ -1065,11 +1117,6 @@
     if(!mwDrawing) return;
     ev.preventDefault();
     
-    const isChalkTheme = board.classList.contains('theme-chalk');
-    if (isChalkTheme && typeof chalkPattern === 'undefined' && typeof generateChalkPattern !== 'undefined') {
-        chalkPattern = generateChalkPattern(mwColor);
-    }
-
     const c = board.getContext('2d');
     c.lineCap = 'round'; c.lineJoin = 'round';
     const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
@@ -1087,22 +1134,20 @@
         baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
         finalSize = mwMode === 'eraser' ? Math.max(18, mwSize * 3.5) : baseSize * pFactor;
 
-        if (mwCtxState.color !== mwColor || mwCtxState.size !== finalSize || mwCtxState.mode !== mwMode || mwCtxState.isChalk !== isChalkTheme) {
+        if (mwCtxState.color !== mwColor || mwCtxState.size !== finalSize || mwCtxState.mode !== mwMode) {
             c.lineWidth = finalSize;
             if(mwMode === 'eraser'){
                 c.globalCompositeOperation = 'destination-out';
                 c.globalAlpha = 1;
+                c.shadowBlur = 0;
             } else {
                 c.globalCompositeOperation = 'source-over';
-                if (isChalkTheme && mwMode === 'pen' && typeof chalkPattern !== 'undefined') {
-                    c.strokeStyle = chalkPattern || mwColor;
-                    c.globalAlpha = 0.9;
-                } else {
-                    c.strokeStyle = mwColor;
-                    c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
-                }
+                c.strokeStyle = mwColor;
+                c.shadowColor = mwColor;
+                c.shadowBlur = finalSize * 0.15;
+                c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
             }
-            mwCtxState.color = mwColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode; mwCtxState.isChalk = isChalkTheme;
+            mwCtxState.color = mwColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode;
         }
 
         midX = (mwLastPosX + p.x) * 0.5;
@@ -1125,7 +1170,7 @@
     mwDrawing=false;
     showBanner();
     const c=board.getContext('2d');
-    c.globalAlpha=1; c.globalCompositeOperation='source-over';
+    c.globalAlpha=1; c.globalCompositeOperation='source-over'; c.shadowBlur = 0;
     try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
   }
 
@@ -1146,9 +1191,8 @@
   
   color && color.addEventListener('input', e => { 
       mwColor = e.target.value; 
-      if(typeof generateChalkPattern !== 'undefined') chalkPattern = generateChalkPattern(mwColor);
       setMode('pen');
-      mwCtxState = { color: '', size: -1, mode: '', isChalk: null }; 
+      mwCtxState = { color: '', size: -1, mode: '' }; 
   });
   
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
