@@ -4,36 +4,46 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MathBoard Pro - Master Edition (Anti-Freeze)</title>
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    
+    <!-- Lógica UI Instantánea (Evita congelamientos) -->
     <script>
-        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-    </script>
-    <style>
-        /* Base General */
-        body, html {
-            margin: 0; padding: 0; width: 100vw; height: 100vh;
-            background-color: #050505; color: #fff;
-            font-family: 'Segoe UI', sans-serif; overflow: hidden;
-            position: fixed; inset: 0; touch-action: none;
+        function showStudentForm() { 
+            document.getElementById('role-selection').style.display = 'none'; 
+            document.getElementById('form-student').style.display = 'block'; 
+            document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; 
+        }
+        function showTeacherForm() { 
+            document.getElementById('role-selection').style.display = 'none'; 
+            document.getElementById('form-teacher').style.display = 'block'; 
+            document.getElementById('login-msg').innerText = "Acceso seguro del Profesor"; 
+        }
+        function goBack() { 
+            document.getElementById('form-student').style.display = 'none'; 
+            document.getElementById('form-teacher').style.display = 'none'; 
+            document.getElementById('role-selection').style.display = 'block'; 
+            document.getElementById('login-msg').innerText = "Selecciona tu perfil"; 
+            document.getElementById('adminPin').value = ""; 
+            document.getElementById('roomIdInput').value = ""; 
         }
         
-        #canvas-container {
-            width: 100vw; height: 100vh;
-            position: absolute; top: 0; left: 0; z-index: 1;
-            overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
-        }
+        // Manejador de errores global para diagnosticar problemas
+        window.onerror = function(msg, url, line) {
+            const err = document.getElementById('global-error');
+            if(err) { err.style.display = 'block'; err.innerText = "Error: " + msg + " (Línea: " + line + ")"; }
+        };
+    </script>
+
+    <style>
+        body, html { margin: 0; padding: 0; width: 100vw; height: 100vh; background-color: #050505; color: #fff; font-family: 'Segoe UI', sans-serif; overflow: hidden; position: fixed; inset: 0; touch-action: none; }
+        
+        #global-error { position: fixed; top: 10px; left: 10px; background: #dc2626; color: white; padding: 10px; border-radius: 5px; z-index: 999999; display: none; font-weight: bold; }
+
+        #canvas-container { width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth; }
         #canvas-container::-webkit-scrollbar { width: 14px; }
         #canvas-container::-webkit-scrollbar-track { background: #121212; border-left: 1px solid #333; }
         #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #121212; }
-        #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
-
-        canvas.board-layer {
-            display: block; touch-action: none;
-            width: 100%; height: auto; min-height: 300vh; 
-            position: absolute; top: 0; left: 0;
-        }
+        
+        canvas.board-layer { display: block; touch-action: none; width: 100%; height: auto; min-height: 300vh; position: absolute; top: 0; left: 0; }
         canvas#board { z-index: 1; transition: background 0.3s ease; }
         canvas#overlay-board { z-index: 2; pointer-events: none; }
 
@@ -53,21 +63,18 @@
         .auth-form { display: none; margin-top: 20px; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
         .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; }
-        .auth-input:focus { outline: 2px solid #3b82f6; }
         .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
         
         #ui-panel, #toolbar { display: none; }
-
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
-        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; border-left: 4px solid #3b82f6; }
+        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; }
         
         #formulas-panel { top: 80px; right: 30px; width: 500px; display: none; max-height: 85vh; overflow: hidden; resize: both; }
         .formula-search-bar { padding: 10px; background: #111; border-bottom: 1px solid #333; }
         .formula-search-input { width: 100%; padding: 8px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; text-align: center; font-size: 0.9rem; box-sizing: border-box; }
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; cursor: grab; }
-        .formula-tab-btns:active { cursor: grabbing; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
         .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; transition: 0.2s; }
@@ -89,7 +96,6 @@
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.9); cursor: grab; min-width: 100px; min-height: 50px; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; }
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
-        .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(30,30,30,0.95); padding: 6px 12px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; }
 
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
@@ -112,7 +118,6 @@
         .slider-label { font-size: 0.55rem; color: #aaa; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
         input[type="color"] { width: 24px; height: 24px; border: none; border-radius: 50%; padding: 0; cursor: pointer; }
         input[type="range"] { width: 55px; height: 4px; accent-color: #3b82f6; }
-        
         .hidden-file { display: none; }
 
         @media (max-width: 900px) {
@@ -124,6 +129,8 @@
     </style>
 </head>
 <body>
+
+    <div id="global-error"></div>
 
     <div id="login-overlay">
         <div class="login-box">
@@ -146,13 +153,13 @@
         </div>
     </div>
 
-    <!-- Info del sistema -->
     <div id="ui-panel" class="floating-panel">
-        <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Cargando...</div>
+        <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
         <div id="room-code-display" style="font-size: 1.5rem; letter-spacing: 4px; margin: 8px 0; font-weight:bold; color:white; display:none;"></div>
-        <div style="font-size: 0.7em; color: #aaa;" id="status-hint">Por favor espera...</div>
+        <div style="font-size: 0.7em; color: #aaa;" id="status-hint">Esperando conexión de red...</div>
     </div>
 
+    <!-- WIDGET DE FÓRMULAS -->
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
@@ -173,10 +180,9 @@
             <button class="f-tab" onclick="loadFormulas('complex', this)">Números Complejos</button>
             <button class="f-tab" onclick="loadFormulas('stats', this)">Prob. y Estadística</button>
             <button class="f-tab" onclick="loadFormulas('continuous', this)">Variables Continuas</button>
-            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología y Geometría</button>
+            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
         </div>
         <div class="formula-grid" id="formula-grid-container"></div>
-        <div class="resize-handle resize-handle-pdf" id="formula-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Visor PDF -->
@@ -201,7 +207,7 @@
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
         </div>
-        <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
+        <div class="resize-handle" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <div id="stamper" class="floating-panel">
@@ -261,35 +267,41 @@
         <canvas id="overlay-board" width="1920" height="4000" class="board-layer"></canvas>
     </div>
 
+    <!-- LIBRERÍAS EXTERNAS (CARGADAS AL FINAL PARA NO BLOQUEAR) -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+    <!-- SCRIPT PRINCIPAL -->
     <script>
+        // Configurar Worker de PDF.js solo si cargó correctamente
+        if (typeof pdfjsLib !== 'undefined') {
+            pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+        }
+
         const peerNetworkOptions = { config: { 'iceServers': [ { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' } ] } };
         let isAdmin = false; 
-        
-        function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
-        function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro del Profesor"; }
-        function goBack() { document.getElementById('form-student').style.display = 'none'; document.getElementById('form-teacher').style.display = 'none'; document.getElementById('role-selection').style.display = 'block'; document.getElementById('login-msg').innerText = "Selecciona tu perfil"; document.getElementById('adminPin').value = ""; document.getElementById('roomIdInput').value = ""; }
-        
-        // MOTOR DE ACCESO ANTI-FREEZE
+
+        // VALIDACIÓN DE PROFESOR (ANTI-FREEZE)
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
                 
-                // 1. Ocultar Login y mostrar Pizarra inmediatamente para que el usuario no crea que se congeló
+                // 1. Quitar la pantalla de login inmediatamente
                 document.getElementById('login-overlay').style.pointerEvents = 'none';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 
-                // 2. Mostrar barras de herramientas de profesor
+                // 2. Mostrar barras y pizarra para que puedas empezar a dibujar
                 document.getElementById('toolbar').style.display = 'flex';
                 document.getElementById('admin-tools').style.display = 'flex';
-                
-                // 3. Mostrar panel informativo de estado
                 document.getElementById('ui-panel').style.display = 'block';
-                document.getElementById('status-text').innerText = "Configurando Sala...";
-                document.getElementById('status-hint').innerText = "Solicitando permisos de micrófono al navegador...";
                 
-                // 4. Iniciar red (puede tardar por el permiso del micrófono)
-                createRoom();
+                document.getElementById('status-text').innerText = "Configurando Sala...";
+                document.getElementById('status-hint').innerText = "Conectando red y habilitando voz...";
+                
+                // 3. Crear la sala en segundo plano
+                setTimeout(() => { createRoom(); }, 100);
             } else { alert("PIN Incorrecto."); }
         }
 
@@ -651,6 +663,7 @@
         }
 
         function saveAsPDF() {
+            if(typeof window.jspdf === 'undefined') { alert("El módulo PDF aún está cargando, intenta en unos segundos."); return; }
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
 
@@ -680,13 +693,16 @@
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
         function startRecording() {
-            if (!audioDestination) { alert("El micrófono aún no está conectado."); return; }
+            if (!audioDestination) { alert("El micrófono no está conectado. No se puede grabar audio."); return; }
             const canvasStream = canvas.captureStream(15); 
             const combinedTracks = [ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ];
             const combinedStream = new MediaStream(combinedTracks);
             const mimeTypes = ['video/mp4', 'video/webm;codecs=h264', 'video/webm'];
             let selectedMime = '';
-            for (let mime of mimeTypes) { if (MediaRecorder.isTypeSupported(mime)) { selectedMime = mime; break; } }
+            for (let mime of mimeTypes) { if (window.MediaRecorder && MediaRecorder.isTypeSupported(mime)) { selectedMime = mime; break; } }
+            
+            if(!selectedMime) { alert("Tu navegador no soporta grabación de pantalla."); return; }
+
             mediaRecorder = new MediaRecorder(combinedStream, { mimeType: selectedMime });
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
@@ -709,9 +725,12 @@
             btn.innerHTML = '⏺️ <span class="hide-mobile">MP4</span>'; btn.classList.remove('record-active');
         }
 
-        /* ================= AUDIO Y RED ================= */
+        /* ================= AUDIO ================= */
         async function getMicrophone() {
-            if (!navigator.mediaDevices) return false;
+            if (!navigator.mediaDevices) {
+                console.warn("Sin soporte para mediaDevices en este contexto");
+                return false;
+            }
             try { 
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }, video: false }); 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -720,7 +739,7 @@
                 localAudioSource.connect(audioDestination);
                 return true; 
             } 
-            catch(e) { console.warn(e); return false; }
+            catch(e) { console.warn("Micrófono bloqueado o no encontrado.", e); return false; }
         }
 
         function toggleMic() {
@@ -753,7 +772,7 @@
             }
         }
 
-        /* ================= LECTOR PDF Y RECORTE ================= */
+        /* ================= LECTOR PDF Y RECORTE EXACTO ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -766,6 +785,7 @@
             const reader = new FileReader();
             reader.onload = function() {
                 const typedarray = new Uint8Array(this.result);
+                if(typeof pdfjsLib === 'undefined') { alert("PDF.js no ha cargado aún."); return; }
                 pdfjsLib.getDocument(typedarray).promise.then(pdf => {
                     pdfDoc = pdf; document.getElementById('page-num').textContent = 1; pageNum = 1; pdfScale = 1.5; 
                     renderPage(pageNum); pdfPanel.style.display = 'flex';
@@ -908,7 +928,7 @@
         }
         function cancelStamp() { stamper.style.display = 'none'; }
 
-        /* ================= CONEXIÓN ALUMNOS E INTERACCIÓN REMOTA ================= */
+        /* ================= 6. RED P2P (PEERJS) Y SYNC DE FORMAS ================= */
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
         function drawRemote(data) {
@@ -944,15 +964,14 @@
         }
 
         async function createRoom() {
-            document.getElementById('toolbar').style.display = 'flex';
-            if(window.innerWidth <= 768) { document.getElementById('btn-open-pdf-mobile').style.display = 'inline-block'; }
+            const micOk = await getMicrophone();
+            if(!micOk) document.getElementById('status-hint').innerText = "Voz desactivada. Configurando pizarra...";
             
-            await getMicrophone();
-            
+            if(typeof Peer === 'undefined') { alert("Error de red. PeerJS no cargó."); return; }
+
             peer = new Peer(Math.random().toString(36).substring(2, 6).toUpperCase(), peerNetworkOptions);
             
             peer.on('open', (id) => {
-                document.getElementById('ui-panel').style.display = 'block';
                 document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO:";
                 document.getElementById('status-hint').innerText = "Compártelo con tus alumnos.";
                 const codeDisplay = document.getElementById('room-code-display');
@@ -984,9 +1003,11 @@
             document.getElementById('toolbar').style.display = 'flex';
             document.getElementById('ui-panel').style.display = 'block';
             document.getElementById('status-text').innerText = "Conectando con el Profesor...";
-            document.getElementById('status-hint').innerText = "Acepta los permisos de micrófono si el navegador lo solicita.";
+            document.getElementById('status-hint').innerText = "Acepta el permiso del micrófono si aparece.";
 
             await getMicrophone();
+            if(typeof Peer === 'undefined') { alert("Error de red. Refresca la página."); return; }
+
             peer = new Peer(peerNetworkOptions);
             
             peer.on('open', () => {
