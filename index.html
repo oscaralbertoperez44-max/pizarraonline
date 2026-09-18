@@ -307,6 +307,71 @@
             font-weight:700;
         }
 
+
+/* === ESCRITURA MÓVIL PARA ALUMNOS === */
+@media (max-width: 800px), (pointer: coarse) {
+  #canvas-container {
+    touch-action: none !important;
+    -webkit-user-select: none !important;
+    user-select: none !important;
+    overscroll-behavior: contain;
+  }
+  #board {
+    touch-action: none !important;
+    -webkit-touch-callout: none;
+  }
+  .mobile-write-tools {
+    display: flex !important;
+    position: sticky;
+    bottom: 8px;
+    z-index: 9999;
+    gap: 7px;
+    padding: 8px;
+    margin: 6px 0;
+    overflow-x: auto;
+    background: rgba(15,23,42,.94);
+    border: 1px solid rgba(255,255,255,.14);
+    border-radius: 14px;
+    box-shadow: 0 8px 28px rgba(0,0,0,.28);
+  }
+  .mobile-write-tools button {
+    min-width: 48px;
+    min-height: 44px;
+    border: 0;
+    border-radius: 11px;
+    padding: 8px 11px;
+    font-size: 16px;
+    color: #fff;
+    background: #263449;
+    touch-action: manipulation;
+  }
+  .mobile-write-tools button.active {
+    outline: 2px solid #60a5fa;
+    background: #2563eb;
+  }
+  .mobile-write-tools input[type="range"] {
+    width: 95px;
+    min-width: 95px;
+  }
+  .mobile-write-tools input[type="color"] {
+    width: 44px;
+    height: 44px;
+    border: 0;
+    padding: 2px;
+    border-radius: 10px;
+  }
+  .mobile-write-hint {
+    display: block !important;
+    font-size: 12px;
+    opacity: .78;
+    padding: 3px 10px 7px;
+    text-align: center;
+  }
+}
+@media (min-width: 801px) and (pointer: fine) {
+  .mobile-write-tools, .mobile-write-hint { display:none !important; }
+}
+.mobile-write-tools, .mobile-write-hint { display:none; }
 </style>
 </head>
 <body>
@@ -490,7 +555,19 @@
         </div>
     </div>
 
-    <div id="canvas-container">
+    
+<div class="mobile-write-tools" id="mobile-write-tools" aria-label="Herramientas de escritura del alumno">
+  <button type="button" id="mw-pen" class="active" title="Lápiz">✏️</button>
+  <button type="button" id="mw-marker" title="Marcador">🖍️</button>
+  <button type="button" id="mw-eraser" title="Borrador">🧽</button>
+  <button type="button" id="mw-undo" title="Deshacer">↩️</button>
+  <button type="button" id="mw-clear" title="Limpiar mi escritura">🗑️</button>
+  <input id="mw-color" type="color" value="#ffffff" title="Color">
+  <input id="mw-size" type="range" min="2" max="28" value="5" title="Grosor">
+</div>
+<div class="mobile-write-hint" id="mobile-write-hint">📱 Alumno: tocá y escribí directamente sobre la pizarra.</div>
+
+<div id="canvas-container">
         <canvas id="board" width="1920" height="4000" class="theme-dark"></canvas>
     </div>
 
@@ -2125,5 +2202,145 @@
         });
     
 </script>
+
+<script>
+/* === ESCRITURA TÁCTIL MÓVIL DEL ALUMNO === */
+(function(){
+  const board = document.getElementById('board');
+  const container = document.getElementById('canvas-container');
+  if(!board || !container) return;
+
+  let mwMode = 'pen';
+  let mwColor = '#ffffff';
+  let mwSize = 5;
+  let mwDrawing = false;
+  let mwLast = null;
+  let mwSnapshot = null;
+  const mwUndo = [];
+
+  function pos(ev){
+    const r = board.getBoundingClientRect();
+    const sx = board.width / r.width;
+    const sy = board.height / r.height;
+    return {
+      x: (ev.clientX - r.left) * sx,
+      y: (ev.clientY - r.top) * sy
+    };
+  }
+  function saveState(){
+    try{
+      if(mwUndo.length > 12) mwUndo.shift();
+      mwUndo.push(board.toDataURL('image/png'));
+    }catch(e){}
+  }
+  function restoreData(url){
+    const img = new Image();
+    img.onload = function(){
+      const c = board.getContext('2d');
+      c.clearRect(0,0,board.width,board.height);
+      c.drawImage(img,0,0);
+    };
+    img.src = url;
+  }
+  function setMode(mode){
+    mwMode = mode;
+    ['mw-pen','mw-marker','mw-eraser'].forEach(id=>{
+      const b=document.getElementById(id);
+      if(b) b.classList.toggle('active',
+        (id==='mw-pen'&&mode==='pen') ||
+        (id==='mw-marker'&&mode==='marker') ||
+        (id==='mw-eraser'&&mode==='eraser'));
+    });
+  }
+  function start(ev){
+    if(ev.pointerType === 'mouse' && window.matchMedia('(pointer:fine)').matches) return;
+    if(ev.target !== board) return;
+    ev.preventDefault();
+    saveState();
+    mwDrawing = true;
+    mwLast = pos(ev);
+    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
+    const c=board.getContext('2d');
+    c.beginPath();
+    c.moveTo(mwLast.x,mwLast.y);
+  }
+  function move(ev){
+    if(!mwDrawing) return;
+    ev.preventDefault();
+    const p=pos(ev);
+    const c=board.getContext('2d');
+    c.lineCap='round';
+    c.lineJoin='round';
+    if(mwMode==='eraser'){
+      c.globalCompositeOperation='destination-out';
+      c.lineWidth=Math.max(18,mwSize*3.5);
+    }else{
+      c.globalCompositeOperation='source-over';
+      c.strokeStyle=mwColor;
+      c.lineWidth=mwMode==='marker' ? Math.max(12,mwSize*2.2) : mwSize;
+      if(mwMode==='marker') c.globalAlpha=.42;
+      else c.globalAlpha=1;
+    }
+    c.beginPath();
+    c.moveTo(mwLast.x,mwLast.y);
+    c.lineTo(p.x,p.y);
+    c.stroke();
+    mwLast=p;
+  }
+  function end(ev){
+    if(!mwDrawing) return;
+    ev.preventDefault();
+    mwDrawing=false;
+    mwLast=null;
+    const c=board.getContext('2d');
+    c.globalAlpha=1;
+    c.globalCompositeOperation='source-over';
+    try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
+  }
+
+  board.addEventListener('pointerdown', start, {passive:false});
+  board.addEventListener('pointermove', move, {passive:false});
+  board.addEventListener('pointerup', end, {passive:false});
+  board.addEventListener('pointercancel', end, {passive:false});
+  board.addEventListener('contextmenu', e=>e.preventDefault());
+
+  const pen=document.getElementById('mw-pen');
+  const marker=document.getElementById('mw-marker');
+  const eraser=document.getElementById('mw-eraser');
+  const undo=document.getElementById('mw-undo');
+  const clear=document.getElementById('mw-clear');
+  const color=document.getElementById('mw-color');
+  const size=document.getElementById('mw-size');
+
+  pen && pen.addEventListener('click',()=>setMode('pen'));
+  marker && marker.addEventListener('click',()=>setMode('marker'));
+  eraser && eraser.addEventListener('click',()=>setMode('eraser'));
+  color && color.addEventListener('input',e=>{mwColor=e.target.value; setMode('pen');});
+  size && size.addEventListener('input',e=>mwSize=+e.target.value);
+
+  undo && undo.addEventListener('click',()=>{
+    const last=mwUndo.pop();
+    if(last) restoreData(last);
+  });
+  clear && clear.addEventListener('click',()=>{
+    if(!confirm('¿Limpiar toda la escritura visible en la pizarra?')) return;
+    saveState();
+    const c=board.getContext('2d');
+    c.clearRect(0,0,board.width,board.height);
+  });
+
+  // Evita que el navegador haga scroll/zoom mientras el alumno escribe.
+  container.addEventListener('touchstart',e=>{
+    if(e.target===board) e.preventDefault();
+  },{passive:false});
+  container.addEventListener('touchmove',e=>{
+    if(e.target===board) e.preventDefault();
+  },{passive:false});
+
+  // Si la app ya cambia de herramienta, el modo táctil sigue disponible para alumnos.
+  window.MathBoardMobileWriting = {setMode};
+})();
+</script>
+
 </body>
 </html>
