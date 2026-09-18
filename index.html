@@ -332,6 +332,10 @@
         function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
         function goBack() { document.getElementById('form-student').style.display = 'none'; document.getElementById('form-teacher').style.display = 'none'; document.getElementById('role-selection').style.display = 'block'; document.getElementById('login-msg').innerText = "Selecciona tu perfil"; document.getElementById('adminPin').value = ""; document.getElementById('roomIdInput').value = ""; }
         
+        document.getElementById('adminPin')?.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') verifyAdmin();
+        });
+
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
@@ -837,8 +841,7 @@
             if (count) count.textContent = `${filtered.length} fórmula${filtered.length === 1 ? '' : 's'}`;
         }
 
-        document.getElementById('formula-search')?.addEventListener('input', renderFormulaList););
-        }
+        document.getElementById('formula-search')?.addEventListener('input', renderFormulaList);
 
         // MOTOR DE ESTAMPADO DE TEXTO MATEMÁTICO
         function renderFormulaToStamp(formulaText) {
