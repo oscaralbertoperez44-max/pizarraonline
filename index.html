@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - Chalk Edition</title>
+    <title>MathBoard Pro - Ultimate Math Formulas</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,6 +11,7 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
     <style>
+        /* Base General */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             background-color: #050505; color: #fff;
@@ -18,39 +19,30 @@
             position: fixed; inset: 0; touch-action: none;
         }
         
+        /* Deslizador (Scroll) */
         #canvas-container {
             width: 100vw; height: 100vh;
-            position: absolute; top: 0; left: 0;
-            z-index: 1; overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
+            position: absolute; top: 0; left: 0; z-index: 1;
+            overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
         }
-
-        #canvas-container::-webkit-scrollbar { width: 12px; }
+        #canvas-container::-webkit-scrollbar { width: 14px; }
         #canvas-container::-webkit-scrollbar-track { background: #121212; border-left: 1px solid #333; }
-        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 2px solid #121212; }
+        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #121212; }
         #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
+        /* Pizarra Infinita */
         canvas#board {
             display: block; touch-action: none;
             width: 100%; height: auto; min-height: 300vh; 
             transition: background 0.3s ease;
         }
 
-        .theme-dark {
-            background-color: #121212;
-            background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
-            background-size: 30px 30px; 
-        }
-        .theme-chalk {
-            background-color: #1e382b;
-            background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>');
-            background-size: cover, 150px 150px;
-        }
-        .theme-white {
-            background-color: #ffffff;
-            background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
-            background-size: 30px 30px; 
-        }
+        /* Temas */
+        .theme-dark { background-color: #121212; background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 30px 30px; }
+        .theme-chalk { background-color: #1e382b; background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>'); background-size: cover, 150px 150px; }
+        .theme-white { background-color: #ffffff; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 30px 30px; }
         
+        /* Acceso (Login) */
         #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
         .login-box { background: #1a1a1a; padding: 40px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; }
         .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
@@ -69,6 +61,7 @@
         
         #ui-panel, #toolbar { display: none; }
 
+        /* Paneles Flotantes */
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; }
@@ -76,21 +69,30 @@
         #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
-        
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
+        /* Widget de Fórmulas Matemáticas */
+        #formulas-panel { top: 80px; right: 30px; width: 400px; display: none; max-height: 80vh; overflow: hidden; }
+        .formula-tab-btns { display: flex; background: #111; overflow-x: auto; }
+        .f-tab { background: transparent; border: none; color: #888; padding: 10px; cursor: pointer; flex-grow: 1; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; }
+        .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
+        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
+        .f-btn { background: #222; border: 1px solid #333; color: #fff; font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.3rem; padding: 15px; cursor: pointer; border-radius: 8px; transition: 0.2s; text-align: center; }
+        .f-btn:hover { background: #2a2a2a; border-color: #3b82f6; transform: translateY(-2px); }
+        .f-title { font-size: 0.75rem; color: #aaa; font-family: 'Segoe UI', sans-serif; display: block; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
-
         #stamper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 20; }
-        #stamper-content { position: relative; border: 3px dashed #10b981; background: white; box-shadow: 0 15px 40px rgba(0,0,0,0.9); cursor: grab; min-width: 100px; min-height: 50px; }
+        #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.9); cursor: grab; min-width: 100px; min-height: 50px; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; }
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(30,30,30,0.95); padding: 6px 12px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; }
 
-        /* ESTILOS DE BARRA COMPACTA */
+        /* Toolbar */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -119,6 +121,7 @@
             button { padding: 5px 8px; font-size: 0.8rem; }
             .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
+            #formulas-panel { width: 95%; left: 2.5%; top: 5%; }
         }
     </style>
 </head>
@@ -151,6 +154,24 @@
         <div style="font-size: 0.7em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
     </div>
 
+    <!-- Widget de Fórmulas -->
+    <div id="formulas-panel" class="floating-panel">
+        <div class="panel-header" id="formulas-header">
+            <span>🧮 Fórmulas Matemáticas</span>
+            <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px;">_</button>
+        </div>
+        <div class="formula-tab-btns">
+            <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
+            <button class="f-tab" onclick="loadFormulas('geometry', this)">Geometría</button>
+            <button class="f-tab" onclick="loadFormulas('calculus', this)">Cálculo</button>
+            <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
+        </div>
+        <div class="formula-grid" id="formula-grid-container">
+            <!-- Cargadas por JS -->
+        </div>
+    </div>
+
+    <!-- Visor PDF -->
     <div id="pdf-panel" class="floating-panel">
         <div class="panel-header" id="pdf-header">
             <span>📄 PDF</span>
@@ -175,20 +196,25 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
+    <!-- Estampador -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-content">
             <img id="stamp-img" src="">
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
-            <button onclick="applyStamp()" style="background: #10b981;">✅ Pegar</button>
+            <button onclick="applyStamp()" style="background: #10b981;">✅ Pegar Ejercicio</button>
             <button onclick="cancelStamp()" class="danger-btn">❌</button>
         </div>
     </div>
 
+    <!-- Toolbar Principal -->
     <div id="toolbar">
         <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
+        
+        <!-- Botón Fórmulas visible para todos -->
+        <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;">🧮 Fórmulas</button>
         
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
@@ -342,16 +368,15 @@
 
             ctx.lineWidth = finalSize; 
 
-            // EFECTO TIZA / FIBRÓN PROFESIONAL
             if (currentTool !== 'eraser') {
                 ctx.globalCompositeOperation = 'source-over';
                 ctx.strokeStyle = myColor;
-                ctx.shadowBlur = finalSize * 0.4; // Difuminado en los bordes para simular polvo/tinta
+                ctx.shadowBlur = finalSize * 0.4; 
                 ctx.shadowColor = myColor;
-                ctx.globalAlpha = 0.85; // Leve transparencia de marcador/tiza
+                ctx.globalAlpha = 0.85; 
             } else {
                 ctx.globalCompositeOperation = 'destination-out';
-                ctx.shadowBlur = 0; // La goma debe ser un corte limpio
+                ctx.shadowBlur = 0; 
                 ctx.globalAlpha = 1.0;
             }
             
@@ -365,7 +390,6 @@
             if(!isDrawing || e.pointerType === 'touch') return; 
             isDrawing = false; 
             ctx.beginPath(); 
-            // Resetear efectos para que no interfieran con otras cosas (como pegar imagenes)
             ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
             broadcastData({ type: 'stop' }); 
         }
@@ -397,21 +421,120 @@
             pdf.save(filename + ".pdf");
         }
 
-        let mediaRecorder; let recordedChunks = []; let isRecording = false;
+        /* ================= BASE DE DATOS DE FÓRMULAS ================= */
+        const mathFormulas = {
+            algebra: [
+                { name: "Fórmula Cuadrática", eq: "x = (-b ± √(b² - 4ac)) / 2a" },
+                { name: "Binomio al Cuadrado", eq: "(a ± b)² = a² ± 2ab + b²" },
+                { name: "Diferencia de Cuadrados", eq: "a² - b² = (a - b)(a + b)" },
+                { name: "Propiedad Logaritmo", eq: "log_b(x·y) = log_b(x) + log_b(y)" },
+                { name: "Ecuación de la Recta", eq: "y - y₁ = m(x - x₁)" }
+            ],
+            geometry: [
+                { name: "Teorema de Pitágoras", eq: "c² = a² + b²" },
+                { name: "Área del Círculo", eq: "A = π · r²" },
+                { name: "Volumen Esfera", eq: "V = (4/3)π · r³" },
+                { name: "Área Triángulo", eq: "A = (b · h) / 2" },
+                { name: "Ley de Senos", eq: "a/sin(A) = b/sin(B) = c/sin(C)" }
+            ],
+            calculus: [
+                { name: "Regla de la Potencia", eq: "d/dx [x^n] = n · x^(n-1)" },
+                { name: "Regla del Producto", eq: "(u·v)' = u'·v + u·v'" },
+                { name: "Regla de la Cadena", eq: "d/dx [f(g(x))] = f'(g(x)) · g'(x)" },
+                { name: "Integración por Partes", eq: "∫ u dv = u·v - ∫ v du" },
+                { name: "Teorema Fundamental", eq: "∫_a^b f(x)dx = F(b) - F(a)" }
+            ],
+            stats: [
+                { name: "Media Poblacional", eq: "μ = (Σ x_i) / N" },
+                { name: "Varianza", eq: "σ² = Σ (x_i - μ)² / N" },
+                { name: "Desviación Estándar", eq: "σ = √(Σ (x_i - μ)² / N)" },
+                { name: "Probabilidad Condicional", eq: "P(A|B) = P(A ∩ B) / P(B)" },
+                { name: "Teorema de Bayes", eq: "P(A|B) = [P(B|A)P(A)] / P(B)" }
+            ]
+        };
 
+        function toggleFormulasPanel() {
+            const panel = document.getElementById('formulas-panel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'flex';
+                loadFormulas('algebra', document.querySelector('.f-tab')); // Cargar por defecto
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+
+        function loadFormulas(category, tabBtn) {
+            document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
+            tabBtn.classList.add('active');
+            
+            const grid = document.getElementById('formula-grid-container');
+            grid.innerHTML = '';
+            
+            mathFormulas[category].forEach(f => {
+                const btn = document.createElement('button');
+                btn.className = 'f-btn';
+                btn.innerHTML = `<span class="f-title">${f.name}</span>${f.eq}`;
+                btn.onclick = () => renderFormulaToStamp(f.eq);
+                grid.appendChild(btn);
+            });
+        }
+
+        function renderFormulaToStamp(formulaText) {
+            const tempCanvas = document.createElement('canvas');
+            const tCtx = tempCanvas.getContext('2d');
+            
+            // Medir texto
+            tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
+            const metrics = tCtx.measureText(formulaText);
+            const width = Math.max(metrics.width + 60, 200); // Margen extra
+            const height = 100;
+            
+            tempCanvas.width = width;
+            tempCanvas.height = height;
+            
+            // Dibujar texto con el estilo de la herramienta actual
+            tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
+            tCtx.textBaseline = 'middle';
+            tCtx.textAlign = 'center';
+            tCtx.fillStyle = myColor;
+            
+            // Simular efecto tiza/fibrón en la fórmula generada
+            tCtx.shadowBlur = 4;
+            tCtx.shadowColor = myColor;
+            tCtx.globalAlpha = 0.9;
+            
+            tCtx.fillText(formulaText, width / 2, height / 2);
+            
+            // Enviar al estampador
+            const img = document.getElementById('stamp-img');
+            img.src = tempCanvas.toDataURL("image/png");
+            
+            const stamperContent = document.getElementById('stamper-content');
+            stamperContent.style.width = width + 'px';
+            stamperContent.style.height = height + 'px';
+            
+            const stamper = document.getElementById('stamper');
+            // Centrar perfectamente según la posición actual del scroll
+            stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px'; 
+            stamper.style.left = (window.innerWidth/2) + 'px'; 
+            stamper.style.display = 'block';
+            
+            // Ocultar panel de fórmulas para liberar espacio
+            document.getElementById('formulas-panel').style.display = 'none';
+        }
+
+        /* ================= GRABADOR DE VIDEO MP4 ================= */
+        let mediaRecorder; let recordedChunks = []; let isRecording = false;
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
         function startRecording() {
             if (!audioDestination) { alert("El audio no está inicializado."); return; }
-            
             const canvasStream = canvas.captureStream(15); 
             const combinedTracks = [ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ];
             const combinedStream = new MediaStream(combinedTracks);
-
             const mimeTypes = ['video/mp4', 'video/webm;codecs=h264', 'video/webm'];
             let selectedMime = '';
             for (let mime of mimeTypes) { if (MediaRecorder.isTypeSupported(mime)) { selectedMime = mime; break; } }
-
             mediaRecorder = new MediaRecorder(combinedStream, { mimeType: selectedMime });
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
@@ -420,12 +543,10 @@
                 const filename = prompt("Nombre de la grabación:", "Clase_Grabada");
                 if (filename) {
                     const a = document.createElement('a'); a.style.display = 'none'; a.href = url; 
-                    a.download = filename + '.mp4'; 
-                    document.body.appendChild(a); a.click(); 
+                    a.download = filename + '.mp4'; document.body.appendChild(a); a.click(); 
                 }
                 URL.revokeObjectURL(url); recordedChunks = [];
             };
-
             mediaRecorder.start(); isRecording = true;
             const btn = document.getElementById('btn-record');
             btn.innerHTML = '⏹️ <span class="hide-mobile">Grabando</span>'; btn.classList.add('record-active');
@@ -437,13 +558,11 @@
             btn.innerHTML = '⏺️ <span class="hide-mobile">MP4</span>'; btn.classList.remove('record-active');
         }
 
+        /* ================= AUDIO ================= */
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
             try { 
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }, 
-                    video: false 
-                }); 
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }, video: false }); 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 audioDestination = audioContext.createMediaStreamDestination();
                 const localAudioSource = audioContext.createMediaStreamSource(localStream);
@@ -467,12 +586,10 @@
             const audio = document.createElement('audio'); 
             audio.srcObject = stream; audio.autoplay = true; audio.playsInline = true; audio.controls = false;
             document.body.appendChild(audio); 
-            
             if (audioContext && audioDestination) {
                 const remoteAudioSource = audioContext.createMediaStreamSource(stream);
                 remoteAudioSource.connect(audioDestination);
             }
-
             let playPromise = audio.play();
             if (playPromise !== undefined) {
                 playPromise.catch(error => {
@@ -485,6 +602,7 @@
             }
         }
 
+        /* ================= LECTOR DE PDF (CON CARGA MÚLTIPLE REPARADA) ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -493,7 +611,7 @@
         
         document.getElementById('pdfInput').addEventListener('change', function(e) {
             const file = e.target.files[0];
-            if(file.type !== 'application/pdf') return;
+            if(!file || file.type !== 'application/pdf') return;
             const reader = new FileReader();
             reader.onload = function() {
                 const typedarray = new Uint8Array(this.result);
@@ -505,6 +623,9 @@
                 });
             }
             reader.readAsArrayBuffer(file);
+            
+            // Permite recargar el mismo archivo u otros archivos PDF inmediatamente
+            this.value = ''; 
         });
 
         function renderPage(num) {
@@ -629,9 +750,8 @@
             const realW = rect.width * scaleX; 
             const realH = rect.height * scaleY;
             
-            // Quitar efectos temporales para pegar la imagen limpia
+            // Dibujar la imagen/fórmula en la pizarra limpia sin sombras para que no se deforme
             ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
-            
             ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, realX, realY, realW, realH);
             ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
             
@@ -649,9 +769,7 @@
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
-            if (data.type === 'stop') {
-                ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return;
-            }
+            if (data.type === 'stop') { ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return; }
             
             if (data.type === 'image') {
                 const img = new Image();
@@ -736,6 +854,7 @@
             function closeDragElement() { document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null; }
         }
         makeDraggable(pdfPanel, document.getElementById('pdf-header'));
+        makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
 
         document.querySelectorAll('.floating-panel, #toolbar, #stamper').forEach(el => {
             el.addEventListener('pointerdown', e => e.stopPropagation()); el.addEventListener('touchstart', e => e.stopPropagation(), {passive: false});
