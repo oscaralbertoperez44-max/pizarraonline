@@ -248,6 +248,28 @@
         .formula-card-actions button:hover{background:rgba(139,92,246,.25);}
         #formula-example-preview{margin:7px 0;padding:8px;border-radius:8px;background:rgba(14,165,233,.1);font-size:.78rem;min-height:18px;}
 
+    
+        /* ===== Formula stamp: mover, escalar, rotar y confirmar ===== */
+        .math-stamp-preview{
+            position:fixed; z-index:9999; min-width:240px; max-width:80vw;
+            padding:6px; border:2px solid rgba(139,92,246,.9); border-radius:12px;
+            background:rgba(15,15,25,.96); box-shadow:0 14px 50px rgba(0,0,0,.45);
+            cursor:grab; user-select:none; touch-action:none;
+        }
+        .math-stamp-preview:active{cursor:grabbing;}
+        .math-stamp-preview .stamp-toolbar{
+            display:flex; flex-wrap:wrap; align-items:center; gap:4px; margin-bottom:4px;
+            font-size:12px; color:#fff;
+        }
+        .math-stamp-preview .stamp-toolbar button{
+            border:0; border-radius:6px; padding:5px 7px; cursor:pointer;
+            background:rgba(255,255,255,.12); color:#fff;
+        }
+        .math-stamp-preview .stamp-toolbar button[data-act="commit"]{background:#16a34a;}
+        .math-stamp-preview img{display:block; max-width:75vw; max-height:220px; transform-origin:center; pointer-events:none;}
+        #formulas-panel{overscroll-behavior:contain;}
+        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
+
     </style>
 </head>
 <body>
@@ -1327,51 +1349,123 @@
         }
 
         function showFormulaExample(formula){
-            const found=formulaExamples.find(e=>e.cat===activeFormulaCategory);
+            const found=formulaExamples.find(e=>e.cat===activeFormulaCategory && e.title.toLowerCase().includes(formula.name.toLowerCase().split(' ')[0]));
             const text=found ? `${found.title}: ${found.work}` : `Ejemplo: ${formula.name} → ${formula.eq}`;
             const box=document.getElementById('formula-example-preview');
-            if(box) box.textContent=text;
-            if(isAdmin && confirm(`¿Pegar este ejemplo en la pizarra?\n\n${text}`)) renderFormulaToStamp(text);
+            if(box) {
+                box.textContent=text;
+                box.onclick=()=>renderFormulaToStamp(text);
+                box.title='Haz clic para colocar este ejemplo';
+                box.style.cursor='pointer';
+            }
         }
 
+
+        document.addEventListener('keydown', (e)=>{
+            if(e.key==='Escape'){
+                if(activeStamp){activeStamp.remove();activeStamp=null;}
+                const ex=document.getElementById('examples-panel'); if(ex) ex.style.display='none';
+            }
+        });
+
         // MOTOR DE ESTAMPADO DE TEXTO MATEMÁTICO
+        let activeStamp = null;
+        let stampDrag = null;
+
         function renderFormulaToStamp(formulaText) {
+            if (!isAdmin) { alert("Solo el profesor puede pegar fórmulas en la pizarra."); return; }
+
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
-            
             tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
             const metrics = tCtx.measureText(formulaText);
-            const width = Math.max(metrics.width + 60, 200); 
-            const height = 120;
-            
+            const width = Math.min(Math.max(metrics.width + 80, 260), 1100);
+            const height = 130;
             tempCanvas.width = width;
             tempCanvas.height = height;
-            
+
             tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
             tCtx.textBaseline = 'middle';
             tCtx.textAlign = 'center';
             tCtx.fillStyle = myColor;
-            
-            // Simular el efecto de la tiza/fibrón en la fórmula generada
-            tCtx.shadowBlur = parseInt(penSize) * 0.5;
+            tCtx.shadowBlur = 5;
             tCtx.shadowColor = myColor;
-            tCtx.globalAlpha = 0.9;
-            
-            tCtx.fillText(formulaText, width / 2, height / 2);
-            
-            const img = document.getElementById('stamp-img');
-            img.src = tempCanvas.toDataURL("image/png");
-            
-            const stamperContent = document.getElementById('stamper-content');
-            stamperContent.style.width = width + 'px';
-            stamperContent.style.height = height + 'px';
-            
-            const stamper = document.getElementById('stamper');
-            stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px'; 
-            stamper.style.left = (window.innerWidth/2) + 'px'; 
-            stamper.style.display = 'block';
-            
-            document.getElementById('formulas-panel').style.display = 'none'; // Auto-ocultar al seleccionar
+            tCtx.fillText(formulaText, width/2, height/2);
+
+            const dataUrl = tempCanvas.toDataURL('image/png');
+
+            // Movable floating stamp: it is visible before committing to the board.
+            if (activeStamp) activeStamp.remove();
+            const el = document.createElement('div');
+            el.id = 'math-stamp-preview';
+            el.className = 'math-stamp-preview';
+            el.innerHTML = `
+                <div class="stamp-toolbar">
+                    <span>✏️ Fórmula</span>
+                    <button type="button" data-act="smaller">−</button>
+                    <button type="button" data-act="bigger">+</button>
+                    <button type="button" data-act="rotateL">↶</button>
+                    <button type="button" data-act="rotateR">↷</button>
+                    <button type="button" data-act="cancel">✕</button>
+                    <button type="button" data-act="commit">✓ Pegar</button>
+                </div>
+                <img draggable="false" src="${dataUrl}" alt="Vista previa de fórmula">
+            `;
+            document.body.appendChild(el);
+            activeStamp = el;
+
+            let scale=1, rotation=0;
+            const img=el.querySelector('img');
+
+            const applyTransform=()=>{ img.style.transform=`scale(${scale}) rotate(${rotation}deg)`; };
+
+            el.querySelector('[data-act="smaller"]').onclick=()=>{scale=Math.max(.5,scale-.1);applyTransform();};
+            el.querySelector('[data-act="bigger"]').onclick=()=>{scale=Math.min(2.5,scale+.1);applyTransform();};
+            el.querySelector('[data-act="rotateL"]').onclick=()=>{rotation-=5;applyTransform();};
+            el.querySelector('[data-act="rotateR"]').onclick=()=>{rotation+=5;applyTransform();};
+            el.querySelector('[data-act="cancel"]').onclick=()=>{el.remove();activeStamp=null;};
+            el.querySelector('[data-act="commit"]').onclick=()=>{
+                const r=el.getBoundingClientRect();
+                const board=canvas.getBoundingClientRect();
+                const x=(r.left + r.width/2 - board.left) * (canvas.width/board.width);
+                const y=(r.top + r.height/2 - board.top) * (canvas.height/board.height);
+                const w=Math.min(tempCanvas.width*scale, canvas.width);
+                const h=Math.min(tempCanvas.height*scale, canvas.height);
+
+                ctx.save();
+                ctx.globalCompositeOperation='source-over';
+                ctx.drawImage(tempCanvas, x-w/2, y-h/2, w, h);
+                ctx.restore();
+
+                broadcastData({type:'image',src:dataUrl,x:x-w/2,y:y-h/2,w,h});
+                el.remove(); activeStamp=null;
+            };
+
+            // Drag by toolbar or image. Keep pointer coordinates stable.
+            const beginDrag=(e)=>{
+                if(e.button!==undefined && e.button!==0) return;
+                if(e.target.closest('button')) return;
+                e.preventDefault();
+                const rr=el.getBoundingClientRect();
+                stampDrag={ox:e.clientX-rr.left,oy:e.clientY-rr.top};
+                el.setPointerCapture?.(e.pointerId);
+            };
+            const moveDrag=(e)=>{
+                if(!stampDrag) return;
+                el.style.left=`${e.clientX-stampDrag.ox}px`;
+                el.style.top=`${e.clientY-stampDrag.oy}px`;
+                el.style.right='auto';
+            };
+            const endDrag=()=>{stampDrag=null;};
+            el.addEventListener('pointerdown',beginDrag);
+            el.addEventListener('pointermove',moveDrag);
+            el.addEventListener('pointerup',endDrag);
+            el.addEventListener('pointercancel',endDrag);
+
+            const board=canvas.getBoundingClientRect();
+            el.style.left=`${Math.max(10,board.left+board.width/2-150)}px`;
+            el.style.top=`${Math.max(75,board.top+board.height/2-80)}px`;
+            el.style.position='fixed';
         }
 
         function saveAsPDF() {
