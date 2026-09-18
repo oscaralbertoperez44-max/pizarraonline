@@ -173,6 +173,63 @@
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
             #formulas-panel { width: 95%; left: 2.5%; top: 5%; }
         }
+    
+        /* ===== MathBoard Ultimate: paneles sin obstruir la pizarra ===== */
+        #formulas-panel {
+            width: min(430px, 38vw) !important;
+            max-height: min(72vh, 760px) !important;
+            overflow: hidden;
+            z-index: 50;
+        }
+        #formulas-panel .panel-body {
+            max-height: calc(min(72vh, 760px) - 90px);
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+        #formulas-panel.compact {
+            width: min(360px, 32vw) !important;
+            max-height: 58vh !important;
+        }
+        #examples-panel {
+            position: fixed;
+            right: 18px;
+            top: 84px;
+            width: min(520px, 42vw);
+            max-height: 72vh;
+            overflow: hidden;
+            z-index: 49;
+            display: none;
+        }
+        #examples-panel .examples-body {
+            overflow-y: auto;
+            max-height: calc(72vh - 64px);
+            padding: 10px;
+        }
+        .formula-example {
+            display:block;
+            width:100%;
+            text-align:left;
+            margin:7px 0;
+            padding:10px 12px;
+            border:1px solid rgba(255,255,255,.12);
+            border-radius:10px;
+            background:rgba(255,255,255,.05);
+            color:inherit;
+            cursor:pointer;
+        }
+        .formula-example:hover { background:rgba(139,92,246,.18); }
+        .formula-example .ex-title { font-weight:700; display:block; margin-bottom:4px; }
+        .formula-example .ex-work { opacity:.85; font-family: "Cambria Math","Times New Roman",serif; }
+        .panel-toggle-mini {
+            border:0; border-radius:8px; padding:6px 9px; cursor:pointer;
+            background:rgba(255,255,255,.08); color:inherit;
+        }
+        @media (max-width: 900px) {
+            #formulas-panel { width:92vw !important; max-height:66vh !important; }
+            #examples-panel { left:4vw; right:auto; width:92vw; top:12px; max-height:70vh; }
+            #examples-panel .examples-body { max-height:calc(70vh - 64px); }
+        }
+
     </style>
 </head>
 <body>
@@ -195,6 +252,18 @@
                 <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
+        </div>
+    </div>
+
+
+    <div id="examples-panel" class="floating-panel">
+        <div class="panel-header" style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <strong>📚 Ejemplos resueltos</strong>
+            <button class="panel-toggle-mini" onclick="closeExamplesPanel()">✕</button>
+        </div>
+        <div class="examples-body">
+            <div style="font-size:.8rem;opacity:.75;margin-bottom:8px;">Ejemplos rápidos de las principales áreas. Haz clic para estampar el ejercicio en la pizarra.</div>
+            <div id="examples-list"></div>
         </div>
     </div>
 
@@ -225,6 +294,16 @@
             <button class="f-tab" onclick="loadFormulas('discrete', this)">Discreta</button>
             <button class="f-tab" onclick="loadFormulas('number_theory', this)">Números</button>
             <button class="f-tab" onclick="loadFormulas('financial', this)">Financiera</button>
+        </div>
+        <div id="extra-formula-categories" style="display:flex;flex-wrap:wrap;gap:5px;margin:7px 0;">
+            <button class="f-cat" onclick="selectFormulaCategory('algebra')">Álgebra</button>
+            <button class="f-cat" onclick="selectFormulaCategory('geometry')">Geometría</button>
+            <button class="f-cat" onclick="selectFormulaCategory('trigonometry')">Trigonometría</button>
+            <button class="f-cat" onclick="selectFormulaCategory('calculus')">Cálculo e integrales</button>
+            <button class="f-cat" onclick="selectFormulaCategory('statistics')">Estadística</button>
+            <button class="f-cat" onclick="selectFormulaCategory('probability')">Probabilidad</button>
+            <button class="f-cat" onclick="selectFormulaCategory('complex')">Complejos</button>
+            <button class="f-cat" onclick="selectFormulaCategory('physics')">Física</button>
         </div>
         <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula, tema o palabra clave..." autocomplete="off">
         <div class="formula-count" id="formula-count"></div>
@@ -276,6 +355,7 @@
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
         
         <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;" title="Librería de Fórmulas">🧮 <span class="hide-mobile">Fórmulas</span></button>
+        <button class="tool-btn" onclick="openExamplesPanel()" style="background:#0ea5e9;" title="Ejemplos resueltos">📚 <span class="hide-mobile">Ejemplos</span></button>
         
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
@@ -813,6 +893,159 @@
             document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
             if (tabBtn) tabBtn.classList.add('active');
             renderFormulaList();
+        }
+
+
+        /* ===== Biblioteca matemática ampliada ===== */
+        Object.assign(mathFormulas, {
+            algebra: [
+                {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
+                {name:"Identidad notable: cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
+                {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
+                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
+                {name:"Cubo de una diferencia",eq:"(a-b)³=a³-3a²b+3ab²-b³"},
+                {name:"Suma de cubos",eq:"a³+b³=(a+b)(a²-ab+b²)"},
+                {name:"Diferencia de cubos",eq:"a³-b³=(a-b)(a²+ab+b²)"},
+                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
+                {name:"Discriminante",eq:"Δ=b²-4ac"},
+                {name:"Binomio general",eq:"(a+b)^n=Σₖ C(n,k)a^(n-k)b^k"},
+                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"},
+                {name:"Logaritmo del cociente",eq:"log(a/b)=log a-log b"},
+                {name:"Cambio de base",eq:"log_b(a)=ln(a)/ln(b)"},
+                {name:"Exponencial y logaritmo",eq:"ln(e^x)=x; e^(ln x)=x"}
+            ],
+            geometry: [
+                {name:"Pitágoras",eq:"a²+b²=c²"},
+                {name:"Distancia entre puntos",eq:"d=√((x₂-x₁)²+(y₂-y₁)²)"},
+                {name:"Punto medio",eq:"M=((x₁+x₂)/2,(y₁+y₂)/2)"},
+                {name:"Pendiente",eq:"m=(y₂-y₁)/(x₂-x₁)"},
+                {name:"Recta",eq:"y-y₁=m(x-x₁)"},
+                {name:"Forma pendiente-intersección",eq:"y=mx+b"},
+                {name:"Área del triángulo",eq:"A=bh/2"},
+                {name:"Área del círculo",eq:"A=πr²"},
+                {name:"Longitud de circunferencia",eq:"C=2πr"},
+                {name:"Área del rectángulo",eq:"A=bh"},
+                {name:"Área del trapecio",eq:"A=(B+b)h/2"},
+                {name:"Área del rombo",eq:"A=Dd/2"},
+                {name:"Volumen del prisma",eq:"V=A_b h"},
+                {name:"Volumen del cilindro",eq:"V=πr²h"},
+                {name:"Volumen de la esfera",eq:"V=4πr³/3"},
+                {name:"Área de esfera",eq:"A=4πr²"}
+            ],
+            trigonometry: [
+                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
+                {name:"Tangente",eq:"tan x=sin x/cos x"},
+                {name:"Secante",eq:"sec x=1/cos x"},
+                {name:"Cosecante",eq:"csc x=1/sin x"},
+                {name:"Ley de senos",eq:"a/sin A=b/sin B=c/sin C"},
+                {name:"Ley de cosenos",eq:"c²=a²+b²-2ab cos C"},
+                {name:"Suma del seno",eq:"sin(a+b)=sin a cos b+cos a sin b"},
+                {name:"Diferencia del seno",eq:"sin(a-b)=sin a cos b-cos a sin b"},
+                {name:"Suma del coseno",eq:"cos(a+b)=cos a cos b-sin a sin b"},
+                {name:"Diferencia del coseno",eq:"cos(a-b)=cos a cos b+sin a sin b"}
+            ],
+            calculus: [
+                {name:"Derivada de potencia",eq:"d(x^n)/dx=nx^(n-1)"},
+                {name:"Derivada de exponencial",eq:"d(e^x)/dx=e^x"},
+                {name:"Derivada de logaritmo",eq:"d(ln x)/dx=1/x"},
+                {name:"Derivada del seno",eq:"d(sin x)/dx=cos x"},
+                {name:"Derivada del coseno",eq:"d(cos x)/dx=-sin x"},
+                {name:"Regla del producto",eq:"(fg)'=f'g+fg'"},
+                {name:"Regla del cociente",eq:"(f/g)'=(f'g-fg')/g²"},
+                {name:"Regla de la cadena",eq:"(f(g(x)))'=f'(g(x))g'(x)"},
+                {name:"Integral de potencia",eq:"∫x^n dx=x^(n+1)/(n+1)+C, n≠-1"},
+                {name:"Integral de 1/x",eq:"∫dx/x=ln|x|+C"},
+                {name:"Integral exponencial",eq:"∫e^x dx=e^x+C"},
+                {name:"Integral seno",eq:"∫sin x dx=-cos x+C"},
+                {name:"Integral coseno",eq:"∫cos x dx=sin x+C"},
+                {name:"Teorema fundamental",eq:"∫_a^b f(x)dx=F(b)-F(a), F'=f"},
+                {name:"Integración por partes",eq:"∫u dv=uv-∫v du"},
+                {name:"Sustitución",eq:"∫f(g(x))g'(x)dx=∫f(u)du"}
+            ],
+            statistics: [
+                {name:"Media",eq:"x̄=Σxᵢ/n"},
+                {name:"Media ponderada",eq:"x̄=Σwᵢxᵢ/Σwᵢ"},
+                {name:"Varianza poblacional",eq:"σ²=Σ(xᵢ-μ)²/N"},
+                {name:"Desviación estándar",eq:"σ=√σ²"},
+                {name:"Varianza muestral",eq:"s²=Σ(xᵢ-x̄)²/(n-1)"},
+                {name:"Puntaje Z",eq:"z=(x-μ)/σ"},
+                {name:"Regla empírica",eq:"≈68%-95%-99.7%"},
+                {name:"Covarianza",eq:"Cov(X,Y)=E[(X-μx)(Y-μy)]"},
+                {name:"Correlación",eq:"r=Cov(X,Y)/(σxσy)"}
+            ],
+            probability: [
+                {name:"Probabilidad clásica",eq:"P(A)=casos favorables/casos posibles"},
+                {name:"Complemento",eq:"P(Aᶜ)=1-P(A)"},
+                {name:"Unión",eq:"P(A∪B)=P(A)+P(B)-P(A∩B)"},
+                {name:"Condicional",eq:"P(A|B)=P(A∩B)/P(B)"},
+                {name:"Independencia",eq:"P(A∩B)=P(A)P(B)"},
+                {name:"Bayes",eq:"P(A|B)=P(B|A)P(A)/P(B)"},
+                {name:"Binomial",eq:"P(X=k)=C(n,k)p^k(1-p)^(n-k)"},
+                {name:"Esperanza",eq:"E[X]=Σx·P(X=x)"},
+                {name:"Varianza discreta",eq:"Var(X)=E[X²]-(E[X])²"}
+            ],
+            complex: [
+                {name:"Número complejo",eq:"z=a+bi"},
+                {name:"Módulo",eq:"|z|=√(a²+b²)"},
+                {name:"Conjugado",eq:"z̄=a-bi"},
+                {name:"Forma polar",eq:"z=r(cosθ+i sinθ)"},
+                {name:"Euler",eq:"e^(iθ)=cosθ+i sinθ"},
+                {name:"De Moivre",eq:"(r(cosθ+i sinθ))^n=r^n(cos nθ+i sin nθ)"}
+            ],
+            physics: [
+                {name:"Velocidad",eq:"v=Δx/Δt"},
+                {name:"Aceleración",eq:"a=Δv/Δt"},
+                {name:"MRUA",eq:"x=x₀+v₀t+at²/2"},
+                {name:"Fuerza",eq:"F=ma"},
+                {name:"Trabajo",eq:"W=Fd cosθ"},
+                {name:"Energía cinética",eq:"E_k=mv²/2"},
+                {name:"Energía potencial",eq:"E_p=mgh"},
+                {name:"Cantidad de movimiento",eq:"p=mv"},
+                {name:"Potencia",eq:"P=W/t"},
+                {name:"Ley de Ohm",eq:"V=IR"},
+                {name:"Potencia eléctrica",eq:"P=VI"}
+            ]
+        });
+
+        const formulaExamples = [
+            {cat:"algebra",title:"Ecuación cuadrática",work:"2x²+3x-2=0  →  x=(-3±√25)/4  →  x=1/2, -2"},
+            {cat:"geometry",title:"Pendiente de una recta",work:"(1,2) y (5,10)  →  m=(10-2)/(5-1)=2  →  y=2x"},
+            {cat:"geometry",title:"Área de un círculo",work:"r=3  →  A=π·3²=9π ≈ 28,27"},
+            {cat:"trigonometry",title:"Pitágoras",work:"a=3, b=4  →  c=√(9+16)=5"},
+            {cat:"calculus",title:"Integral definida",work:"∫₀² x² dx = [x³/3]₀² = 8/3"},
+            {cat:"calculus",title:"Integral por partes",work:"∫x eˣ dx = xeˣ-∫eˣdx = eˣ(x-1)+C"},
+            {cat:"calculus",title:"Derivada",work:"f(x)=x³+2x  →  f'(x)=3x²+2"},
+            {cat:"statistics",title:"Media",work:"4, 6, 8, 10  →  x̄=(4+6+8+10)/4=7"},
+            {cat:"probability",title:"Bayes",work:"P(A|B)=P(B|A)P(A)/P(B)"},
+            {cat:"complex",title:"Complejos",work:"z=3+4i  →  |z|=√(3²+4²)=5"},
+            {cat:"physics",title:"Segunda ley de Newton",work:"m=2 kg, a=3 m/s²  →  F=ma=6 N"}
+        ];
+
+        function openExamplesPanel() {
+            const panel=document.getElementById('examples-panel');
+            if(!panel) return;
+            panel.style.display = panel.style.display==='block' ? 'none' : 'block';
+            if(panel.style.display==='block') renderExamples();
+        }
+        function renderExamples() {
+            const box=document.getElementById('examples-list');
+            if(!box) return;
+            box.innerHTML='';
+            formulaExamples.forEach(ex=>{
+                const b=document.createElement('button');
+                b.className='formula-example';
+                b.innerHTML=`<span class="ex-title">${ex.title}</span><span class="ex-work">${ex.work}</span>`;
+                b.onclick=()=>{
+                    if(isAdmin) renderFormulaToStamp(ex.work);
+                    else alert("Solo el profesor puede pegar ejemplos en la pizarra.");
+                };
+                box.appendChild(b);
+            });
+        }
+        function closeExamplesPanel(){ const p=document.getElementById('examples-panel'); if(p) p.style.display='none'; }
+        function toggleFormulaCompact(){
+            const p=document.getElementById('formulas-panel');
+            if(p) p.classList.toggle('compact');
         }
 
         function renderFormulaList() {
