@@ -3,16 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - Retro & Record</title>
+    <title>MathBoard Pro - Ultimate Edition</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-    <!-- Librería para exportar a PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script>
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
     <style>
-        /* Base General */
+        /* Base General: Pantalla Completa Real */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             background-color: #050505; color: #fff;
@@ -22,32 +21,38 @@
         
         #canvas-container {
             width: 100vw; height: 100vh;
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1; background-color: #050505;
+            position: absolute; top: 0; left: 0;
+            z-index: 1;
         }
 
-        /* PIZARRA (Por defecto Dark Math Grid) */
+        /* PIZARRA (Ocupa todo el monitor sin recortes) */
         canvas#board {
+            display: block; touch-action: none;
+            width: 100%; height: 100%;
+            transition: background 0.3s ease;
+        }
+
+        /* TEMAS DE PIZARRA */
+        .theme-dark {
             background-color: #121212;
             background-image: 
                 linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
             background-size: 30px 30px; 
-            box-shadow: 0 0 30px rgba(0,0,0,0.8);
-            cursor: crosshair; touch-action: none;
-            aspect-ratio: 16 / 9; width: 100%; max-width: 100vw;
-            height: auto; max-height: 100vh; object-fit: contain;
-            transition: background 0.5s ease;
         }
-
-        /* TEMA: PIZARRÓN ANTIGUO (Retro Chalkboard) */
-        canvas#board.retro-theme {
-            background-color: #1e382b; /* Verde oscuro pizarra */
+        .theme-chalk {
+            background-color: #1e382b;
             background-image: 
                 radial-gradient(circle, transparent 20%, #152b20 120%),
                 url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>');
             background-size: cover, 150px 150px;
-            box-shadow: inset 0 0 100px rgba(0,0,0,0.7), 0 0 30px rgba(0,0,0,0.8);
+        }
+        .theme-white {
+            background-color: #ffffff;
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px);
+            background-size: 30px 30px; 
         }
         
         /* ================= PANTALLA DE ACCESO (LOGIN) ================= */
@@ -87,8 +92,7 @@
         .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
         
-        #ui-panel { display: none; }
-        #toolbar { display: none; }
+        #ui-panel, #toolbar { display: none; }
 
         /* Paneles Flotantes */
         .floating-panel {
@@ -103,7 +107,6 @@
         }
         
         #ui-panel { top: 15px; left: 15px; padding: 20px; text-align: center; }
-        
         #pdf-panel { top: 80px; left: 30px; width: 550px; display: none; max-height: 85vh; resize: both; overflow: hidden; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 15px; display: flex; justify-content: center; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
@@ -122,7 +125,7 @@
 
         button { background: #2563eb; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:hover { background: #1d4ed8; }
-        .tool-btn { background: #444; }
+        .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .tool-btn.active { background: #10b981; }
         .danger-btn { background: #dc2626; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
@@ -134,6 +137,9 @@
             border-radius: 30px; display: flex; gap: 8px; align-items: center; justify-content: center;
             border: 1px solid #444; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 10; flex-wrap: wrap;
         }
+        
+        .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 60px; }
+        .slider-label { font-size: 0.65rem; color: #aaa; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
         
         .hidden-file { display: none; }
 
@@ -158,14 +164,12 @@
                 <button class="role-btn btn-teacher" onclick="showTeacherForm()">👨‍🏫 Soy Profesor</button>
             </div>
 
-            <!-- Formulario Alumno -->
             <div id="form-student" class="auth-form">
                 <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO DE CLASE" maxlength="4">
                 <button class="role-btn btn-student" onclick="joinRoom()">Entrar a la Clase</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
 
-            <!-- Formulario Profesor -->
             <div id="form-teacher" class="auth-form">
                 <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN">
                 <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
@@ -227,14 +231,23 @@
         <!-- Herramientas (Solo visibles para Profesor) -->
         <div id="admin-tools" style="display:none; align-items:center; gap:6px;">
             <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz">✏️</button>
-            <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Goma">🧼</button>
+            <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Goma Borrar">🧼</button>
+            
             <input type="color" id="colorPicker" value="#ffffff" style="border-radius:50%;cursor:pointer; width:30px; height:30px;">
-            <input type="range" id="brushSize" min="1" max="15" value="4" style="width: 70px;">
+            
+            <!-- Slider Inteligente -->
+            <div class="slider-container">
+                <span id="slider-label" class="slider-label">Lápiz</span>
+                <input type="range" id="toolSize" min="1" max="20" value="4" style="width: 70px;">
+            </div>
             
             <div style="width: 2px; height: 30px; background: #555; margin: 0 2px;"></div>
             
-            <!-- Nuevas Funciones -->
-            <button class="tool-btn" onclick="toggleTheme()" title="Cambiar a Pizarrón Antiguo">🎨 <span class="hide-mobile">Fondo</span></button>
+            <!-- Selector de Temas -->
+            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 100px;">
+                <span id="theme-icon">🌙</span> <span id="theme-name">Oscura</span>
+            </button>
+            
             <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
             <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar Clase en Video">⏺️ <span class="hide-mobile">Grabar</span></button>
             
@@ -249,13 +262,12 @@
         </div>
     </div>
 
-    <!-- CONTENEDOR 16:9 -->
+    <!-- CONTENEDOR INFINITO -->
     <div id="canvas-container">
-        <canvas id="board" width="1920" height="1080"></canvas>
+        <canvas id="board" class="theme-dark"></canvas>
     </div>
 
     <script>
-        // CONFIGURACIÓN RED
         const peerNetworkOptions = { config: { 'iceServers': [ { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' } ] } };
         let isAdmin = false; 
         
@@ -285,51 +297,89 @@
             } else { alert("PIN Incorrecto."); }
         }
 
-        /* ================= 1. MOTOR GRÁFICO & TEMAS ================= */
+        /* ================= 1. MOTOR GRÁFICO (FULL SCREEN SYNC) ================= */
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
         
-        // Fondo inicial negro para que el PDF se exporte correctamente y no transparente
-        ctx.fillStyle = '#121212';
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        // Mantener el tamaño de la pantalla física real
+        function resizeCanvas() {
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width || window.innerWidth;
+            tempCanvas.height = canvas.height || window.innerHeight;
+            if (canvas.width > 0) tempCanvas.getContext('2d').drawImage(canvas, 0, 0);
 
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        let isDrawing = false, currentTool = 'pen', myColor = '#ffffff', mySize = 4;
-        let connections = [], peer, localStream = null;
-
-        // Mezclador de audio para grabar clases
-        let audioContext;
-        let audioDestination;
-
-        // Alternar Tema Retro
-        let isRetroTheme = false;
-        function toggleTheme() {
-            isRetroTheme = !isRetroTheme;
-            if (isRetroTheme) {
-                canvas.classList.add('retro-theme');
-                // Pintar fondo en el canvas real para que se guarde en el PDF
-                ctx.fillStyle = '#1e382b';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                document.getElementById('colorPicker').value = '#f4f4f4'; // Tiza blanca
-                myColor = '#f4f4f4';
-            } else {
-                canvas.classList.remove('retro-theme');
-                ctx.fillStyle = '#121212';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                document.getElementById('colorPicker').value = '#ffffff';
-                myColor = '#ffffff';
-            }
-            broadcastData({ type: 'theme', retro: isRetroTheme });
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            if (canvas.width > 0) ctx.drawImage(tempCanvas, 0, 0);
         }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
 
-        document.getElementById('colorPicker').addEventListener('change', (e) => { myColor = e.target.value; setTool('pen'); });
-        document.getElementById('brushSize').addEventListener('input', (e) => mySize = e.target.value);
+        let isDrawing = false, currentTool = 'pen', myColor = '#ffffff';
+        let penSize = 4;
+        let eraserSize = 60; // Goma gigante por defecto
+        let connections = [], peer, localStream = null;
+        let audioContext, audioDestination;
+
+        // Gestión Inteligente del Control de Tamaño
+        const toolSizeSlider = document.getElementById('toolSize');
+        const sliderLabel = document.getElementById('slider-label');
+
+        toolSizeSlider.addEventListener('input', (e) => {
+            if (currentTool === 'pen') penSize = e.target.value;
+            else eraserSize = e.target.value;
+        });
 
         function setTool(tool) {
             currentTool = tool;
             document.getElementById('btn-pen').classList.toggle('active', tool === 'pen');
             document.getElementById('btn-eraser').classList.toggle('active', tool === 'eraser');
             canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+            
+            // Actualizar la interfaz del control deslizante
+            if (tool === 'pen') {
+                toolSizeSlider.min = 1; toolSizeSlider.max = 20;
+                toolSizeSlider.value = penSize;
+                sliderLabel.innerText = 'Lápiz';
+            } else {
+                toolSizeSlider.min = 20; toolSizeSlider.max = 150;
+                toolSizeSlider.value = eraserSize;
+                sliderLabel.innerText = 'Goma';
+            }
+        }
+
+        document.getElementById('colorPicker').addEventListener('change', (e) => { myColor = e.target.value; setTool('pen'); });
+
+        /* ================= GESTIÓN DE TEMAS (PIZARRAS) ================= */
+        const themes = [
+            { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff', grid: true },
+            { id: 'chalk', class: 'theme-chalk', icon: '🏫', name: 'Tiza', bg: '#1e382b', pen: '#f4f4f4', grid: false },
+            { id: 'white', class: 'theme-white', icon: '⚪', name: 'Blanca', bg: '#ffffff', pen: '#000000', grid: true }
+        ];
+        let currentThemeIdx = 0;
+
+        function cycleTheme() {
+            canvas.classList.remove(themes[currentThemeIdx].class);
+            currentThemeIdx = (currentThemeIdx + 1) % themes.length;
+            const newTheme = themes[currentThemeIdx];
+            
+            canvas.classList.add(newTheme.class);
+            document.getElementById('theme-icon').innerText = newTheme.icon;
+            document.getElementById('theme-name').innerText = newTheme.name;
+            
+            // Cambiar color de lápiz automáticamente
+            myColor = newTheme.pen;
+            document.getElementById('colorPicker').value = myColor;
+            setTool('pen');
+            
+            broadcastData({ type: 'theme', index: currentThemeIdx });
+        }
+
+        function applyTheme(index) {
+            canvas.classList.remove(themes[currentThemeIdx].class);
+            currentThemeIdx = index;
+            canvas.classList.add(themes[currentThemeIdx].class);
         }
 
         function toggleFullScreen() {
@@ -337,12 +387,7 @@
             else if (document.exitFullscreen) document.exitFullscreen();
         }
 
-        function getMousePos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width; const scaleY = canvas.height / rect.height;
-            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-        }
-
+        // Trazado con porcentajes relativos para perfecta sincronización entre PC y celulares
         canvas.addEventListener('pointerdown', startDrawing);
         canvas.addEventListener('pointermove', draw);
         window.addEventListener('pointerup', stopDrawing);
@@ -350,129 +395,121 @@
         function startDrawing(e) { 
             if(e.target !== canvas || !isAdmin) return; 
             isDrawing = true; 
-            const pos = getMousePos(e);
-            ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
-            broadcastData({ type: 'start', x: pos.x, y: pos.y, tool: currentTool }); 
+            const relX = e.clientX / window.innerWidth;
+            const relY = e.clientY / window.innerHeight;
+            
+            ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
+            broadcastData({ type: 'start', x: relX, y: relY }); 
             draw(e); 
         }
 
         function draw(e) {
             if (!isDrawing || !isAdmin) return;
-            const pos = getMousePos(e);
+            const relX = e.clientX / window.innerWidth;
+            const relY = e.clientY / window.innerHeight;
             const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
+            const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
             
-            // Simular tiza: ligero ajuste visual de la herramienta si es tema retro
-            const finalSize = (currentTool === 'eraser' ? mySize * 8 : mySize) * (pressure * 1.5);
+            const relSize = finalSize / window.innerWidth; // Escalar tamaño de pincel
+
+            ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
+            ctx.lineWidth = finalSize; 
+            if(currentTool !== 'eraser') ctx.strokeStyle = myColor;
             
-            if (currentTool === 'eraser') {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = isRetroTheme ? '#1e382b' : '#121212';
-                ctx.beginPath();
-                ctx.arc(pos.x, pos.y, finalSize, 0, Math.PI * 2);
-                ctx.fill();
-                broadcastData({ type: 'erase_circle', x: pos.x, y: pos.y, size: finalSize, retro: isRetroTheme });
-                return;
-            } else {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.lineWidth = finalSize; 
-                ctx.strokeStyle = myColor;
-                ctx.lineTo(pos.x, pos.y); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
-                broadcastData({ type: 'draw', x: pos.x, y: pos.y, color: myColor, size: finalSize, tool: currentTool });
-            }
+            ctx.lineTo(e.clientX, e.clientY); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
+            
+            broadcastData({ type: 'draw', x: relX, y: relY, color: myColor, size: relSize, tool: currentTool });
         }
         
         function stopDrawing() { if(!isDrawing) return; isDrawing = false; ctx.beginPath(); broadcastData({ type: 'stop' }); }
         
         function clearCanvas() { 
             if(isAdmin) { 
-                ctx.fillStyle = isRetroTheme ? '#1e382b' : '#121212';
-                ctx.fillRect(0, 0, canvas.width, canvas.height); 
-                broadcastData({ type: 'clear', retro: isRetroTheme }); 
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                broadcastData({ type: 'clear' }); 
             } 
         }
 
-        /* ================= 2. EXPORTAR A PDF ================= */
+        /* ================= 2. EXPORTAR PDF HD PROFESIONAL ================= */
         function saveAsPDF() {
-            const filename = prompt("Ingresa un nombre para tu clase (Ej: Ecuaciones_Clase_1):", "Pizarra_Clase");
-            if (!filename) return; // Se canceló
+            const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
+            if (!filename) return;
 
+            // Crear un lienzo virtual de 1920x1080 (HD) para el PDF
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = 1920; 
+            tempCanvas.height = 1080;
+            const tCtx = tempCanvas.getContext('2d');
+            
+            const theme = themes[currentThemeIdx];
+            
+            // 1. Pintar el color de fondo real del tema elegido
+            tCtx.fillStyle = theme.bg;
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // 2. Dibujar la cuadrícula matemáticamente si el tema lo requiere
+            if (theme.grid) {
+                tCtx.strokeStyle = theme.id === 'white' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
+                tCtx.lineWidth = 1.5;
+                for(let x=0; x<tempCanvas.width; x+=30) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
+                for(let y=0; y<tempCanvas.height; y+=30) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
+            }
+            
+            // 3. Pegar los trazos encima estirados a la resolución HD
+            tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            
+            // 4. Procesar PDF
             const { jsPDF } = window.jspdf;
-            // Configurar PDF apaisado con el tamaño de nuestro Canvas HD (1920x1080)
             const pdf = new jsPDF({ orientation: "landscape", unit: "px", format: [1920, 1080] });
-            
-            // Extraer la imagen de alta calidad del canvas
-            const imgData = canvas.toDataURL("image/jpeg", 0.95);
-            pdf.addImage(imgData, 'JPEG', 0, 0, 1920, 1080);
-            
+            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, 1920, 1080);
             pdf.save(filename + ".pdf");
         }
 
-        /* ================= 3. GRABADOR DE CLASES (WebM Ligero + Audio) ================= */
+        /* ================= 3. GRABADOR DE VIDEO ULTRA-LIGERO ================= */
         let mediaRecorder;
         let recordedChunks = [];
         let isRecording = false;
 
-        function toggleRecording() {
-            if (!isRecording) {
-                startRecording();
-            } else {
-                stopRecording();
-            }
-        }
+        function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
         function startRecording() {
             if (!audioDestination) { alert("El audio no está inicializado."); return; }
             
-            // 15 FPS para reducir drásticamente el peso del video. Perfecto para pizarrones.
+            // 15 FPS para reducir drásticamente el peso del video.
             const canvasStream = canvas.captureStream(15); 
-            
-            // Unir el video del canvas con el audio mezclado (profesor + alumnos)
-            const combinedTracks = [
-                ...canvasStream.getVideoTracks(), 
-                ...audioDestination.stream.getAudioTracks()
-            ];
+            const combinedTracks = [ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ];
             const combinedStream = new MediaStream(combinedTracks);
 
-            // Formato WebM (Muy ligero, compatible con PC, WhatsApp Web, VLC, Android)
-            try {
-                mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
-            } catch (e) {
-                mediaRecorder = new MediaRecorder(combinedStream); // Fallback si webm no se soporta exactamente así
-            }
+            try { mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' }); } 
+            catch (e) { mediaRecorder = new MediaRecorder(combinedStream); }
 
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                
                 const filename = prompt("Nombre de la grabación de video:", "Clase_Grabada");
                 if (filename) {
-                    const a = document.createElement('a');
-                    a.style.display = 'none'; a.href = url; a.download = filename + '.webm';
+                    const a = document.createElement('a'); a.style.display = 'none'; a.href = url; a.download = filename + '.webm';
                     document.body.appendChild(a); a.click(); 
                 }
-                URL.revokeObjectURL(url);
-                recordedChunks = [];
+                URL.revokeObjectURL(url); recordedChunks = [];
             };
 
-            mediaRecorder.start();
-            isRecording = true;
-            
+            mediaRecorder.start(); isRecording = true;
             const btn = document.getElementById('btn-record');
             btn.innerHTML = '⏹️ <span class="hide-mobile">Grabando</span>';
             btn.classList.add('record-active');
         }
 
         function stopRecording() {
-            mediaRecorder.stop();
-            isRecording = false;
+            mediaRecorder.stop(); isRecording = false;
             const btn = document.getElementById('btn-record');
             btn.innerHTML = '⏺️ <span class="hide-mobile">Grabar</span>';
             btn.classList.remove('record-active');
         }
 
-        /* ================= 4. MOTOR DE AUDIO Y MEZCLADOR ================= */
+        /* ================= 4. AUDIO Y MEZCLADOR ================= */
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
             try { 
@@ -481,14 +518,10 @@
                     video: false 
                 }); 
                 
-                // Iniciar motor de mezcla de audio para la grabadora
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 audioDestination = audioContext.createMediaStreamDestination();
-                
-                // Conectar mi micrófono al mezclador de la grabadora
                 const localAudioSource = audioContext.createMediaStreamSource(localStream);
                 localAudioSource.connect(audioDestination);
-
                 return true; 
             } 
             catch(e) { alert("Sin permisos de micrófono."); return false; }
@@ -509,7 +542,6 @@
             audio.srcObject = stream; audio.autoplay = true; audio.playsInline = true; audio.controls = false;
             document.body.appendChild(audio); 
             
-            // Conectar el audio del alumno entrante al mezclador para que se escuche en la grabación
             if (audioContext && audioDestination) {
                 const remoteAudioSource = audioContext.createMediaStreamSource(stream);
                 remoteAudioSource.connect(audioDestination);
@@ -636,48 +668,49 @@
 
         function applyStamp() {
             const img = document.getElementById('stamp-img');
-            const rect = stamperContent.getBoundingClientRect(); const canvasRect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / canvasRect.width; const scaleY = canvas.height / canvasRect.height;
-            const realX = (rect.left - canvasRect.left) * scaleX; const realY = (rect.top - canvasRect.top) * scaleY;
-            const realW = rect.width * scaleX; const realH = rect.height * scaleY;
+            const rect = stamperContent.getBoundingClientRect(); 
             
-            ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, realX, realY, realW, realH);
+            const relX = rect.left / window.innerWidth;
+            const relY = rect.top / window.innerHeight;
+            const relW = rect.width / window.innerWidth;
+            const relH = rect.height / window.innerHeight;
             
-            broadcastData({ type: 'image', src: img.src, x: realX, y: realY, w: realW, h: realH });
+            ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, rect.left, rect.top, rect.width, rect.height);
+            ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
+            
+            broadcastData({ type: 'image', src: img.src, x: relX, y: relY, w: relW, h: relH });
             stamper.style.display = 'none';
         }
         function cancelStamp() { stamper.style.display = 'none'; }
 
         /* ================= 6. CONEXIÓN (PEERJS) ================= */
         function drawRemote(data) {
-            if (data.type === 'theme') {
-                if(data.retro) canvas.classList.add('retro-theme'); else canvas.classList.remove('retro-theme');
-                return;
-            }
-            if (data.type === 'clear') {
-                ctx.fillStyle = data.retro ? '#1e382b' : '#121212';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                return;
-            }
-            if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
-            if (data.type === 'stop') return ctx.beginPath();
+            if (data.type === 'theme') { applyTheme(data.index); return; }
+            if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             
-            if (data.type === 'erase_circle') {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.fillStyle = data.retro ? '#1e382b' : '#121212';
-                ctx.beginPath(); ctx.arc(data.x, data.y, data.size, 0, Math.PI * 2); ctx.fill();
-                return;
+            if (data.type === 'start') { 
+                const absX = data.x * window.innerWidth; const absY = data.y * window.innerHeight;
+                ctx.beginPath(); ctx.moveTo(absX, absY); return; 
             }
+            if (data.type === 'stop') return ctx.beginPath();
             
             if (data.type === 'image') {
                 const img = new Image();
-                img.onload = () => { ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, data.x, data.y, data.w, data.h); };
+                img.onload = () => { 
+                    const absX = data.x * window.innerWidth; const absY = data.y * window.innerHeight;
+                    const absW = data.w * window.innerWidth; const absH = data.h * window.innerHeight;
+                    ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, absX, absY, absW, absH); 
+                };
                 img.src = data.src; return;
             }
             
+            const absX = data.x * window.innerWidth; const absY = data.y * window.innerHeight;
+            const absSize = data.size * window.innerWidth;
+
+            ctx.globalCompositeOperation = data.tool === 'eraser' ? 'destination-out' : 'source-over';
+            ctx.strokeStyle = data.color; ctx.lineWidth = absSize;
+            ctx.lineTo(absX, absY); ctx.stroke(); ctx.beginPath(); ctx.moveTo(absX, absY);
             ctx.globalCompositeOperation = 'source-over';
-            ctx.strokeStyle = data.color; ctx.lineWidth = data.size;
-            ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
         }
 
         async function createRoom() {
@@ -694,7 +727,11 @@
                 codeDisplay.innerText = id; codeDisplay.style.display = 'block';
                 setTimeout(() => { document.getElementById('ui-panel').style.opacity = '0'; setTimeout(() => document.getElementById('ui-panel').style.display = 'none', 500); }, 15000);
             });
-            peer.on('connection', (conn) => { connections.push(conn); conn.on('data', drawRemote); });
+            peer.on('connection', (conn) => { 
+                connections.push(conn); 
+                conn.on('open', () => { conn.send({ type: 'theme', index: currentThemeIdx }); }); // Enviar tema actual al nuevo alumno
+                conn.on('data', drawRemote); 
+            });
             peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
         }
 
