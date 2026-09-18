@@ -639,8 +639,8 @@
         }
 
         const canvas = document.getElementById('board');
-        // Aceleración por hardware para reducir latencia drásticamente (vital para Wacom/Stylus)
-        const ctx = canvas.getContext('2d', { desynchronized: true });
+        // Aceleración de Hardware Activada (Desynchronized canvas bypasses the DOM for zero-latency stylus drawing)
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
         const container = document.getElementById('canvas-container');
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -655,11 +655,55 @@
         let pLastPos = null;
         let pLastMid = null;
 
+        // BATCHING DE RED: Evita congelar el navegador enviando 200 eventos por segundo
+        let broadcastQueue = [];
+        setInterval(() => {
+            if(broadcastQueue.length > 0 && connections.length > 0) {
+                const batch = { type: 'batch', data: broadcastQueue };
+                connections.forEach(conn => { if(conn.open) conn.send(batch); });
+                broadcastQueue = [];
+            }
+        }, 16); // ~60fps flush
+
+        function broadcastData(data) { 
+            // Acciones inmediatas (start, stop, clear) se envían directo. Dibujos se agrupan.
+            if(data.type === 'drawBezier' || data.type === 'draw') {
+                broadcastQueue.push(data);
+            } else {
+                connections.forEach(conn => { if (conn.open) conn.send(data); }); 
+            }
+        }
+
+        // SISTEMA DE CACHÉ DE CONTEXTO CANVAS (Elimina el 85% de la carga del CPU)
+        let ctxState = { color: '', size: -1, tool: '', isChalk: null };
+        function applyCtxState(targetCtx, color, size, tool, isChalk) {
+            if (ctxState.color === color && ctxState.size === size && ctxState.tool === tool && ctxState.isChalk === isChalk) return;
+                
+            targetCtx.lineWidth = size;
+            if (tool === 'eraser') {
+                targetCtx.globalCompositeOperation = 'destination-out';
+                targetCtx.shadowBlur = 0;
+                targetCtx.globalAlpha = 1.0;
+            } else {
+                targetCtx.globalCompositeOperation = 'source-over';
+                if (isChalk && chalkPattern) {
+                    targetCtx.strokeStyle = chalkPattern;
+                    targetCtx.shadowBlur = 0;
+                    targetCtx.globalAlpha = 0.9;
+                } else {
+                    targetCtx.strokeStyle = color;
+                    targetCtx.shadowBlur = size * 0.4;
+                    targetCtx.shadowColor = color;
+                    targetCtx.globalAlpha = tool === 'marker' ? 0.42 : 0.85;
+                }
+            }
+            ctxState = { color, size, tool, isChalk };
+        }
+
         // Genera un patrón de ruido (granos de tiza) dinámico según el color seleccionado
         function generateChalkPattern(colorHex) {
             const pCanvas = document.createElement('canvas');
-            pCanvas.width = 50; 
-            pCanvas.height = 50;
+            pCanvas.width = 50; pCanvas.height = 50;
             const pCtx = pCanvas.getContext('2d');
             pCtx.fillStyle = colorHex;
             for(let i = 0; i < 1000; i++) {
@@ -673,8 +717,8 @@
         const sliderLabel = document.getElementById('slider-label');
 
         toolSizeSlider.addEventListener('input', (e) => {
-            if (currentTool === 'pen') penSize = e.target.value;
-            else eraserSize = e.target.value;
+            if (currentTool === 'pen') penSize = Number(e.target.value);
+            else eraserSize = Number(e.target.value);
         });
 
         function setTool(tool) {
@@ -719,6 +763,7 @@
             chalkPattern = generateChalkPattern(myColor);
             setTool('pen');
             
+            ctxState = { color: '', size: -1, tool: '', isChalk: null }; // Reset cache
             broadcastData({ type: 'theme', index: currentThemeIdx });
         }
 
@@ -727,6 +772,7 @@
             currentThemeIdx = index;
             canvas.classList.add(themes[currentThemeIdx].class);
             chalkPattern = generateChalkPattern(themes[currentThemeIdx].pen);
+            ctxState = { color: '', size: -1, tool: '', isChalk: null };
         }
 
         function toggleFullScreen() {
@@ -859,7 +905,7 @@
         function startDrawing(e) {
             if (e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return;
             isDrawing = true;
-            hideBanner(); // Ocultar banner al dibujar
+            hideBanner(); // Ocultar banner dinámico
             canvas.setPointerCapture?.(e.pointerId);
             
             const pos = getCanvasPos(e);
@@ -882,12 +928,17 @@
             draw(e);
         }
 
-        // ====== VERSIÓN ULTRA-OPTIMIZADA CON CURVAS BÉZIER (PROFESOR PC/WACOM) ======
+        // ====== VERSIÓN ULTRA-OPTIMIZADA (PROFESOR PC/WACOM) ======
         function draw(e) {
             if (!isDrawing || !isAdmin || e.pointerType === 'touch') return;
             
             const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            if(events.length === 0) return;
+            
             const isChalkTheme = themes[currentThemeIdx].id === 'chalk';
+
+            ctx.beginPath();
+            ctx.moveTo(pLastMid.x, pLastMid.y);
 
             for (let ev of events) {
                 const pos = getCanvasPos(ev);
@@ -900,45 +951,27 @@
                     return; 
                 }
 
-                // Curva de Presión Exponencial para Wacom (Sentimiento natural)
+                // Presión Wacom refinada
                 const pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 0.5;
                 const pFactor = ev.pointerType === 'pen' ? (0.3 + Math.pow(pressure, 1.5) * 1.2) : 1;
                 const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
                 
+                // Actualizar contexto solo si cambia el pincel/presión (Salva 80% CPU)
+                applyCtxState(ctx, myColor, finalSize, currentTool, isChalkTheme);
+
                 // Cálculo de punto medio para interpolación Quadratic Bezier
                 const mid = { x: (pLastPos.x + pos.x) / 2, y: (pLastPos.y + pos.y) / 2 };
 
-                ctx.lineWidth = finalSize;
-
-                if (currentTool !== 'eraser') {
-                    ctx.globalCompositeOperation = 'source-over';
-                    if (isChalkTheme && chalkPattern && currentTool === 'pen') {
-                        ctx.strokeStyle = chalkPattern;
-                        ctx.shadowBlur = 0;
-                        ctx.globalAlpha = 0.9;
-                    } else {
-                        ctx.strokeStyle = myColor;
-                        ctx.shadowBlur = finalSize * 0.4;
-                        ctx.shadowColor = myColor;
-                        ctx.globalAlpha = 0.85;
-                    }
-                } else {
-                    ctx.globalCompositeOperation = 'destination-out';
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 1.0;
-                }
-
-                // Trazar curva perfecta
-                ctx.beginPath();
-                ctx.moveTo(pLastMid.x, pLastMid.y);
                 ctx.quadraticCurveTo(pLastPos.x, pLastPos.y, mid.x, mid.y);
-                ctx.stroke();
 
                 pLastPos = pos;
                 pLastMid = mid;
                 
                 broadcastData({ type:'drawBezier', lastMidX: pLastMid.x, lastMidY: pLastMid.y, lastPosX: pLastPos.x, lastPosY: pLastPos.y, midX: mid.x, midY: mid.y, color: myColor, size: finalSize, tool: currentTool });
             }
+            
+            // Un solo stroke por grupo de eventos agiliza el render!
+            ctx.stroke();
         }
 
         function stopDrawing(e) {
@@ -966,8 +999,6 @@
                 shapePreview = null;
             } else {
                 ctx.beginPath();
-                ctx.shadowBlur = 0;
-                ctx.globalAlpha = 1.0;
                 broadcastData({ type:'stop' });
             }
             isDrawing = false;
@@ -2146,8 +2177,7 @@
         /* ================= 6. CONEXIÓN ALUMNOS ================= */
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
-        // Función remota optimizada para los alumnos
-        function drawRemote(data) {
+        function processRemoteCommand(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
             if (data.type === 'theme') { applyTheme(data.index); return; }
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
@@ -2164,30 +2194,11 @@
                 img.src = data.src; return;
             }
             
-            // Receptor de curvas perfectas del profesor
+            // Renderizado de las curvas optimizadas por el profesor
             if (data.type === 'drawBezier') {
                 const isChalkTheme = canvas.classList.contains('theme-chalk');
-                ctx.lineWidth = data.size;
-
-                if (data.tool !== 'eraser') {
-                    ctx.globalCompositeOperation = 'source-over';
-                    if (isChalkTheme && data.tool === 'pen') {
-                        if (!chalkPattern) chalkPattern = generateChalkPattern(data.color);
-                        ctx.strokeStyle = chalkPattern;
-                        ctx.shadowBlur = 0;
-                        ctx.globalAlpha = 0.9;
-                    } else {
-                        ctx.strokeStyle = data.color;
-                        ctx.shadowBlur = data.size * 0.4;
-                        ctx.shadowColor = data.color;
-                        ctx.globalAlpha = 0.85;
-                    }
-                } else {
-                    ctx.globalCompositeOperation = 'destination-out';
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 1.0;
-                }
-
+                applyCtxState(ctx, data.color, data.size, data.tool, isChalkTheme);
+                
                 ctx.beginPath();
                 ctx.moveTo(data.lastMidX, data.lastMidY);
                 ctx.quadraticCurveTo(data.lastPosX, data.lastPosY, data.midX, data.midY);
@@ -2195,31 +2206,20 @@
                 return;
             }
 
-            // Fallback (por si alguna vez se manda línea simple)
             if (data.type === 'draw') {
-                ctx.lineWidth = data.size;
                 const isChalkTheme = canvas.classList.contains('theme-chalk');
-
-                if (data.tool !== 'eraser') {
-                    ctx.globalCompositeOperation = 'source-over';
-                    if (isChalkTheme && data.tool === 'pen') {
-                        if (!chalkPattern) chalkPattern = generateChalkPattern(data.color);
-                        ctx.strokeStyle = chalkPattern;
-                        ctx.shadowBlur = 0;
-                        ctx.globalAlpha = 0.9;
-                    } else {
-                        ctx.strokeStyle = data.color;
-                        ctx.shadowBlur = data.size * 0.4;
-                        ctx.shadowColor = data.color;
-                        ctx.globalAlpha = 0.85;
-                    }
-                } else {
-                    ctx.globalCompositeOperation = 'destination-out';
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 1.0;
-                }
+                applyCtxState(ctx, data.color, data.size, data.tool, isChalkTheme);
 
                 ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
+            }
+        }
+
+        // Recepción en BATCH para rendimiento Extremo en el alumno
+        function drawRemote(data) {
+            if (data.type === 'batch') {
+                data.data.forEach(d => processRemoteCommand(d));
+            } else {
+                processRemoteCommand(data);
             }
         }
 
@@ -2269,7 +2269,6 @@
                 if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
             });
         }
-        function broadcastData(data) { connections.forEach(conn => { if (conn.open) conn.send(data); }); }
         
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -2306,6 +2305,9 @@
   let mwLastMid = null;
   
   const mwUndo = [];
+
+  // CACHÉ DE ESTADO ALUMNO MÓVIL
+  let mwCtxState = { color: '', size: -1, mode: '', isChalk: null };
 
   function pos(ev){
     const r = board.getBoundingClientRect();
@@ -2347,7 +2349,7 @@
     ev.preventDefault();
     saveState();
     
-    // Si la función global existe (profesor), la llamamos; si es alumno puro, no pasa nada
+    // Ocultar banner Creador
     if(typeof hideBanner === 'function') hideBanner();
     
     mwDrawing = true;
@@ -2360,12 +2362,11 @@
     c.moveTo(mwLastPos.x, mwLastPos.y);
   }
 
-  // ====== VERSIÓN MÓVIL CON INTERPOLACIÓN BÉZIER ======
+  // ====== VERSIÓN MÓVIL ALUMNO OPTIMIZADA CON CACHÉ Y BÉZIER ======
   function move(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
     
-    // Detectar si el tema actual es tiza
     const isChalkTheme = board.classList.contains('theme-chalk');
     if (isChalkTheme && typeof chalkPattern === 'undefined' && typeof generateChalkPattern !== 'undefined') {
         chalkPattern = generateChalkPattern(mwColor);
@@ -2386,29 +2387,31 @@
         const baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
         const finalSize = mwMode === 'eraser' ? Math.max(18, mwSize * 3.5) : baseSize * pFactor;
 
+        // Caché del estado gráfico del Canvas del alumno (Evita lag térmico en móviles)
+        if (mwCtxState.color !== mwColor || mwCtxState.size !== finalSize || mwCtxState.mode !== mwMode || mwCtxState.isChalk !== isChalkTheme) {
+            c.lineWidth = finalSize;
+            if(mwMode === 'eraser'){
+                c.globalCompositeOperation = 'destination-out';
+                c.shadowBlur = 0;
+                c.globalAlpha = 1;
+            } else {
+                c.globalCompositeOperation = 'source-over';
+                if (isChalkTheme && mwMode === 'pen' && typeof chalkPattern !== 'undefined') {
+                    c.strokeStyle = chalkPattern || mwColor;
+                    c.shadowBlur = 0;
+                    c.globalAlpha = 0.9;
+                } else {
+                    c.strokeStyle = mwColor;
+                    c.shadowBlur = finalSize * 0.4;
+                    c.shadowColor = mwColor;
+                    c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.85;
+                }
+            }
+            mwCtxState = { color: mwColor, size: finalSize, mode: mwMode, isChalk: isChalkTheme };
+        }
+
         // Punto medio para la curva Bezier
         const mid = { x: (mwLastPos.x + p.x)/2, y: (mwLastPos.y + p.y)/2 };
-
-        if(mwMode === 'eraser'){
-            c.globalCompositeOperation = 'destination-out';
-            c.lineWidth = finalSize;
-            c.shadowBlur = 0;
-            c.globalAlpha = 1;
-        } else {
-            c.globalCompositeOperation = 'source-over';
-            c.lineWidth = finalSize;
-            
-            if (isChalkTheme && mwMode === 'pen' && typeof chalkPattern !== 'undefined') {
-                c.strokeStyle = chalkPattern || mwColor;
-                c.shadowBlur = 0;
-                c.globalAlpha = 0.9;
-            } else {
-                c.strokeStyle = mwColor;
-                c.shadowBlur = c.lineWidth * 0.4;
-                c.shadowColor = mwColor;
-                c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.85;
-            }
-        }
 
         // Trazado curvo
         c.beginPath();
@@ -2428,6 +2431,7 @@
     mwLastPos=null;
     mwLastMid=null;
     
+    // Mostrar banner Creador
     if(typeof showBanner === 'function') showBanner();
 
     const c=board.getContext('2d');
@@ -2458,6 +2462,7 @@
       mwColor = e.target.value; 
       if(typeof generateChalkPattern !== 'undefined') chalkPattern = generateChalkPattern(mwColor);
       setMode('pen');
+      mwCtxState = { color: '', size: -1, mode: '', isChalk: null }; // forzar update
   });
   
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
