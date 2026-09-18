@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - Master Edition</title>
+    <title>MathBoard Pro - Master Edition (Anti-Freeze)</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -29,7 +29,6 @@
         #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #121212; }
         #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
-        /* Capas de Pizarra: Principal y Fantasma (Overlay para Formas) */
         canvas.board-layer {
             display: block; touch-action: none;
             width: 100%; height: auto; min-height: 300vh; 
@@ -62,13 +61,11 @@
 
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
-        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; }
+        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; border-left: 4px solid #3b82f6; }
         
-        /* Widget de Fórmulas y Buscador */
         #formulas-panel { top: 80px; right: 30px; width: 500px; display: none; max-height: 85vh; overflow: hidden; resize: both; }
         .formula-search-bar { padding: 10px; background: #111; border-bottom: 1px solid #333; }
         .formula-search-input { width: 100%; padding: 8px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; text-align: center; font-size: 0.9rem; box-sizing: border-box; }
-        
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; cursor: grab; }
         .formula-tab-btns:active { cursor: grabbing; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
@@ -76,12 +73,10 @@
         .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; transition: 0.2s; }
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
-        
         .f-btn { background: #222; border: 1px solid #333; color: #fff; font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.35rem; padding: 15px; cursor: pointer; border-radius: 8px; transition: 0.2s; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .f-btn:hover { background: #2a2a2a; border-color: #3b82f6; transform: translateY(-2px); }
         .f-title { font-size: 0.75rem; color: #8b5cf6; font-family: 'Segoe UI', sans-serif; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
 
-        /* Visor PDF */
         #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
@@ -97,7 +92,6 @@
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(30,30,30,0.95); padding: 6px 12px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; }
 
-        /* Toolbar Principal */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -145,27 +139,27 @@
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
             <div id="form-teacher" class="auth-form">
-                <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN">
-                <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
+                <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN SECRETO">
+                <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder a la Pizarra</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
         </div>
     </div>
 
+    <!-- Info del sistema -->
     <div id="ui-panel" class="floating-panel">
-        <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
+        <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Cargando...</div>
         <div id="room-code-display" style="font-size: 1.5rem; letter-spacing: 4px; margin: 8px 0; font-weight:bold; color:white; display:none;"></div>
-        <div style="font-size: 0.7em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
+        <div style="font-size: 0.7em; color: #aaa;" id="status-hint">Por favor espera...</div>
     </div>
 
-    <!-- WIDGET DE FÓRMULAS DEFINITIVO -->
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
             <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px;">_</button>
         </div>
         <div class="formula-search-bar">
-            <input type="text" id="formula-search" class="formula-search-input" placeholder="🔍 Buscar fórmula rápida..." onkeyup="filterFormulas()">
+            <input type="text" id="formula-search" class="formula-search-input" placeholder="🔍 Buscar fórmula (ej: Pitágoras)..." onkeyup="filterFormulas()">
         </div>
         <div class="formula-tab-btns" id="formula-tabs">
             <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
@@ -179,7 +173,7 @@
             <button class="f-tab" onclick="loadFormulas('complex', this)">Números Complejos</button>
             <button class="f-tab" onclick="loadFormulas('stats', this)">Prob. y Estadística</button>
             <button class="f-tab" onclick="loadFormulas('continuous', this)">Variables Continuas</button>
-            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología y Diferencial</button>
+            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología y Geometría</button>
         </div>
         <div class="formula-grid" id="formula-grid-container"></div>
         <div class="resize-handle resize-handle-pdf" id="formula-resize-handle" title="Arrastra para redimensionar"></div>
@@ -210,7 +204,6 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-content">
             <img id="stamp-img" src="">
@@ -226,21 +219,18 @@
     <div id="toolbar">
         <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
-        
         <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;" title="Librería de Fórmulas">🧮 <span class="hide-mobile">Fórmulas</span></button>
         
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
         <div id="admin-tools" style="display:none; align-items:center; gap:5px;">
-            <!-- Herramientas de dibujo -->
-            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz Libre">✏️</button>
+            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
             <button id="btn-line" class="tool-btn" onclick="setTool('line')" title="Línea Recta">➖</button>
             <button id="btn-rect" class="tool-btn" onclick="setTool('rect')" title="Rectángulo">⬜</button>
             <button id="btn-circle" class="tool-btn" onclick="setTool('circle')" title="Círculo">⭕</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
             
             <input type="color" id="colorPicker" value="#ffffff" title="Color">
-            
             <div class="slider-container">
                 <span id="slider-label" class="slider-label">Grosor</span>
                 <input type="range" id="toolSize" min="1" max="20" value="4">
@@ -267,7 +257,6 @@
     </div>
 
     <div id="canvas-container">
-        <!-- Dos capas: La principal y la fantasma para previsualizar formas geométricas -->
         <canvas id="board" width="1920" height="4000" class="board-layer theme-dark"></canvas>
         <canvas id="overlay-board" width="1920" height="4000" class="board-layer"></canvas>
     </div>
@@ -277,20 +266,34 @@
         let isAdmin = false; 
         
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
-        function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
+        function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro del Profesor"; }
         function goBack() { document.getElementById('form-student').style.display = 'none'; document.getElementById('form-teacher').style.display = 'none'; document.getElementById('role-selection').style.display = 'block'; document.getElementById('login-msg').innerText = "Selecciona tu perfil"; document.getElementById('adminPin').value = ""; document.getElementById('roomIdInput').value = ""; }
         
+        // MOTOR DE ACCESO ANTI-FREEZE
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
-                document.getElementById('admin-tools').style.display = 'flex';
+                
+                // 1. Ocultar Login y mostrar Pizarra inmediatamente para que el usuario no crea que se congeló
+                document.getElementById('login-overlay').style.pointerEvents = 'none';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                
+                // 2. Mostrar barras de herramientas de profesor
+                document.getElementById('toolbar').style.display = 'flex';
+                document.getElementById('admin-tools').style.display = 'flex';
+                
+                // 3. Mostrar panel informativo de estado
+                document.getElementById('ui-panel').style.display = 'block';
+                document.getElementById('status-text').innerText = "Configurando Sala...";
+                document.getElementById('status-hint').innerText = "Solicitando permisos de micrófono al navegador...";
+                
+                // 4. Iniciar red (puede tardar por el permiso del micrófono)
                 createRoom();
             } else { alert("PIN Incorrecto."); }
         }
 
-        /* ================= 1. MOTOR GRÁFICO (TRAZO LIBRE Y GEOMETRÍA) ================= */
+        /* ================= 1. MOTOR GRÁFICO AVANZADO ================= */
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
         const overlayCanvas = document.getElementById('overlay-board');
@@ -319,9 +322,7 @@
                 document.getElementById(id).classList.remove('active');
             });
             document.getElementById('btn-' + tool).classList.add('active');
-            
             canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
-            
             if (tool === 'eraser') {
                 toolSizeSlider.min = 20; toolSizeSlider.max = 150;
                 toolSizeSlider.value = eraserSize; 
@@ -371,7 +372,6 @@
             return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
         }
 
-        // Eventos en la capa transparente (overlay) que está por encima
         overlayCanvas.addEventListener('pointerdown', startDrawing);
         overlayCanvas.addEventListener('pointermove', draw);
         window.addEventListener('pointerup', stopDrawing);
@@ -386,7 +386,6 @@
                 broadcastData({ type: 'start', x: pos.x, y: pos.y }); 
                 draw(e); 
             } else {
-                // Herramientas geométricas: guardar punto de inicio
                 startShapeX = pos.x; startShapeY = pos.y;
             }
         }
@@ -429,7 +428,6 @@
                 ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
                 broadcastData({ type: 'draw', x: pos.x, y: pos.y, color: myColor, size: finalSize, tool: currentTool });
             } else {
-                // Dibujar figura dinámica en la capa fantasma
                 oCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 drawShapeParams(oCtx, currentTool, startShapeX, startShapeY, pos.x, pos.y, finalSize, myColor);
             }
@@ -443,16 +441,12 @@
                 ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
                 broadcastData({ type: 'stop' }); 
             } else {
-                // Al soltar el lápiz, pasar la figura final de la capa fantasma a la pizarra real
                 const pos = getCanvasPos(e);
                 const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
                 const finalSize = penSize * (pressure * 1.5);
-                
                 oCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
                 ctx.globalCompositeOperation = 'source-over';
                 drawShapeParams(ctx, currentTool, startShapeX, startShapeY, pos.x, pos.y, finalSize, myColor);
-                
-                // Enviar la orden de dibujo de figura a los alumnos
                 broadcastData({ type: 'shape', tool: currentTool, x1: startShapeX, y1: startShapeY, x2: pos.x, y2: pos.y, size: finalSize, color: myColor });
             }
         }
@@ -465,7 +459,7 @@
             } 
         }
 
-        /* ================= BASE DE DATOS DE FÓRMULAS MUNDIAL DEFINITIVA ================= */
+        /* ================= BASE DE DATOS DE FÓRMULAS MUNDIAL ================= */
         const mathFormulas = {
             algebra: [
                 { name: "Fórmula Cuadrática", eq: "x = (-b ± √(b² - 4ac)) / 2a" },
@@ -474,13 +468,13 @@
                 { name: "Suma de Cubos", eq: "a³ + b³ = (a+b)(a² - ab + b²)" },
                 { name: "Propiedades Logaritmo", eq: "log_b(x·y) = log_b(x) + log_b(y)" },
                 { name: "Cambio de Base (Log)", eq: "log_b(x) = log_c(x) / log_c(b)" },
-                { name: "Serie Aritmética (Suma)", eq: "S_n = n/2 · (a_1 + a_n)" },
+                { name: "Serie Aritmética", eq: "S_n = n/2 · (a_1 + a_n)" },
                 { name: "Serie Geométrica Infinita", eq: "S_∞ = a / (1 - r) , |r| < 1" },
-                { name: "Regla de Cramer (Matriz 2x2)", eq: "x = |Dx|/|D| , y = |Dy|/|D|" }
+                { name: "Regla de Cramer (2x2)", eq: "x = |Dx|/|D| , y = |Dy|/|D|" }
             ],
             geometry: [
                 { name: "Teorema de Pitágoras", eq: "c² = a² + b²" },
-                { name: "Fórmula de Herón (Área)", eq: "A = √(s(s-a)(s-b)(s-c))" },
+                { name: "Fórmula de Herón", eq: "A = √(s(s-a)(s-b)(s-c))" },
                 { name: "Área y Perímetro Círculo", eq: "A = πr² , P = 2πr" },
                 { name: "Área de Trapecio", eq: "A = (a+b)h / 2" },
                 { name: "Volumen Esfera", eq: "V = (4/3)πr³" },
@@ -490,8 +484,8 @@
                 { name: "Teorema de Tales", eq: "a/b = c/d" }
             ],
             analytic: [
-                { name: "Distancia entre 2 puntos", eq: "d = √((x₂ - x₁)² + (y₂ - y₁)²)" },
-                { name: "Pendiente de Recta", eq: "m = (y₂ - y₁) / (x₂ - x₁)" },
+                { name: "Distancia 2 puntos", eq: "d = √((x₂ - x₁)² + (y₂ - y₁)²)" },
+                { name: "Pendiente Recta", eq: "m = (y₂ - y₁) / (x₂ - x₁)" },
                 { name: "Ecuación Punto-Pendiente", eq: "y - y₁ = m(x - x₁)" },
                 { name: "Distancia Punto a Recta", eq: "d = |Ax₁ + By₁ + C| / √(A² + B²)" },
                 { name: "Circunferencia (Centro h,k)", eq: "(x - h)² + (y - k)² = r²" },
@@ -503,36 +497,36 @@
                 { name: "Identidad Pitagórica", eq: "sin²(θ) + cos²(θ) = 1" },
                 { name: "Ley de Senos", eq: "a/sin(A) = b/sin(B) = c/sin(C)" },
                 { name: "Ley de Cosenos", eq: "c² = a² + b² - 2ab·cos(C)" },
-                { name: "Suma de Ángulos (Sen)", eq: "sin(α ± β) = sin(α)cos(β) ± cos(α)sin(β)" },
-                { name: "Suma de Ángulos (Cos)", eq: "cos(α ± β) = cos(α)cos(β) ∓ sin(α)sin(β)" },
+                { name: "Suma Ángulos (Sen)", eq: "sin(α ± β) = sin(α)cos(β) ± cos(α)sin(β)" },
+                { name: "Suma Ángulos (Cos)", eq: "cos(α ± β) = cos(α)cos(β) ∓ sin(α)sin(β)" },
                 { name: "Ángulo Doble (Sen)", eq: "sin(2θ) = 2sin(θ)cos(θ)" },
                 { name: "Ángulo Doble (Cos)", eq: "cos(2θ) = cos²(θ) - sin²(θ)" },
                 { name: "Transformación a Producto", eq: "sin(A)+sin(B) = 2sin((A+B)/2)cos((A-B)/2)" }
             ],
             calculus_limits: [
                 { name: "Definición de Límite", eq: "∀ε>0, ∃δ>0 : 0 < |x-a| < δ ⇒ |f(x)-L| < ε" },
-                { name: "Límite Fundamental Trig.", eq: "lim(x→0) [sin(x) / x] = 1" },
+                { name: "Límite Fundamental", eq: "lim(x→0) [sin(x) / x] = 1" },
                 { name: "Límite Número e", eq: "lim(n→∞) (1 + 1/n)^n = e" },
                 { name: "Regla de L'Hôpital", eq: "lim [f(x)/g(x)] = lim [f'(x)/g'(x)]" },
                 { name: "Serie de Taylor", eq: "f(x) = Σ [f^(n)(a) / n!] (x - a)^n" },
                 { name: "Serie de Maclaurin (e^x)", eq: "e^x = Σ (x^n / n!)" }
             ],
             calculus_deriv: [
-                { name: "Definición de Derivada", eq: "f'(x) = lim(h→0) [f(x+h) - f(x)] / h" },
+                { name: "Definición Derivada", eq: "f'(x) = lim(h→0) [f(x+h) - f(x)] / h" },
                 { name: "Regla de la Potencia", eq: "d/dx [x^n] = n·x^(n-1)" },
                 { name: "Regla del Producto", eq: "(uv)' = u'v + uv'" },
                 { name: "Regla del Cociente", eq: "(u/v)' = (u'v - uv') / v²" },
                 { name: "Regla de la Cadena", eq: "d/dx [f(g(x))] = f'(g(x)) · g'(x)" },
-                { name: "Derivada Función Implícita", eq: "dy/dx = - (∂F/∂x) / (∂F/∂y)" }
+                { name: "Derivada Implícita", eq: "dy/dx = - (∂F/∂x) / (∂F/∂y)" }
             ],
             calculus_int: [
-                { name: "T. Fundamental del Cálculo", eq: "∫_a^b f(x)dx = F(b) - F(a)" },
+                { name: "Teorema Fundamental", eq: "∫_a^b f(x)dx = F(b) - F(a)" },
                 { name: "Integración por Partes", eq: "∫ u dv = u·v - ∫ v du" },
                 { name: "Regla de Sustitución", eq: "∫ f(g(x))g'(x)dx = ∫ f(u)du" },
                 { name: "Integral de Potencia", eq: "∫ x^n dx = (x^(n+1))/(n+1) + C" },
                 { name: "Integral de 1/x", eq: "∫ (1/x) dx = ln|x| + C" },
                 { name: "Longitud de Arco", eq: "L = ∫_a^b √(1 + [f'(x)]²) dx" },
-                { name: "Volumen (Método Discos)", eq: "V = π ∫_a^b [f(x)]² dx" }
+                { name: "Volumen (Discos)", eq: "V = π ∫_a^b [f(x)]² dx" }
             ],
             calculus_multi: [
                 { name: "Vector Gradiente", eq: "∇f = (∂f/∂x, ∂f/∂y, ∂f/∂z)" },
@@ -541,25 +535,25 @@
                 { name: "Rotacional (Curl)", eq: "curl(F) = ∇ × F" },
                 { name: "Teorema de Green", eq: "∮_C (P dx + Q dy) = ∬_D (∂Q/∂x - ∂P/∂y) dA" },
                 { name: "Teorema de Stokes", eq: "∮_C F · dr = ∬_S (∇ × F) · dS" },
-                { name: "Teorema Divergencia (Gauss)", eq: "∬_S F · dS = ∭_E (∇ · F) dV" }
+                { name: "Teorema Gauss", eq: "∬_S F · dS = ∭_E (∇ · F) dV" }
             ],
             complex: [
                 { name: "Forma Binómica", eq: "z = a + bi" },
                 { name: "Módulo y Conjugado", eq: "|z| = √(a²+b²) , z̄ = a - bi" },
                 { name: "Fórmula de Euler", eq: "e^(iθ) = cos(θ) + i·sin(θ)" },
-                { name: "Forma Polar", eq: "z = r·e^(iθ) = r(cos θ + i sin θ)" },
-                { name: "Fórmula de De Moivre", eq: "z^n = r^n(cos nθ + i sin nθ)" },
+                { name: "Forma Polar", eq: "z = r(cos θ + i sin θ)" },
+                { name: "Fórmula De Moivre", eq: "z^n = r^n(cos nθ + i sin nθ)" },
                 { name: "Raíces n-ésimas", eq: "z_k = r^(1/n) · e^(i(θ+2πk)/n)" }
             ],
             stats: [
-                { name: "Media Poblacional", eq: "μ = (Σ x_i) / N" },
-                { name: "Varianza y Desv. Estándar", eq: "σ² = Σ(x_i - μ)²/N , σ = √σ²" },
+                { name: "Media", eq: "μ = (Σ x_i) / N" },
+                { name: "Varianza", eq: "σ² = Σ(x_i - μ)²/N" },
                 { name: "Covarianza", eq: "Cov(X,Y) = Σ(x_i - x̄)(y_i - ȳ) / (n-1)" },
-                { name: "Probabilidad Condicional", eq: "P(A|B) = P(A ∩ B) / P(B)" },
-                { name: "Teorema de Prob. Total", eq: "P(A) = Σ P(A|B_i)P(B_i)" },
+                { name: "Prob. Condicional", eq: "P(A|B) = P(A ∩ B) / P(B)" },
+                { name: "Teorema Prob. Total", eq: "P(A) = Σ P(A|B_i)P(B_i)" },
                 { name: "Teorema de Bayes", eq: "P(A|B) = [P(B|A)P(A)] / P(B)" },
-                { name: "Distribución Binomial", eq: "P(X=k) = (nCk) · p^k · (1-p)^(n-k)" },
-                { name: "Distribución de Poisson", eq: "P(X=k) = (λ^k · e^-λ) / k!" }
+                { name: "Binomial", eq: "P(X=k) = (nCk) · p^k · (1-p)^(n-k)" },
+                { name: "Poisson", eq: "P(X=k) = (λ^k · e^-λ) / k!" }
             ],
             continuous: [
                 { name: "Función Densidad (PDF)", eq: "∫_{-∞}^{∞} f(x) dx = 1" },
@@ -576,7 +570,6 @@
             ]
         };
 
-        // Scroll horizontal suave para las pestañas (Arrastrar para navegar)
         const tabsContainer = document.getElementById('formula-tabs');
         let isDown = false; let startX; let scrollLeft;
         tabsContainer.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - tabsContainer.offsetLeft; scrollLeft = tabsContainer.scrollLeft; });
@@ -588,7 +581,6 @@
             tabsContainer.scrollLeft = scrollLeft - walk;
         });
 
-        // Buscador Inteligente
         function filterFormulas() {
             const query = document.getElementById('formula-search').value.toLowerCase();
             const btns = document.querySelectorAll('.f-btn');
@@ -611,8 +603,6 @@
         function loadFormulas(category, tabBtn) {
             document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
             tabBtn.classList.add('active');
-            
-            // Centrar pestaña activa
             tabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
             
             const grid = document.getElementById('formula-grid-container');
@@ -625,7 +615,7 @@
                 btn.onclick = () => { if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede estampar fórmulas."); };
                 grid.appendChild(btn);
             });
-            document.getElementById('formula-search').value = ''; // Resetear busqueda
+            document.getElementById('formula-search').value = ''; 
         }
 
         function renderFormulaToStamp(formulaText) {
@@ -690,7 +680,7 @@
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
         function startRecording() {
-            if (!audioDestination) { alert("El audio no está inicializado."); return; }
+            if (!audioDestination) { alert("El micrófono aún no está conectado."); return; }
             const canvasStream = canvas.captureStream(15); 
             const combinedTracks = [ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ];
             const combinedStream = new MediaStream(combinedTracks);
@@ -719,7 +709,7 @@
             btn.innerHTML = '⏺️ <span class="hide-mobile">MP4</span>'; btn.classList.remove('record-active');
         }
 
-        /* ================= AUDIO ================= */
+        /* ================= AUDIO Y RED ================= */
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
             try { 
@@ -730,7 +720,7 @@
                 localAudioSource.connect(audioDestination);
                 return true; 
             } 
-            catch(e) { alert("Sin permisos de micrófono."); return false; }
+            catch(e) { console.warn(e); return false; }
         }
 
         function toggleMic() {
@@ -763,7 +753,7 @@
             }
         }
 
-        /* ================= LECTOR DE PDF Y RECORTE EXACTO ================= */
+        /* ================= LECTOR PDF Y RECORTE ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -918,7 +908,7 @@
         }
         function cancelStamp() { stamper.style.display = 'none'; }
 
-        /* ================= 6. CONEXIÓN (PEERJS) Y SYNC DE FORMAS ================= */
+        /* ================= CONEXIÓN ALUMNOS E INTERACCIÓN REMOTA ================= */
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
         function drawRemote(data) {
@@ -954,15 +944,17 @@
         }
 
         async function createRoom() {
-            await getMicrophone();
             document.getElementById('toolbar').style.display = 'flex';
             if(window.innerWidth <= 768) { document.getElementById('btn-open-pdf-mobile').style.display = 'inline-block'; }
+            
+            await getMicrophone();
             
             peer = new Peer(Math.random().toString(36).substring(2, 6).toUpperCase(), peerNetworkOptions);
             
             peer.on('open', (id) => {
                 document.getElementById('ui-panel').style.display = 'block';
                 document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO:";
+                document.getElementById('status-hint').innerText = "Compártelo con tus alumnos.";
                 const codeDisplay = document.getElementById('room-code-display');
                 codeDisplay.innerText = id; codeDisplay.style.display = 'block';
                 setTimeout(() => { document.getElementById('ui-panel').style.opacity = '0'; setTimeout(() => document.getElementById('ui-panel').style.display = 'none', 500); }, 15000);
@@ -985,15 +977,24 @@
             const btn = document.querySelector('#form-student button');
             btn.innerText = "Conectando..."; btn.disabled = true;
 
+            document.getElementById('login-overlay').style.pointerEvents = 'none';
+            document.getElementById('login-overlay').style.opacity = '0';
+            setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+            
+            document.getElementById('toolbar').style.display = 'flex';
+            document.getElementById('ui-panel').style.display = 'block';
+            document.getElementById('status-text').innerText = "Conectando con el Profesor...";
+            document.getElementById('status-hint').innerText = "Acepta los permisos de micrófono si el navegador lo solicita.";
+
             await getMicrophone();
             peer = new Peer(peerNetworkOptions);
             
             peer.on('open', () => {
-                document.getElementById('login-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
-                document.getElementById('toolbar').style.display = 'flex';
-                
                 const conn = peer.connect(roomId); connections.push(conn);
+                conn.on('open', () => {
+                    document.getElementById('ui-panel').style.opacity = '0';
+                    setTimeout(() => document.getElementById('ui-panel').style.display = 'none', 500);
+                });
                 conn.on('data', drawRemote);
                 if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
             });
@@ -1012,7 +1013,6 @@
         makeDraggable(pdfPanel, document.getElementById('pdf-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
 
-        // Permitir scroll interno en el widget de formulas sin mover el panel
         document.getElementById('formulas-header').addEventListener('pointerdown', e => e.stopPropagation());
         document.getElementById('formula-grid-container').addEventListener('pointerdown', e => e.stopPropagation());
         document.querySelector('.formula-search-bar').addEventListener('pointerdown', e => e.stopPropagation());
