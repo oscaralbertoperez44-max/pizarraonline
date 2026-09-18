@@ -97,9 +97,7 @@
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
-        /* Widget de Fórmulas Matemáticas Definitivo */
         #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
-        
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
@@ -108,7 +106,6 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
         
-        /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; }
@@ -118,10 +115,6 @@
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
         .stamper-toolbar button { touch-action: manipulation; }
-        @media (max-width: 700px) {
-            .stamper-toolbar { max-width: 96vw; overflow-x: auto; }
-            #stamper-content { max-width: 92vw; max-height: 65vh; }
-        }
 
         /* Toolbar */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
@@ -147,16 +140,11 @@
         
         .hidden-file { display: none; }
 
-        .shape-tools { display: flex; align-items: center; gap: 4px; padding: 3px; background: #111; border-radius: 7px; }
-        .shape-tools .tool-btn { min-width: 34px; }
-        .shape-tools .tool-btn.active { background: #f59e0b; box-shadow: 0 0 0 2px rgba(245,158,11,.22); }
         #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
         #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
         .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
-        .shape-hint { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 100; display: none; padding: 7px 12px; border-radius: 20px; background: rgba(17,17,17,.92); border: 1px solid #444; color: #ddd; font-size: .75rem; pointer-events: none; backdrop-filter: blur(8px); }
         
         @media (max-width: 900px) {
-            .shape-tools { max-width: 100%; overflow-x: auto; }
             #formula-search { font-size: .85rem; }
             #toolbar { width: 95%; bottom: 5px; padding: 6px; gap: 4px; border-radius: 12px; }
             button { padding: 5px 8px; font-size: 0.8rem; }
@@ -167,7 +155,6 @@
     
         #formulas-panel { width: min(430px, 38vw) !important; max-height: min(72vh, 760px) !important; overflow: hidden; z-index: 50; }
         #formulas-panel .panel-body { max-height: calc(min(72vh, 760px) - 90px); overflow-y: auto; overflow-x: hidden; }
-        #formulas-panel.compact { width: min(360px, 32vw) !important; max-height: 58vh !important; }
 
         @media (max-width: 900px) {
             #formulas-panel { width:92vw !important; max-height:66vh !important; }
@@ -191,21 +178,63 @@
         #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
         #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
 
-/* === ESCRITURA MÓVIL PARA ALUMNOS === */
-@media (max-width: 800px), (pointer: coarse) {
-  #canvas-container { touch-action: none !important; -webkit-user-select: none !important; user-select: none !important; overscroll-behavior: contain; }
-  #board { touch-action: none !important; -webkit-touch-callout: none; }
-  .mobile-write-tools { display: flex !important; position: sticky; bottom: 8px; z-index: 9999; gap: 7px; padding: 8px; margin: 6px 0; overflow-x: auto; background: rgba(15,23,42,.94); border: 1px solid rgba(255,255,255,.14); border-radius: 14px; box-shadow: 0 8px 28px rgba(0,0,0,.28); }
-  .mobile-write-tools button { min-width: 48px; min-height: 44px; border: 0; border-radius: 11px; padding: 8px 11px; font-size: 16px; color: #fff; background: #263449; touch-action: manipulation; }
-  .mobile-write-tools button.active { outline: 2px solid #60a5fa; background: #2563eb; }
-  .mobile-write-tools input[type="range"] { width: 95px; min-width: 95px; }
-  .mobile-write-tools input[type="color"] { width: 44px; height: 44px; border: 0; padding: 2px; border-radius: 10px; }
-  .mobile-write-hint { display: block !important; font-size: 12px; opacity: .78; padding: 3px 10px 7px; text-align: center; }
+/* === ESCRITURA TÁCTIL Y MÓVIL (ALUMNO Y PROFESOR) === */
+.mobile-write-tools {
+  display: flex;
+  position: fixed;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(15,23,42,.94);
+  border: 1px solid rgba(255,255,255,.14);
+  border-radius: 14px;
+  box-shadow: 0 8px 28px rgba(0,0,0,.4);
+  align-items: center;
 }
-@media (min-width: 801px) and (pointer: fine) { .mobile-write-tools, .mobile-write-hint { display:none !important; } }
-.mobile-write-tools, .mobile-write-hint { display:none; }
+.mobile-write-tools button {
+  min-width: 42px;
+  min-height: 40px;
+  border: 0;
+  border-radius: 10px;
+  padding: 6px 10px;
+  font-size: 15px;
+  color: #fff;
+  background: #263449;
+  cursor: pointer;
+}
+.mobile-write-tools button.active {
+  outline: 2px solid #60a5fa;
+  background: #2563eb;
+}
+.mobile-write-tools input[type="range"] {
+  width: 80px;
+}
+.mobile-write-tools input[type="color"] {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  padding: 0;
+  border-radius: 8px;
+  background: transparent;
+  cursor: pointer;
+}
+.mobile-write-hint {
+  position: fixed;
+  top: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0,0,0,0.8);
+  padding: 5px 12px;
+  border-radius: 15px;
+  font-size: 12px;
+  z-index: 9998;
+  pointer-events: none;
+  display: none;
+}
 
-/* Botón flotante para desbloquear audio en Safari/Chrome iOS */
 .audio-unlock-btn {
     position: fixed;
     top: 50%;
@@ -256,16 +285,15 @@
     <div id="ui-panel" class="floating-panel">
         <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
         <div id="room-code-display" style="font-size: 1.5rem; letter-spacing: 4px; margin: 8px 0; font-weight:bold; color:white; display:none;"></div>
-        <div style="font-size: 0.7em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
+        <div style="font-size: 0.7em; color: #aaa;">Usa la barra inferior para escribir</div>
     </div>
 
-    <!-- WIDGET DE FÓRMULAS DEFINITIVO -->
+    <!-- WIDGET DE FÓRMULAS -->
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
             <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px;">_</button>
         </div>
-        <!-- Pestañas deslizable horizontalmente -->
         <div class="formula-tab-btns">
             <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
             <button class="f-tab" onclick="loadFormulas('geometry', this)">Geometría</button>
@@ -299,9 +327,7 @@
         </div>
         <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula, tema o palabra clave..." autocomplete="off">
         <div class="formula-count" id="formula-count"></div>
-        <div class="formula-grid" id="formula-grid-container">
-            <!-- Cargadas por JavaScript -->
-        </div>
+        <div class="formula-grid" id="formula-grid-container"></div>
     </div>
 
     <!-- Visor PDF -->
@@ -329,7 +355,7 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General (Para PDFs y Fórmulas) -->
+    <!-- Estampador General -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-content">
             <img id="stamp-img" src="">
@@ -342,11 +368,10 @@
         </div>
     </div>
 
-    <!-- Toolbar Principal -->
+    <!-- Toolbar Principal (Profesor) -->
     <div id="toolbar">
         <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
-        
         <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;" title="Librería de Fórmulas">🧮 <span class="hide-mobile">Fórmulas</span></button>
         
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
@@ -355,16 +380,6 @@
             <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
 
-            <div class="shape-tools" title="Dibujo geométrico">
-                <button id="btn-line" class="tool-btn" onclick="setTool('line')" title="Recta / segmento" aria-label="Recta / segmento">╱</button>
-                <button id="btn-arrow" class="tool-btn" onclick="setTool('arrow')" title="Flecha">➜</button>
-                <button id="btn-rect" class="tool-btn" onclick="setTool('rect')" title="Rectángulo">▭</button>
-                <button id="btn-circle" class="tool-btn" onclick="setTool('circle')" title="Círculo">○</button>
-                <button id="btn-ellipse" class="tool-btn" onclick="setTool('ellipse')" title="Elipse">⬭</button>
-                <button id="btn-triangle" class="tool-btn" onclick="setTool('triangle')" title="Triángulo">△</button>
-                <button id="btn-grid-shape" class="tool-btn" onclick="setTool('grid')" title="Cuadrícula">▦</button>
-            </div>
-            
             <input type="color" id="colorPicker" value="#ffffff" title="Color">
             
             <div class="slider-container">
@@ -388,51 +403,37 @@
             <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
             <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
 
-            <!-- Imágenes: archivo en PC/tablet y cámara en celular -->
             <input type="file" id="imageInput" class="hidden-file" accept="image/*">
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-            <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir una foto o imagen">🖼️ <span class="hide-mobile">Foto</span></button>
-            <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Tomar una foto con la cámara">📷 <span class="hide-mobile">Cámara</span></button>
+            <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir foto">🖼️ <span class="hide-mobile">Foto</span></button>
+            <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Cámara">📷 <span class="hide-mobile">Cámara</span></button>
             
             <button class="danger-btn" onclick="clearCanvas()" title="Borrar Todo">🗑️</button>
         </div>
     </div>
 
-<div class="mobile-write-tools" id="mobile-write-tools" aria-label="Herramientas de escritura del alumno">
-  <button type="button" id="mw-pen" class="active" title="Lápiz">✏️</button>
-  <button type="button" id="mw-marker" title="Marcador">🖍️</button>
-  <button type="button" id="mw-eraser" title="Borrador">🧽</button>
-  <button type="button" id="mw-undo" title="Deshacer">↩️</button>
-  <button type="button" id="mw-clear" title="Limpiar mi escritura">🗑️</button>
-  <input id="mw-color" type="color" value="#ffffff" title="Color">
-  <input id="mw-size" type="range" min="2" max="28" value="5" title="Grosor">
-</div>
-<div class="mobile-write-hint" id="mobile-write-hint">📱 Alumno: tocá y escribí directamente sobre la pizarra.</div>
+    <!-- Barra de Escritura Universal (Profesor y Alumno) -->
+    <div class="mobile-write-tools" id="mobile-write-tools">
+      <button type="button" id="mw-pen" class="active" title="Lápiz">✏️</button>
+      <button type="button" id="mw-marker" title="Marcador">🖍️</button>
+      <button type="button" id="mw-eraser" title="Borrador">🧼</button>
+      <button type="button" id="mw-undo" title="Deshacer">↩️</button>
+      <button type="button" id="mw-clear" title="Limpiar">🗑️</button>
+      <input id="mw-color" type="color" value="#ffffff" title="Color">
+      <input id="mw-size" type="range" min="2" max="28" value="5" title="Grosor">
+    </div>
+    <div class="mobile-write-hint" id="mobile-write-hint">📱 Tocá y escribí sobre la pizarra</div>
 
-<div id="canvas-container">
+    <div id="canvas-container">
         <canvas id="board" width="1920" height="4000" class="theme-dark"></canvas>
-</div>
+    </div>
 
 <script>
-        // Lógica Global del Banner de Autor
         const banner = document.getElementById('creator-banner');
         let bannerTimer = null;
-        
-        function hideBanner() {
-            clearTimeout(bannerTimer);
-            if(banner) banner.classList.add('banner-hidden');
-        }
-        function showBanner() {
-            clearTimeout(bannerTimer);
-            bannerTimer = setTimeout(() => {
-                if(banner) banner.classList.remove('banner-hidden');
-            }, 1500);
-        }
+        function hideBanner() { clearTimeout(bannerTimer); if(banner) banner.classList.add('banner-hidden'); }
+        function showBanner() { clearTimeout(bannerTimer); bannerTimer = setTimeout(() => { if(banner) banner.classList.remove('banner-hidden'); }, 1500); }
 
-        // =========================================================================
-        // RED Y WEBRTC PROFESIONAL - ALTA DISPONIBILIDAD AUDIO/DATOS
-        // STUN Servers combinados (Google + Cloudflare) para perforar NAT en Celulares
-        // =========================================================================
         const peerNetworkOptions = { 
             config: { 
                 'iceServers': [ 
@@ -443,14 +444,15 @@
             } 
         };
         let isAdmin = false; 
-        
+        let peer, connections = [], localStream = null;
+        let audioContext, audioDestination;
+
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
         function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
         function goBack() { document.getElementById('form-student').style.display = 'none'; document.getElementById('form-teacher').style.display = 'none'; document.getElementById('role-selection').style.display = 'block'; document.getElementById('login-msg').innerText = "Selecciona tu perfil"; document.getElementById('adminPin').value = ""; document.getElementById('roomIdInput').value = ""; }
         
-        document.getElementById('adminPin')?.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') verifyAdmin();
-        });
+        document.getElementById('adminPin')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyAdmin(); });
+        document.getElementById('roomIdInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
 
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
@@ -470,13 +472,8 @@
         
         let isDrawing = false, currentTool = 'pen', myColor = '#ffffff';
         let penSize = 4, eraserSize = 60; 
-        let connections = [], peer, localStream = null;
-        let audioContext, audioDestination;
         let chalkPattern = null;
 
-        // =========================================================================
-        // OPTIMIZACIÓN 1: CACHÉ ESPACIAL (LAYOUT CACHING)
-        // =========================================================================
         let cachedCanvasRect = canvas.getBoundingClientRect();
         let cachedScaleX = canvas.width / cachedCanvasRect.width;
         let cachedScaleY = canvas.height / cachedCanvasRect.height;
@@ -497,13 +494,9 @@
             };
         }
 
-        // =========================================================================
-        // OPTIMIZACIÓN 2: ZERO GARBAGE COLLECTION
-        // =========================================================================
         let pLastPosX = 0, pLastPosY = 0;
         let pLastMidX = 0, pLastMidY = 0;
 
-        // BATCHING DE RED
         let broadcastQueue = [];
         setInterval(() => {
             if(broadcastQueue.length > 0 && connections.length > 0) {
@@ -521,7 +514,6 @@
             }
         }
 
-        // SISTEMA DE CACHÉ DE CONTEXTO CANVAS
         let ctxState = { color: '', size: -1, tool: '', isChalk: null };
         function applyCtxState(targetCtx, color, size, tool, isChalk) {
             if (ctxState.color === color && ctxState.size === size && ctxState.tool === tool && ctxState.isChalk === isChalk) return;
@@ -626,132 +618,14 @@
         canvas.addEventListener('pointermove', draw, { passive: false });
         window.addEventListener('pointerup', stopDrawing);
 
-        let shapeStart = null;
-        let shapePreview = null;
-
-        const drawingTools = ['pen','eraser','line','arrow','rect','circle','ellipse','triangle','grid'];
-
-        function updateToolButtons(tool) {
-            drawingTools.forEach(t => {
-                const el = document.getElementById('btn-' + t);
-                if (el) el.classList.toggle('active', tool === t);
-            });
-        }
-
-        function setTool(tool) {
-            currentTool = tool;
-            updateToolButtons(tool);
-            const isPenLike = tool === 'pen';
-            const isEraser = tool === 'eraser';
-
-            canvas.style.cursor = isEraser ? 'cell' :
-                drawingTools.includes(tool) ? 'crosshair' : 'default';
-
-            if (isPenLike) {
-                toolSizeSlider.min = 1; toolSizeSlider.max = 20;
-                toolSizeSlider.value = penSize; sliderLabel.innerText = 'Lápiz';
-            } else if (isEraser) {
-                toolSizeSlider.min = 20; toolSizeSlider.max = 150;
-                toolSizeSlider.value = eraserSize; sliderLabel.innerText = 'Goma';
-            } else {
-                toolSizeSlider.min = 1; toolSizeSlider.max = 12;
-                toolSizeSlider.value = Math.min(12, penSize);
-                sliderLabel.innerText = 'Trazo';
-            }
-
-            const labels = {
-                line: 'Recta: arrastra desde un punto hasta otro',
-                arrow: 'Flecha: arrastra desde el origen hasta el extremo',
-                rect: 'Rectángulo: arrastra para definir sus esquinas',
-                circle: 'Círculo: arrastra desde el centro hasta el radio',
-                ellipse: 'Elipse: arrastra para definir ancho y alto',
-                triangle: 'Triángulo: arrastra para definir la base y altura',
-                grid: 'Cuadrícula: arrastra para definir el área'
-            };
-            const hint = document.getElementById('shape-hint');
-            if (labels[tool]) {
-                hint.textContent = labels[tool];
-                hint.style.display = 'block';
-                clearTimeout(window.__shapeHintTimer);
-                window.__shapeHintTimer = setTimeout(() => hint.style.display = 'none', 2200);
-            } else {
-                hint.style.display = 'none';
-            }
-        }
-
-        function drawArrowHead(x1, y1, x2, y2, size) {
-            const angle = Math.atan2(y2-y1, x2-x1);
-            const head = Math.max(10, size * 4);
-            ctx.beginPath();
-            ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - head*Math.cos(angle-Math.PI/6), y2 - head*Math.sin(angle-Math.PI/6));
-            ctx.moveTo(x2, y2);
-            ctx.lineTo(x2 - head*Math.cos(angle+Math.PI/6), y2 - head*Math.sin(angle+Math.PI/6));
-            ctx.stroke();
-        }
-
-        function drawShape(targetCtx, type, x1, y1, x2, y2, color, size, preview=false) {
-            targetCtx.save();
-            targetCtx.lineCap = 'round';
-            targetCtx.lineJoin = 'round';
-            targetCtx.globalCompositeOperation = 'source-over';
-            targetCtx.strokeStyle = color;
-            targetCtx.lineWidth = size;
-            targetCtx.globalAlpha = preview ? 0.55 : 0.9;
-
-            const left = Math.min(x1,x2), top = Math.min(y1,y2);
-            const w = Math.abs(x2-x1), h = Math.abs(y2-y1);
-
-            targetCtx.beginPath();
-            if (type === 'line' || type === 'arrow') {
-                targetCtx.moveTo(x1,y1); targetCtx.lineTo(x2,y2); targetCtx.stroke();
-                if (type === 'arrow') drawArrowHead.call(null, x1,y1,x2,y2,size);
-            } else if (type === 'rect') {
-                targetCtx.strokeRect(left, top, w, h);
-            } else if (type === 'circle') {
-                const r = Math.hypot(x2-x1, y2-y1);
-                targetCtx.arc(x1, y1, r, 0, Math.PI*2); targetCtx.stroke();
-            } else if (type === 'ellipse') {
-                targetCtx.ellipse((x1+x2)/2, (y1+y2)/2, Math.max(w/2,1), Math.max(h/2,1), 0, 0, Math.PI*2);
-                targetCtx.stroke();
-            } else if (type === 'triangle') {
-                const bx = (x1+x2)/2;
-                targetCtx.moveTo(bx, y1);
-                targetCtx.lineTo(x2, y2);
-                targetCtx.lineTo(x1, y2);
-                targetCtx.closePath();
-                targetCtx.stroke();
-            } else if (type === 'grid') {
-                const step = Math.max(15, 30);
-                for (let x=left; x<=left+w; x+=step) {
-                    targetCtx.moveTo(x,top); targetCtx.lineTo(x,top+h);
-                }
-                for (let y=top; y<=top+h; y+=step) {
-                    targetCtx.moveTo(left,y); targetCtx.lineTo(left+w,y);
-                }
-                targetCtx.stroke();
-                targetCtx.strokeRect(left,top,w,h);
-            }
-            targetCtx.restore();
-        }
-
         function startDrawing(e) {
-            if (e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return;
+            if (!isAdmin) return;
             isDrawing = true;
             hideBanner();
             canvas.setPointerCapture?.(e.pointerId);
             
             updateCanvasRect(); 
             const pos = getCanvasPos(e);
-
-            if (['line','arrow','rect','circle','ellipse','triangle','grid'].includes(currentTool)) {
-                shapeStart = pos;
-                shapePreview = document.createElement('canvas');
-                shapePreview.width = canvas.width;
-                shapePreview.height = canvas.height;
-                shapePreview.getContext('2d').drawImage(canvas, 0, 0);
-                return;
-            }
 
             pLastPosX = pos.x; pLastPosY = pos.y;
             pLastMidX = pos.x; pLastMidY = pos.y;
@@ -762,9 +636,8 @@
             draw(e);
         }
 
-        // ====== DIBUJO DEL PROFESOR (PC/WACOM) ======
         function draw(e) {
-            if (!isDrawing || !isAdmin || e.pointerType === 'touch') return;
+            if (!isDrawing || !isAdmin) return;
             
             const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
             if(events.length === 0) return;
@@ -780,14 +653,6 @@
                 ev = events[i];
                 pos = getCanvasPos(ev);
 
-                if (shapeStart) {
-                    ctx.clearRect(0, 0, canvas.width, canvas.height);
-                    ctx.drawImage(shapePreview, 0, 0);
-                    drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor,
-                        Number(toolSizeSlider.value) || penSize, true);
-                    return; 
-                }
-
                 pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 0.5;
                 pFactor = ev.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
                 finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
@@ -799,8 +664,10 @@
 
                 ctx.quadraticCurveTo(pLastPosX, pLastPosY, midX, midY);
 
-                pLastPosX = pos.x; pLastPosY = pos.y;
-                pLastMidX = midX; pLastMidY = midY;
+                pLastPosX = pos.x;
+                pLastPosY = pos.y;
+                pLastMidX = midX;
+                pLastMidY = midY;
                 
                 broadcastData({ type:'drawBezier', lastMidX: pLastMidX, lastMidY: pLastMidY, lastPosX: pLastPosX, lastPosY: pLastPosY, midX: midX, midY: midY, color: myColor, size: finalSize, tool: currentTool });
             }
@@ -809,32 +676,10 @@
         }
 
         function stopDrawing(e) {
-            if (!isDrawing || (e && e.pointerType === 'touch')) return;
-            
+            if (!isDrawing || !isAdmin) return;
             showBanner(); 
-
-            if (shapeStart) {
-                const pos = getCanvasPos(e);
-                const size = Number(toolSizeSlider.value) || penSize;
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(shapePreview, 0, 0);
-                drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor, size);
-
-                broadcastData({
-                    type:'shape',
-                    shape: currentTool,
-                    x1:shapeStart.x, y1:shapeStart.y,
-                    x2:pos.x, y2:pos.y,
-                    color:myColor, size:size
-                });
-
-                shapeStart = null;
-                shapePreview = null;
-            } else {
-                ctx.beginPath();
-                broadcastData({ type:'stop' });
-            }
+            ctx.beginPath();
+            broadcastData({ type:'stop' });
             isDrawing = false;
         }
 
@@ -845,237 +690,23 @@
             }
         }
 
-        /* ================= BASE DE DATOS DE FÓRMULAS ÉPICA ================= */
+        /* ================= BIBLIOTECA MATEMÁTICA ================= */
         const mathFormulas = {
-            arithmetic: [
-                { name: "Regla de tres", eq: "x = (b·c) / a" },
-                { name: "Porcentaje", eq: "p% de N = (p/100)·N" },
-                { name: "MCD por Euclides", eq: "mcd(a,b) = mcd(b, a mod b)" },
-                { name: "MCM", eq: "mcm(a,b) = |ab| / mcd(a,b)" },
-                { name: "Valor absoluto", eq: "|x| = x si x≥0; |x| = -x si x<0" },
-                { name: "Potencia de potencia", eq: "(a^m)^n = a^(mn)" },
-                { name: "Producto de potencias", eq: "a^m·a^n = a^(m+n)" },
-                { name: "Cociente de potencias", eq: "a^m/a^n = a^(m-n)" },
-                { name: "Raíz como potencia", eq: "ⁿ√a = a^(1/n)" },
-                { name: "Progresión aritmética", eq: "a_n = a_1 + (n-1)d" },
-                { name: "Progresión geométrica", eq: "a_n = a_1·r^(n-1)" },
-                {name:"Media aritmética",eq:"x̄=(x₁+···+xₙ)/n"},
-                {name:"Proporción",eq:"a:b=c:d  ⇒  ad=bc"},
-                {name:"Interés porcentual",eq:"parte=(porcentaje/100)·total"},
-                {name:"Notación científica",eq:"N=a·10^n, 1≤|a|<10"},
-                {name:"Redondeo",eq:"a≈round(a,n)"},
-                {name:"Fracción equivalente",eq:"a/b=(ka)/(kb), k≠0"},
-                {name:"Suma de fracciones",eq:"a/b+c/d=(ad+bc)/bd"},
-                {name:"Resta de fracciones",eq:"a/b-c/d=(ad-bc)/bd"},
-                {name:"Producto de fracciones",eq:"(a/b)(c/d)=ac/bd"},
-                {name:"División de fracciones",eq:"(a/b)÷(c/d)=ad/bc"},
-                {name:"Potencia negativa",eq:"a^-n=1/a^n"},
-                {name:"Exponente cero",eq:"a^0=1, a≠0"}
-            ],
-            matrices: [
-                { name: "Suma de matrices", eq: "(A+B)ᵢⱼ = aᵢⱼ + bᵢⱼ" },
-                { name: "Producto de matrices", eq: "(AB)ᵢⱼ = Σₖ aᵢₖbₖⱼ" },
-                { name: "Determinante 2×2", eq: "det(A) = ad - bc" },
-                { name: "Matriz inversa 2×2", eq: "A⁻¹ = 1/(ad-bc) · [[d,-b],[-c,a]]" },
-                { name: "Traza", eq: "tr(A) = Σᵢ aᵢᵢ" },
-                { name: "Transpuesta", eq: "(Aᵀ)ᵢⱼ = aⱼᵢ" },
-                { name: "Determinante por cofactores", eq: "det(A) = Σⱼ aᵢⱼCᵢⱼ" },
-                { name: "Valores propios", eq: "det(A - λI) = 0" },
-                {name:"Matriz identidad",eq:"AI=IA=A"},
-                {name:"Matriz cero",eq:"A+0=A"},
-                {name:"Determinante 3×3",eq:"det(A)=a(ei−fh)−b(di−fg)+c(dh−eg)"},
-                {name:"Determinante de producto",eq:"det(AB)=det(A)det(B)"},
-                {name:"Inversa y determinante",eq:"det(A⁻¹)=1/det(A)"},
-                {name:"Rango",eq:"rank(A)=número de pivotes"},
-                {name:"Sistema matricial",eq:"AX=b  ⇒  X=A⁻¹b"},
-                {name:"Traza de producto",eq:"tr(AB)=tr(BA)"},
-                {name:"Polinomio característico",eq:"p(λ)=det(A−λI)"}
-            ],
-            vectors: [
-                { name: "Módulo de vector", eq: "||v|| = √(v₁² + v₂² + ··· + vₙ²)" },
-                { name: "Producto escalar", eq: "u·v = Σᵢ uᵢvᵢ" },
-                { name: "Ángulo entre vectores", eq: "cos θ = (u·v)/(||u||·||v||)" },
-                { name: "Producto vectorial", eq: "u×v = (u₂v₃-u₃v₂, u₃v₁-u₁v₃, u₁v₂-u₂v₁)" },
-                { name: "Proyección", eq: "proj_v(u) = (u·v)/(v·v) · v" },
-                { name: "Distancia entre vectores", eq: "d(u,v) = ||u-v||" },
-                {name:"Vector entre puntos",eq:"AB=(x₂-x₁,y₂-y₁)"},
-                {name:"Vector unitario",eq:"u=v/||v||"},
-                {name:"Componente ortogonal",eq:"v⊥=v-proj_u(v)"}
-            ],
-            discrete: [
-                { name: "Permutaciones", eq: "P(n,r) = n!/(n-r)!" },
-                { name: "Combinaciones", eq: "C(n,r) = n!/[r!(n-r)!]" },
-                { name: "Principio multiplicativo", eq: "N = n₁·n₂·...·nₖ" },
-                { name: "Principio de inclusión-exclusión", eq: "|A∪B| = |A| + |B| - |A∩B|" },
-                { name: "Binomio de Newton", eq: "(a+b)^n = Σₖ C(n,k)a^(n-k)b^k" },
-                { name: "Recurrencia lineal", eq: "aₙ = c₁aₙ₋₁ + ··· + cₖaₙ₋ₖ" },
-                { name: "Grado de un vértice", eq: "deg(v) = número de aristas incidentes" },
-                {name:"Factorial",eq:"n!=n(n-1)···2·1"},
-                {name:"Permutaciones con repetición",eq:"n!/(n₁!n₂!···n_k!)"},
-                {name:"Principio del palomar",eq:"n+1 objetos en n cajas ⇒ alguna caja tiene ≥2"},
-                {name:"Suma grados de un grafo",eq:"Σdeg(v)=2|E|"},
-                {name:"Euler para grafos planares",eq:"V-E+F=2"}
-            ],
-            numbers: [
-                { name: "Teorema fundamental", eq: "n = p₁^a¹·p₂^a²·...·pₖ^aᵏ" },
-                { name: "Congruencia", eq: "a ≡ b (mod n) ⇔ n | (a-b)" },
-                { name: "Pequeño teorema de Fermat", eq: "a^(p-1) ≡ 1 (mod p)" },
-                { name: "Función phi de Euler", eq: "φ(n) = n·∏_{p|n}(1 - 1/p)" },
-                { name: "Divisibilidad", eq: "a|b ⇔ b = ak, k∈ℤ" },
-                { name: "Identidad de Bézout", eq: "ax + by = mcd(a,b)" },
-                {name:"MCD y MCM",eq:"mcd(a,b)·mcm(a,b)=|ab|"},
-                {name:"División euclídea",eq:"a=bq+r, 0≤r<b"},
-                {name:"Euler",eq:"a^φ(n)≡1 (mod n), mcd(a,n)=1"},
-                {name:"Primalidad",eq:"n primo ⇔ sus divisores positivos son 1 y n"}
-            ],
-            financial: [
-                { name: "Interés simple", eq: "I = C·i·t" },
-                { name: "Monto simple", eq: "M = C(1 + i·t)" },
-                { name: "Interés compuesto", eq: "M = C(1+i)^n" },
-                { name: "Valor presente", eq: "VP = VF/(1+i)^n" },
-                { name: "Valor futuro", eq: "VF = VP(1+i)^n" },
-                { name: "Anualidad", eq: "VF = R·[(1+i)^n - 1]/i" },
-                {name:"Tasa efectiva",eq:"i_eff=(1+r/n)^n-1"},
-                {name:"Anualidad ordinaria",eq:"FV=PMT[((1+i)^n-1)/i]"},
-                {name:"Valor presente anualidad",eq:"PV=PMT[1-(1+i)^(-n)]/i"},
-                {name:"Crecimiento compuesto",eq:"A=P(1+r)^t"}
-            ],
             algebra: [
-                { name: "Fórmula Cuadrática", eq: "x = (-b ± √(b² - 4ac)) / (2a)" },
-                { name: "Binomio al Cuadrado", eq: "(a ± b)² = a² ± 2ab + b²" },
-                { name: "Diferencia de Cuadrados", eq: "a² - b² = (a - b)(a + b)" },
-                { name: "Propiedad de Logaritmos", eq: "log_b(x·y) = log_b(x) + log_b(y)" },
-                { name: "Cambio de Base (Log)", eq: "log_b(x) = log_c(x) / log_c(b)" },
-                { name: "Suma Serie Aritmética", eq: "S_n = n/2 · (a_1 + a_n)" },
-                { name: "Suma Serie Geométrica", eq: "S_n = a₁(1-rⁿ)/(1-r), r≠1" },
-                { name: "Fórmula de De Moivre", eq: "[r(cos θ + i sin θ)]^n = r^n(cos nθ + i sin nθ)" },
-                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
-                {name:"Cubo de una diferencia",eq:"(a-b)³=a³-3a²b+3ab²-b³"},
-                {name:"Suma de cubos",eq:"a³+b³=(a+b)(a²-ab+b²)"},
-                {name:"Diferencia de cubos",eq:"a³-b³=(a-b)(a²+ab+b²)"},
-                {name:"Discriminante",eq:"Δ=b²-4ac"},
-                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"},
-                {name:"Logaritmo del cociente",eq:"log(a/b)=log a-log b"},
-                {name:"Exponencial y logaritmo",eq:"ln(e^x)=x; e^(ln x)=x"}
+                {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
+                {name:"Identidad notable: cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
+                {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
+                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"}
             ],
             geometry: [
-                { name: "Teorema de Pitágoras", eq: "c² = a² + b²" },
-                { name: "Fórmula de Herón", eq: "A = √(s(s-a)(s-b)(s-c))" },
-                { name: "Área del Círculo", eq: "A = π · r²" },
-                { name: "Perímetro del Círculo", eq: "P = 2πr" },
-                { name: "Volumen Esfera", eq: "V = (4/3)π · r³" },
-                { name: "Área Superficial Esfera", eq: "A = 4πr²" },
-                { name: "Volumen Cilindro", eq: "V = πr²h" },
-                { name: "Volumen Cono", eq: "V = (1/3)πr²h" },
-                {name:"Área del cuadrado",eq:"A=l²"},
-                {name:"Perímetro del cuadrado",eq:"P=4l"},
-                {name:"Perímetro del rectángulo",eq:"P=2(b+h)"},
-                {name:"Área del paralelogramo",eq:"A=bh"},
-                {name:"Área del sector circular",eq:"A=(θ/2)r²"},
-                {name:"Longitud de arco",eq:"L=rθ"},
-                {name:"Área de corona circular",eq:"A=π(R²-r²)"},
-                {name:"Diagonal del cuadrado",eq:"d=l√2"},
-                {name:"Ángulo interior regular",eq:"α=(n-2)180°/n"},
-                {name:"Diagonales de polígono",eq:"D=n(n-3)/2"}
-            ],
-            analytic_geometry: [
-                { name: "Distancia entre 2 puntos", eq: "d = √((x₂ - x₁)² + (y₂ - y₁)²)" },
-                { name: "Punto Medio", eq: "M = ((x₁+x₂)/2 , (y₁+y₂)/2)" },
-                { name: "Pendiente de la Recta", eq: "m = (y₂ - y₁) / (x₂ - x₁)" },
-                { name: "Ecuación de la Recta", eq: "y - y₁ = m(x - x₁)" },
-                { name: "Distancia Punto a Recta", eq: "d = |Ax₁ + By₁ + C| / √(A² + B²)" },
-                { name: "Ecuación Circunferencia", eq: "(x - h)² + (y - k)² = r²" },
-                { name: "Ecuación Elipse", eq: "(x - h)²/a² + (y - k)²/b² = 1" },
-                { name: "Ecuación Parábola", eq: "(x - h)² = 4p(y - k)" },
-                { name: "Ecuación Hipérbola", eq: "(x - h)²/a² - (y - k)²/b² = 1" }
-            ],
-            trigonometry: [
-                { name: "Identidad Fundamental", eq: "sin²(θ) + cos²(θ) = 1" },
-                { name: "Seno de Ángulo Doble", eq: "sin(2θ) = 2sin(θ)cos(θ)" },
-                { name: "Coseno de Ángulo Doble", eq: "cos(2θ) = cos²(θ) - sin²(θ)" },
-                { name: "Ley de Senos", eq: "a/sin(A) = b/sin(B) = c/sin(C)" },
-                { name: "Ley de Cosenos", eq: "c² = a² + b² - 2ab·cos(C)" },
-                { name: "Suma de Ángulos (Sen)", eq: "sin(α ± β) = sin(α)cos(β) ± cos(α)sin(β)" },
-                { name: "Suma de Ángulos (Cos)", eq: "cos(α ± β) = cos(α)cos(β) ∓ sin(α)sin(β)" },
-                { name: "Fórmula de Euler", eq: "e^(ix) = cos(x) + i·sin(x)" },
-                {name:"Identidad secante",eq:"1+tan²x=sec²x"},
-                {name:"Identidad cosecante",eq:"1+cot²x=csc²x"},
-                {name:"Cotangente",eq:"cot x=cos x/sin x"},
-                {name:"Tangente del doble",eq:"tan(2x)=2tan x/(1-tan²x)"},
-                {name:"Medida de grados",eq:"180°=π rad"},
-                {name:"Conversión a radianes",eq:"θ_rad=θ_deg·π/180"},
-                {name:"Área con seno",eq:"A=ab sin C/2"},
-                {name:"Seno inverso",eq:"x=arcsin(y)"}
+                {name:"Pitágoras",eq:"a²+b²=c²"},
+                {name:"Área del Círculo",eq:"A = π · r²"},
+                {name:"Perímetro del Círculo",eq:"P = 2πr"}
             ],
             calculus: [
-                { name: "Definición de Derivada", eq: "f'(x) = lim(h→0) [f(x+h) - f(x)] / h" },
-                { name: "Regla de la Potencia", eq: "d/dx [x^n] = n · x^(n-1)" },
-                { name: "Regla del Producto", eq: "(u·v)' = u'v + uv'" },
-                { name: "Regla del Cociente", eq: "(u/v)' = (u'v - uv') / v²" },
-                { name: "Regla de la Cadena", eq: "d/dx [f(g(x))] = f'(g(x)) · g'(x)" },
-                { name: "Regla de L'Hôpital", eq: "lim [f(x)/g(x)] = lim [f'(x)/g'(x)]" },
-                { name: "Integración por Partes", eq: "∫ u dv = u·v - ∫ v du" },
-                { name: "Teorema Fundamental del Cálculo", eq: "∫_a^b f(x)dx = F(b) - F(a)" },
-                { name: "Serie de Taylor", eq: "f(x) = Σ [f^(n)(a) / n!] (x - a)^n" },
-                { name: "Transformada de Laplace", eq: "L{f(t)} = ∫_0^∞ e^(-st) f(t) dt" },
-                {name:"Derivada de exponencial",eq:"d(e^x)/dx=e^x"},
-                {name:"Derivada de logaritmo",eq:"d(ln x)/dx=1/x"},
-                {name:"Derivada del seno",eq:"d(sin x)/dx=cos x"},
-                {name:"Derivada del coseno",eq:"d(cos x)/dx=-sin x"},
-                {name:"Integral de 1/x",eq:"∫dx/x=ln|x|+C"},
-                {name:"Integral exponencial",eq:"∫e^x dx=e^x+C"},
-                {name:"Integral seno",eq:"∫sin x dx=-cos x+C"},
-                {name:"Integral coseno",eq:"∫cos x dx=sin x+C"}
-            ],
-            stats: [
-                { name: "Media Poblacional", eq: "μ = (Σ x_i) / N" },
-                { name: "Varianza Poblacional", eq: "σ² = Σ (x_i - μ)² / N" },
-                { name: "Desviación Estándar", eq: "σ = √(Σ (x_i - μ)² / N)" },
-                { name: "Probabilidad Condicional", eq: "P(A|B) = P(A ∩ B) / P(B)" },
-                { name: "Teorema de Bayes", eq: "P(A|B) = [P(B|A)P(A)] / P(B)" },
-                { name: "Distribución Binomial", eq: "P(X=k) = (nCk) · p^k · (1-p)^(n-k)" },
-                { name: "Distribución Poisson", eq: "P(X=k) = (λ^k · e^-λ) / k!" },
-                { name: "Densidad Normal", eq: "f(x) = (1 / σ√2π) · e^(-(x-μ)² / 2σ²)" },
-                {name:"Mediana",eq:"valor central de los datos ordenados"},
-                {name:"Moda",eq:"dato con mayor frecuencia"},
-                {name:"Rango",eq:"R=max(x)-min(x)"},
-                {name:"IQR",eq:"IQR=Q₃-Q₁"},
-                {name:"Coeficiente de variación",eq:"CV=σ/μ·100%"},
-                {name:"Error estándar",eq:"SE=s/√n"}
-            ],
-            probability: [
-                {name:"Probabilidad clásica",eq:"P(A)=casos favorables/casos posibles"},
-                {name:"Complemento",eq:"P(Aᶜ)=1-P(A)"},
-                {name:"Unión",eq:"P(A∪B)=P(A)+P(B)-P(A∩B)"},
-                {name:"Independencia",eq:"P(A∩B)=P(A)P(B)"},
-                {name:"Probabilidad total",eq:"P(B)=ΣᵢP(B|Aᵢ)P(Aᵢ)"},
-                {name:"Binomial: esperanza",eq:"E[X]=np"},
-                {name:"Binomial: varianza",eq:"Var(X)=np(1-p)"},
-                {name:"Geométrica",eq:"P(X=k)=(1-p)^(k-1)p"},
-                {name:"Uniforme",eq:"f(x)=1/(b-a), a≤x≤b"}
-            ],
-            complex: [
-                {name:"Número complejo",eq:"z=a+bi"},
-                {name:"Módulo",eq:"|z|=√(a²+b²)"},
-                {name:"Conjugado",eq:"z̄=a-bi"},
-                {name:"Forma polar",eq:"z=r(cosθ+i sinθ)"},
-                {name:"Suma compleja",eq:"(a+bi)+(c+di)=(a+c)+(b+d)i"},
-                {name:"Producto complejo",eq:"(a+bi)(c+di)=(ac-bd)+(ad+bc)i"},
-                {name:"División compleja",eq:"z/w=z·w̄/|w|²"}
-            ],
-            physics: [
-                {name:"Velocidad",eq:"v=Δx/Δt"},
-                {name:"Aceleración",eq:"a=Δv/Δt"},
-                {name:"MRUA",eq:"x=x₀+v₀t+at²/2"},
-                {name:"Fuerza",eq:"F=ma"},
-                {name:"Trabajo",eq:"W=Fd cosθ"},
-                {name:"Energía cinética",eq:"E_k=mv²/2"},
-                {name:"Energía potencial",eq:"E_p=mgh"},
-                {name:"Cantidad de movimiento",eq:"p=mv"},
-                {name:"Potencia",eq:"P=W/t"},
-                {name:"Ley de Ohm",eq:"V=IR"},
-                {name:"Densidad",eq:"ρ=m/V"},
-                {name:"Presión",eq:"P=F/A"}
+                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
+                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
+                {name:"Integración por Partes",eq:"∫ u dv = u·v - ∫ v du"}
             ]
         };
 
@@ -1092,62 +723,20 @@
         }
 
         let activeFormulaCategory = 'algebra';
-
         function loadFormulas(category, tabBtn) {
             activeFormulaCategory = category;
             document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
             if (tabBtn) tabBtn.classList.add('active');
             renderFormulaList();
         }
-        
-        async function copyFormulaText(text) {
-            try {
-                if (navigator.clipboard && window.isSecureContext) {
-                    await navigator.clipboard.writeText(text);
-                    showFormulaToast('✅ Fórmula copiada');
-                    return true;
-                }
-            } catch (err) {}
-            const ta = document.createElement('textarea');
-            ta.value = text;
-            ta.setAttribute('readonly', '');
-            ta.style.position = 'fixed';
-            ta.style.left = '-9999px';
-            ta.style.top = '0';
-            document.body.appendChild(ta);
-            ta.focus();
-            ta.select();
-            ta.setSelectionRange(0, ta.value.length);
-            let ok = false;
-            try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
-            ta.remove();
-            showFormulaToast(ok ? '✅ Fórmula copiada' : '⚠️ Selecciona y copia la fórmula');
-            return ok;
-        }
-
-        function showFormulaToast(message) {
-            let toast = document.getElementById('formula-copy-toast');
-            if (!toast) {
-                toast = document.createElement('div');
-                toast.id = 'formula-copy-toast';
-                toast.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:10001;background:rgba(20,20,20,.96);color:#fff;border:1px solid #555;border-radius:999px;padding:8px 14px;font-size:.82rem;box-shadow:0 8px 25px rgba(0,0,0,.4);pointer-events:none;';
-                document.body.appendChild(toast);
-            }
-            toast.textContent = message;
-            toast.style.display = 'block';
-            clearTimeout(window.__formulaToastTimer);
-            window.__formulaToastTimer = setTimeout(()=>toast.style.display='none', 1500);
-        }
 
         function renderFormulaList() {
             const grid = document.getElementById('formula-grid-container');
             const query = (document.getElementById('formula-search')?.value || '').trim().toLowerCase();
             const list = mathFormulas[activeFormulaCategory] || [];
-            const filtered = list.filter(f =>
-                !query || f.name.toLowerCase().includes(query) || f.eq.toLowerCase().includes(query)
-            );
+            const filtered = list.filter(f => !query || f.name.toLowerCase().includes(query) || f.eq.toLowerCase().includes(query));
             grid.innerHTML = '';
-            filtered.forEach((f, index) => {
+            filtered.forEach((f) => {
                 const wrap=document.createElement('div');
                 wrap.className='formula-card';
                 wrap.innerHTML=`<div class="formula-card-title">${f.name}</div><div class="formula-card-eq">${f.eq}</div>`;
@@ -1157,99 +746,57 @@
                 copy.textContent='📋 Copiar';
                 copy.onclick=()=>copyFormulaText(f.eq);
                 const stamp=document.createElement('button');
-                stamp.textContent='✏️ Pegar en pizarra';
-                stamp.onclick=()=>{ if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede pegar fórmulas en la pizarra."); };
+                stamp.textContent='✏️ Pegar';
+                stamp.onclick=()=>{ if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede pegar fórmulas."); };
                 actions.append(copy,stamp);
                 wrap.appendChild(actions);
                 grid.appendChild(wrap);
             });
             const count = document.getElementById('formula-count');
-            if (count) count.textContent = `${filtered.length} fórmula${filtered.length===1?'':'s'}`;
-            document.querySelectorAll('#formula-category-selector .f-cat').forEach(b=>{
-                b.classList.toggle('active', b.dataset.cat===activeFormulaCategory);
-            });
+            if (count) count.textContent = `${filtered.length} fórmula(s)`;
         }
 
         function selectFormulaCategory(category){
             if(!mathFormulas[category]) return;
             activeFormulaCategory=category;
-            const search=document.getElementById('formula-search');
-            if(search) search.value='';
             renderFormulaList();
         }
 
-        document.addEventListener('keydown', (e)=>{
-            if(e.key==='Escape'){
-                if(activeStamp){activeStamp.remove();activeStamp=null;}
-            }
-        });
+        async function copyFormulaText(text) {
+            try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
+        }
 
         function renderFormulaToStamp(formulaText) {
-            if (!isAdmin) {
-                alert("Solo el profesor puede pegar fórmulas en la pizarra.");
-                return;
-            }
-
+            if (!isAdmin) return;
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
-
-            tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
+            tCtx.font = 'bold 40px serif';
             const metrics = tCtx.measureText(formulaText);
-            const width = Math.min(Math.max(Math.ceil(metrics.width + 80), 260), 1100);
-            const height = 130;
-
-            tempCanvas.width = width;
-            tempCanvas.height = height;
-
-            tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
-            tCtx.textBaseline = 'middle';
-            tCtx.textAlign = 'center';
+            const width = Math.ceil(metrics.width + 60);
+            const height = 100;
+            tempCanvas.width = width; tempCanvas.height = height;
+            tCtx.font = 'bold 40px serif';
+            tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
             tCtx.fillStyle = myColor || '#ffffff';
-            tCtx.shadowBlur = 5;
-            tCtx.shadowColor = myColor || '#ffffff';
-            tCtx.globalAlpha = 1;
             tCtx.fillText(formulaText, width / 2, height / 2);
 
             const img = document.getElementById('stamp-img');
             img.src = tempCanvas.toDataURL('image/png');
-
             const stamperContent = document.getElementById('stamper-content');
-            stamperContent.style.width = Math.min(width, 900) + 'px';
-            stamperContent.style.height = Math.min(height, 220) + 'px';
-
+            stamperContent.style.width = width + 'px'; stamperContent.style.height = height + 'px';
             const stamper = document.getElementById('stamper');
-            
-            const centerX = cachedCanvasRect.left + cachedCanvasRect.width / 2;
-            const centerY = Math.max(120, cachedCanvasRect.top + Math.min(cachedCanvasRect.height / 2, window.innerHeight / 2));
-            stamper.style.position = 'fixed';
-            stamper.style.left = centerX + 'px';
-            stamper.style.top = centerY + 'px';
-            stamper.style.transform = 'translate(-50%, -50%)';
             stamper.style.display = 'block';
-
-            const fp = document.getElementById('formulas-panel');
-            if (fp) fp.style.display = 'none';
+            document.getElementById('formulas-panel').style.display = 'none';
         }
 
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
-
             const tempCanvas = document.createElement('canvas');
             tempCanvas.width = 1920; tempCanvas.height = 4000;
             const tCtx = tempCanvas.getContext('2d');
             const theme = themes[currentThemeIdx];
-            
-            tCtx.fillStyle = theme.bg;
-            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            
-            if (theme.grid) {
-                tCtx.strokeStyle = theme.id === 'white' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
-                tCtx.lineWidth = 1.5;
-                for(let x=0; x<tempCanvas.width; x+=30) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
-                for(let y=0; y<tempCanvas.height; y+=30) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
-            }
-            
+            tCtx.fillStyle = theme.bg; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
             const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [1920, 4000] });
@@ -1258,72 +805,33 @@
         }
 
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
-
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
-
         function startRecording() {
-            if (!audioDestination) { alert("El audio no está inicializado."); return; }
-            
+            if (!audioDestination) { alert("Audio no inicializado."); return; }
             const canvasStream = canvas.captureStream(15); 
-            const combinedTracks = [ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ];
-            const combinedStream = new MediaStream(combinedTracks);
-
-            const mimeTypes = ['video/mp4', 'video/webm;codecs=h264', 'video/webm'];
-            let selectedMime = '';
-            for (let mime of mimeTypes) { if (MediaRecorder.isTypeSupported(mime)) { selectedMime = mime; break; } }
-
-            mediaRecorder = new MediaRecorder(combinedStream, { mimeType: selectedMime });
+            const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
+            mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: selectedMime });
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const filename = prompt("Nombre de la grabación:", "Clase_Grabada");
-                if (filename) {
-                    const a = document.createElement('a'); a.style.display = 'none'; a.href = url; 
-                    a.download = filename + '.mp4'; document.body.appendChild(a); a.click(); 
-                }
+                const a = document.createElement('a'); a.href = url; a.download = 'Clase.webm'; a.click();
                 URL.revokeObjectURL(url); recordedChunks = [];
             };
-
             mediaRecorder.start(); isRecording = true;
-            const btn = document.getElementById('btn-record');
-            btn.innerHTML = '⏹️ <span class="hide-mobile">Grabando</span>'; btn.classList.add('record-active');
+            document.getElementById('btn-record').classList.add('record-active');
         }
+        function stopRecording() { mediaRecorder.stop(); isRecording = false; document.getElementById('btn-record').classList.remove('record-active'); }
 
-        function stopRecording() {
-            mediaRecorder.stop(); isRecording = false;
-            const btn = document.getElementById('btn-record');
-            btn.innerHTML = '⏺️ <span class="hide-mobile">MP4</span>'; btn.classList.remove('record-active');
-        }
-
-        // =========================================================================
-        // AUDIO ROBUSTO: STREAM PURO (Baja latencia y Anti-bloqueo móvil)
-        // =========================================================================
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
             try { 
-                localStream = await navigator.mediaDevices.getUserMedia({ 
-                    audio: { 
-                        echoCancellation: true, 
-                        noiseSuppression: true, 
-                        autoGainControl: true, 
-                        channelCount: 1,
-                        latency: 0.01 // Prioridad absoluta
-                    }, 
-                    video: false 
-                }); 
-                
-                // AudioContext es mantenido sólo para grabar la clase localmente
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 audioDestination = audioContext.createMediaStreamDestination();
-                const localAudioSource = audioContext.createMediaStreamSource(localStream);
-                localAudioSource.connect(audioDestination);
+                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
                 return true; 
-            } 
-            catch(e) { 
-                console.warn("Sin permisos de micrófono.", e); 
-                return false; 
-            }
+            } catch(e) { return false; }
         }
 
         function toggleMic() {
@@ -1331,499 +839,100 @@
                 const audioTrack = localStream.getAudioTracks()[0];
                 audioTrack.enabled = !audioTrack.enabled;
                 const btn = document.getElementById('btn-mic');
-                btn.innerHTML = audioTrack.enabled ? '🎙️ Mic On' : '🔇 Mic Off';
                 btn.style.background = audioTrack.enabled ? '#10b981' : '#dc2626';
             }
         }
 
-        // Reproductor de Audio Inmune al Autoplay Policy de iOS/Android
         function playAudio(stream) { 
             const audio = new Audio(); 
-            audio.srcObject = stream; 
-            audio.autoplay = true; 
-            audio.playsInline = true; 
-            audio.controls = false;
+            audio.srcObject = stream; audio.autoplay = true; audio.playsInline = true;
             document.body.appendChild(audio); 
-            
-            if (isAdmin && audioContext && audioDestination) {
-                const remoteAudioSource = audioContext.createMediaStreamSource(stream);
-                remoteAudioSource.connect(audioDestination);
-            }
-
-            let playPromise = audio.play();
-            if (playPromise !== undefined) {
-                playPromise.catch(error => {
-                    // Botón gigante desbloqueador si Safari/Chrome lo bloquea
-                    const unlockBtn = document.createElement('button');
-                    unlockBtn.className = "audio-unlock-btn";
-                    unlockBtn.innerHTML = "🔊 Toca aquí para escuchar la clase";
-                    unlockBtn.onclick = () => { 
-                        audio.play(); 
-                        unlockBtn.remove(); 
-                    };
-                    document.body.appendChild(unlockBtn);
-                });
-            }
+            audio.play().catch(() => {
+                const unlock = document.createElement('button');
+                unlock.className = "audio-unlock-btn";
+                unlock.innerHTML = "🔊 Toca para escuchar la clase";
+                unlock.onclick = () => { audio.play(); unlock.remove(); };
+                document.body.appendChild(unlock);
+            });
         }
 
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5;
-        let pdfLoadingTask = null;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
-
-        function getPdfRenderScale(page, targetWidth) {
-            const base = page.getViewport({ scale: 1 });
-            const cssWidth = Math.max(320, targetWidth || 900);
-            const device = Math.min(window.devicePixelRatio || 1, 3);
-            return Math.max(1.75, Math.min(3.2, (cssWidth / base.width) * device));
-        }
-
-        async function renderPdfPageHD(page, canvasEl, cssWidth) {
-            if (!page || !canvasEl) return;
-
-            const scale = getPdfRenderScale(page, cssWidth);
-            const viewport = page.getViewport({ scale });
-
-            const ctx = canvasEl.getContext('2d', { alpha:false });
-            const dpr = Math.min(window.devicePixelRatio || 1, 2);
-            const outputScale = dpr > 1 ? dpr : 1;
-
-            canvasEl.width = Math.ceil(viewport.width * outputScale);
-            canvasEl.height = Math.ceil(viewport.height * outputScale);
-
-            const cssHeight = viewport.height / scale;
-            canvasEl.style.width = '100%';
-            canvasEl.style.height = cssHeight + 'px';
-
-            await page.render({
-                canvasContext: ctx,
-                viewport: viewport,
-                transform: outputScale !== 1
-                    ? [outputScale, 0, 0, outputScale, 0, 0]
-                    : null,
-                intent: 'display'
-            }).promise;
-
-            canvasEl.dataset.pdfHd = 'true';
-            canvasEl.dataset.pdfScale = String(scale);
-        }
-
-        let pdfHdResizeTimer = null;
-        window.addEventListener('resize', function() {
-            clearTimeout(pdfHdResizeTimer);
-            pdfHdResizeTimer = setTimeout(function() {
-                if (typeof pdfDoc !== 'undefined' && pdfDoc) {
-                    if (typeof renderPdfPages === 'function') {
-                        try { renderPdfPages(); } catch(e) {}
-                    }
-                }
-            }, 250);
-        });
-
-        function loadImageIntoStamp(file) {
-            if (!file || !file.type || !file.type.startsWith('image/')) return;
-
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = document.getElementById('stamp-img');
-                const source = new Image();
-
-                source.onload = function() {
-                    const maxW = 900;
-                    const maxH = 650;
-                    let w = source.naturalWidth || source.width;
-                    let h = source.naturalHeight || source.height;
-
-                    const ratio = Math.min(1, maxW / w, maxH / h);
-                    w = Math.max(80, Math.round(w * ratio));
-                    h = Math.max(60, Math.round(h * ratio));
-
-                    img.onload = function() {
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = w + 'px';
-                        sc.style.height = h + 'px';
-
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.position = 'fixed';
-                        stamper.style.left = (cachedCanvasRect.left + cachedCanvasRect.width / 2) + 'px';
-                        stamper.style.top = Math.max(120, cachedCanvasRect.top + Math.min(cachedCanvasRect.height / 2, window.innerHeight / 2)) + 'px';
-                        stamper.style.transform = 'translate(-50%, -50%)';
-                        stamper.style.display = 'block';
-
-                        const fp = document.getElementById('formulas-panel');
-                        if (fp) fp.style.display = 'none';
-                    };
-                    img.src = ev.target.result;
-                };
-                source.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        ['imageInput', 'cameraInput'].forEach(function(id) {
-            const input = document.getElementById(id);
-            if (input) {
-                input.addEventListener('change', function(e) {
-                    const file = e.target.files && e.target.files[0];
-                    if (file) loadImageIntoStamp(file);
-                    e.target.value = '';
-                });
-            }
-        });
-
-        let stampCropMode = false;
-        let stampCropStart = null;
-        let stampCropBox = null;
-
-        function startStampCrop() {
-            const img = document.getElementById('stamp-img');
-            const sc = document.getElementById('stamper-content');
-            if (!img || !img.src || !img.naturalWidth) {
-                alert('Primero selecciona una fórmula, PDF o foto.');
-                return;
-            }
-
-            stampCropMode = true;
-            sc.style.cursor = 'crosshair';
-
-            if (!stampCropBox) {
-                stampCropBox = document.createElement('div');
-                stampCropBox.style.cssText =
-                    'position:absolute;left:0;top:0;border:2px dashed #8b5cf6;' +
-                    'background:rgba(139,92,246,.12);z-index:40;pointer-events:none;display:none;';
-                sc.appendChild(stampCropBox);
-            }
-
-            alert('Arrastra sobre la fórmula o imagen para recortar. Luego se aplicará el recorte y podrás moverla antes de pegar.');
-        }
-
-        function finishStampCrop() {
-            stampCropMode = false;
-            const sc = document.getElementById('stamper-content');
-            if (sc) sc.style.cursor = 'grab';
-            if (stampCropBox) stampCropBox.style.display = 'none';
-            stampCropStart = null;
-        }
-
-        document.getElementById('stamper-content').addEventListener('pointerdown', function(e) {
-            if (!stampCropMode || e.target.closest('button')) return;
-            const sc = this.getBoundingClientRect();
-            stampCropStart = {
-                x: Math.max(0, Math.min(sc.width, e.clientX - sc.left)),
-                y: Math.max(0, Math.min(sc.height, e.clientY - sc.top))
-            };
-            if (stampCropBox) {
-                stampCropBox.style.left = stampCropStart.x + 'px';
-                stampCropBox.style.top = stampCropStart.y + 'px';
-                stampCropBox.style.width = '0px';
-                stampCropBox.style.height = '0px';
-                stampCropBox.style.display = 'block';
-            }
-            e.preventDefault();
-            e.stopPropagation();
-        }, true);
-
-        window.addEventListener('pointermove', function(e) {
-            if (!stampCropMode || !stampCropStart || !stampCropBox) return;
-            const sc = document.getElementById('stamper-content').getBoundingClientRect();
-            const x = Math.max(0, Math.min(sc.width, e.clientX - sc.left));
-            const y = Math.max(0, Math.min(sc.height, e.clientY - sc.top));
-            stampCropBox.style.left = Math.min(x, stampCropStart.x) + 'px';
-            stampCropBox.style.top = Math.min(y, stampCropStart.y) + 'px';
-            stampCropBox.style.width = Math.abs(x - stampCropStart.x) + 'px';
-            stampCropBox.style.height = Math.abs(y - stampCropStart.y) + 'px';
-        }, true);
-
-        window.addEventListener('pointerup', function(e) {
-            if (!stampCropMode || !stampCropStart || !stampCropBox) return;
-
-            const sc = document.getElementById('stamper-content').getBoundingClientRect();
-            const left = parseFloat(stampCropBox.style.left) || 0;
-            const top = parseFloat(stampCropBox.style.top) || 0;
-            const cw = parseFloat(stampCropBox.style.width) || 0;
-            const ch = parseFloat(stampCropBox.style.height) || 0;
-
-            if (cw > 15 && ch > 15) {
-                const img = document.getElementById('stamp-img');
-                const sx = (left / sc.width) * img.naturalWidth;
-                const sy = (top / sc.height) * img.naturalHeight;
-                const sw = (cw / sc.width) * img.naturalWidth;
-                const sh = (ch / sc.height) * img.naturalHeight;
-
-                const out = document.createElement('canvas');
-                out.width = Math.max(1, Math.round(sw));
-                out.height = Math.max(1, Math.round(sh));
-                const oc = out.getContext('2d');
-                oc.drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
-
-                img.onload = function() {
-                    const sc2 = document.getElementById('stamper-content');
-                    sc2.style.width = Math.max(60, cw) + 'px';
-                    sc2.style.height = Math.max(45, ch) + 'px';
-                };
-                img.src = out.toDataURL('image/png');
-            }
-
-            finishStampCrop();
-        }, true);
-
-        const cropOverlay = document.getElementById('crop-overlay');
-
-        function showPdfError(message) {
-            let box = document.getElementById('pdf-error');
-            if (!box) {
-                box = document.createElement('div');
-                box.id = 'pdf-error';
-                box.style.cssText = 'position:absolute;left:12px;right:12px;bottom:12px;z-index:30;background:rgba(127,29,29,.96);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 12px;font-size:.8rem;box-shadow:0 8px 25px rgba(0,0,0,.4);';
-                pdfPanel.appendChild(box);
-            }
-            box.textContent = message;
-            box.style.display = 'block';
-            setTimeout(()=>{ if(box) box.style.display='none'; }, 5000);
-        }
-
-        function clearPdfError() {
-            const box=document.getElementById('pdf-error');
-            if(box) box.style.display='none';
-        }
 
         const pdfInput = document.getElementById('pdfInput');
         if (pdfInput) pdfInput.addEventListener('change', async function(e) {
             const file = e.target.files && e.target.files[0];
             if (!file) return;
-            clearPdfError();
-            try {
-                if (typeof pdfjsLib === 'undefined') throw new Error('El motor PDF.js no se cargó. Revisa tu conexión a Internet y vuelve a abrir la página.');
-                const buffer = await file.arrayBuffer();
-                if (!buffer || !buffer.byteLength) throw new Error('El archivo PDF está vacío o no pudo leerse.');
-                if (pdfLoadingTask && pdfLoadingTask.destroy) { try { await pdfLoadingTask.destroy(); } catch(err) {} }
-                pdfLoadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
-                pdfDoc = await pdfLoadingTask.promise;
-                pageNum = 1;
-                pdfScale = 1.5;
-                document.getElementById('page-num').textContent = '1';
-                pdfPanel.style.display = 'flex';
-                await renderPage(pageNum);
-                document.getElementById('btn-show-pdf').style.display = 'none';
-                if(window.innerWidth <= 768) document.getElementById('btn-open-pdf-mobile').style.display = 'none';
-            } catch (err) {
-                console.error('MathBoard PDF:', err);
-                showPdfError('❌ No se pudo abrir el PDF. Prueba con otro archivo o verifica que PDF.js tenga acceso a Internet.');
-            } finally {
-                this.value = '';
-            }
+            const buffer = await file.arrayBuffer();
+            pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+            pageNum = 1; pdfPanel.style.display = 'flex';
+            renderPage(pageNum);
         });
 
         async function renderPage(num) {
             if (!pdfDoc) return;
-            try {
-                const page = await pdfDoc.getPage(num);
-                const viewport = page.getViewport({ scale: pdfScale });
-                const outputScale = window.devicePixelRatio || 1;
-                pdfAppCanvas.width = Math.floor(viewport.width * outputScale);
-                pdfAppCanvas.height = Math.floor(viewport.height * outputScale);
-                pdfAppCanvas.style.width = Math.floor(viewport.width) + 'px';
-                pdfAppCanvas.style.height = Math.floor(viewport.height) + 'px';
-                pdfCtx.setTransform(1,0,0,1,0,0);
-                pdfCtx.clearRect(0,0,pdfAppCanvas.width,pdfAppCanvas.height);
-                await page.render({
-                    canvasContext: pdfCtx,
-                    transform: outputScale !== 1 ? [outputScale,0,0,outputScale,0,0] : null,
-                    viewport
-                }).promise;
-                document.getElementById('page-num').textContent = num;
-                cropOverlay.style.width = pdfAppCanvas.style.width;
-                cropOverlay.style.height = pdfAppCanvas.style.height;
-            } catch (err) {
-                console.error('MathBoard PDF render:', err);
-                showPdfError('❌ No se pudo renderizar esta página del PDF.');
-            }
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: pdfScale });
+            pdfAppCanvas.width = viewport.width; pdfAppCanvas.height = viewport.height;
+            await page.render({ canvasContext: pdfCtx, viewport }).promise;
+            document.getElementById('page-num').textContent = num;
         }
 
         function prevPage() { if (!pdfDoc || pageNum <= 1) return; pageNum--; renderPage(pageNum); }
         function nextPage() { if (!pdfDoc || pageNum >= pdfDoc.numPages) return; pageNum++; renderPage(pageNum); }
         function zoomIn() { if (!pdfDoc) return; pdfScale += 0.25; renderPage(pageNum); }
         function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.25; renderPage(pageNum); } }
-
-        function togglePdfMinimize() {
-            const btn = document.getElementById('btn-show-pdf');
-            if (pdfPanel.style.display === 'none') { pdfPanel.style.display = 'flex'; btn.style.display = 'none'; } 
-            else { pdfPanel.style.display = 'none'; btn.style.display = 'inline-block'; if(isCroppingMode) toggleCropMode(); }
-        }
-
-        const pdfResizeHandle = document.getElementById('pdf-resize-handle');
-        let isResizingPdf = false, startPdfW, startPdfH, startPdfX, startPdfY;
-        
-        pdfResizeHandle.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); e.stopPropagation(); isResizingPdf = true;
-            startPdfW = pdfPanel.offsetWidth; startPdfH = pdfPanel.offsetHeight;
-            startPdfX = e.clientX; startPdfY = e.clientY;
-        });
-        window.addEventListener('pointermove', (e) => {
-            if (isResizingPdf) {
-                const newW = startPdfW + (e.clientX - startPdfX); const newH = startPdfH + (e.clientY - startPdfY);
-                if (newW > 300) pdfPanel.style.width = newW + 'px';
-                if (newH > 200) pdfPanel.style.height = newH + 'px';
-            }
-        });
-        window.addEventListener('pointerup', () => { isResizingPdf = false; });
-
-        const cropBox = document.getElementById('crop-box');
-        let isCroppingMode = false, isDraggingCrop = false, startCropX, startCropY;
-
-        function toggleCropMode() {
-            isCroppingMode = !isCroppingMode; document.getElementById('btn-crop').classList.toggle('active', isCroppingMode);
-            cropOverlay.style.display = isCroppingMode ? 'block' : 'none'; if(!isCroppingMode) cropBox.style.display = 'none';
-        }
-
-        function getCropPos(e) {
-            const rect = cropOverlay.getBoundingClientRect();
-            return { x: e.clientX - rect.left, y: e.clientY - rect.top };
-        }
-
-        cropOverlay.addEventListener('pointerdown', (e) => {
-            isDraggingCrop = true; const pos = getCropPos(e);
-            startCropX = pos.x; startCropY = pos.y;
-            cropBox.style.left = startCropX + 'px'; cropBox.style.top = startCropY + 'px';
-            cropBox.style.width = '0px'; cropBox.style.height = '0px'; cropBox.style.display = 'block'; e.preventDefault();
-        });
-
-        window.addEventListener('pointermove', (e) => {
-            if (!isDraggingCrop) return; const pos = getCropPos(e);
-            cropBox.style.width = Math.abs(pos.x - startCropX) + 'px'; cropBox.style.height = Math.abs(pos.y - startCropY) + 'px';
-            cropBox.style.left = Math.min(pos.x, startCropX) + 'px'; cropBox.style.top = Math.min(pos.y, startCropY) + 'px';
-        });
-
-        window.addEventListener('pointerup', (e) => {
-            if (!isDraggingCrop) return; isDraggingCrop = false;
-            const cssX = parseFloat(cropBox.style.left); const cssY = parseFloat(cropBox.style.top);
-            const cssW = parseFloat(cropBox.style.width); const cssH = parseFloat(cropBox.style.height);
-            
-            if (cssW > 15 && cssH > 15) {
-                const scaleX = pdfAppCanvas.width / pdfAppCanvas.clientWidth; const scaleY = pdfAppCanvas.height / pdfAppCanvas.clientHeight;
-                const sourceX = cssX * scaleX; const sourceY = cssY * scaleY; const sourceW = cssW * scaleX; const sourceH = cssH * scaleY;
-                const tempCanvas = document.createElement('canvas'); tempCanvas.width = sourceW; tempCanvas.height = sourceH;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.fillStyle = '#ffffff'; tempCtx.fillRect(0, 0, sourceW, sourceH);
-                tempCtx.drawImage(pdfAppCanvas, sourceX, sourceY, sourceW, sourceH, 0, 0, sourceW, sourceH);
-                
-                document.getElementById('stamp-img').src = tempCanvas.toDataURL("image/png");
-                const stamperContent = document.getElementById('stamper-content');
-                stamperContent.style.width = cssW + 'px'; stamperContent.style.height = cssH + 'px';
-                
-                const stamper = document.getElementById('stamper');
-                stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px'; 
-                stamper.style.left = (window.innerWidth/2) + 'px'; 
-                stamper.style.display = 'block';
-                
-                togglePdfMinimize(); toggleCropMode(); 
-            }
-        });
-
-        const stamper = document.getElementById('stamper');
-        const stamperContent = document.getElementById('stamper-content');
-        const resizeHandle = document.getElementById('resize-handle');
-        
-        let isDraggingStamp = false, stampStartX, stampStartY;
-        stamperContent.addEventListener('pointerdown', (e) => {
-            if (e.target === resizeHandle) return; e.preventDefault(); isDraggingStamp = true;
-            stampStartX = e.clientX - stamper.offsetLeft; stampStartY = e.clientY - stamper.offsetTop;
-        });
-        window.addEventListener('pointermove', (e) => { if (isDraggingStamp) { stamper.style.left = (e.clientX - stampStartX) + 'px'; stamper.style.top = (e.clientY - stampStartY) + 'px'; } });
-        window.addEventListener('pointerup', () => { isDraggingStamp = false; });
-
-        let isResizingStamp = false, startW, startH, startX, startY;
-        resizeHandle.addEventListener('pointerdown', (e) => { e.preventDefault(); e.stopPropagation(); isResizingStamp = true; startW = stamperContent.offsetWidth; startH = stamperContent.offsetHeight; startX = e.clientX; startY = e.clientY; });
-        window.addEventListener('pointermove', (e) => { if (isResizingStamp) { const diffX = e.clientX - startX; const ratio = startW / startH; let newW = startW + diffX; let newH = newW / ratio; if (newW > 50) { stamperContent.style.width = newW + 'px'; stamperContent.style.height = newH + 'px'; } } });
-        window.addEventListener('pointerup', () => { isResizingStamp = false; });
+        function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
 
         function applyStamp() {
             const img = document.getElementById('stamp-img');
-            const rect = stamperContent.getBoundingClientRect(); 
-            
+            const rect = document.getElementById('stamper-content').getBoundingClientRect();
             const scaleX = canvas.width / cachedCanvasRect.width; 
             const scaleY = canvas.height / cachedCanvasRect.height;
-            
             const realX = (rect.left - cachedCanvasRect.left) * scaleX; 
             const realY = (rect.top - cachedCanvasRect.top) * scaleY;
-            const realW = rect.width * scaleX; 
-            const realH = rect.height * scaleY;
+            const realW = rect.width * scaleX; const realH = rect.height * scaleY;
             
-            ctx.globalCompositeOperation = 'source-over'; 
-            ctx.globalAlpha = 1.0;
+            ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1.0;
             ctx.drawImage(img, realX, realY, realW, realH);
-            
-            ctxState = { color: '', size: -1, tool: '', isChalk: null }; 
-            
             broadcastData({ type: 'image', src: img.src, x: realX, y: realY, w: realW, h: realH });
-            stamper.style.display = 'none';
+            document.getElementById('stamper').style.display = 'none';
         }
-        function cancelStamp() { stamper.style.display = 'none'; }
+        function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
 
-        /* ================= 6. CONEXIÓN ALUMNOS ================= */
+        // Red Remota y Conexión
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
         function processRemoteCommand(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
             if (data.type === 'theme') { applyTheme(data.index); return; }
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
-            
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
             if (data.type === 'stop') { ctx.beginPath(); return; }
-            
             if (data.type === 'image') {
                 const img = new Image();
-                img.onload = () => { 
-                    ctx.globalCompositeOperation = 'source-over'; 
-                    ctx.globalAlpha = 1.0;
-                    ctx.drawImage(img, data.x, data.y, data.w, data.h); 
-                    ctxState = { color: '', size: -1, tool: '', isChalk: null };
-                };
+                img.onload = () => { ctx.drawImage(img, data.x, data.y, data.w, data.h); };
                 img.src = data.src; return;
             }
-            
             if (data.type === 'drawBezier') {
                 const isChalkTheme = canvas.classList.contains('theme-chalk');
                 applyCtxState(ctx, data.color, data.size, data.tool, isChalkTheme);
-                
                 ctx.beginPath();
                 ctx.moveTo(data.lastMidX, data.lastMidY);
                 ctx.quadraticCurveTo(data.lastPosX, data.lastPosY, data.midX, data.midY);
                 ctx.stroke();
-                return;
-            }
-
-            if (data.type === 'draw') {
-                const isChalkTheme = canvas.classList.contains('theme-chalk');
-                applyCtxState(ctx, data.color, data.size, data.tool, isChalkTheme);
-
-                ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
             }
         }
 
-        // =========================================================================
-        // OPTIMIZACIÓN 3: REMOTE BATCH RENDER CON requestAnimationFrame
-        // =========================================================================
         let remoteRenderQueue = [];
         let isRemoteRendering = false;
-
         function processRemoteRender() {
-            if (remoteRenderQueue.length === 0) {
-                isRemoteRendering = false;
-                return;
-            }
-            
+            if (remoteRenderQueue.length === 0) { isRemoteRendering = false; return; }
             const commands = remoteRenderQueue.splice(0, 500); 
-            for (let i = 0; i < commands.length; i++) {
-                processRemoteCommand(commands[i]);
-            }
-
-            if (remoteRenderQueue.length > 0) {
-                requestAnimationFrame(processRemoteRender);
-            } else {
-                isRemoteRendering = false;
-            }
+            for (let i = 0; i < commands.length; i++) processRemoteCommand(commands[i]);
+            requestAnimationFrame(processRemoteRender);
         }
 
         function drawRemote(data) {
@@ -1832,34 +941,49 @@
             } else {
                 remoteRenderQueue.push(data);
             }
-            
-            if (!isRemoteRendering) {
-                isRemoteRendering = true;
-                requestAnimationFrame(processRemoteRender);
-            }
+            if (!isRemoteRendering) { isRemoteRendering = true; requestAnimationFrame(processRemoteRender); }
         }
 
-
-        function makeDraggable(element, handle) {
-            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-            handle.onmousedown = dragMouseDown; handle.ontouchstart = dragTouchStart;
-            function dragMouseDown(e) { e.preventDefault(); pos3 = e.clientX; pos4 = e.clientY; document.onmouseup = closeDragElement; document.onmousemove = elementDrag; }
-            function elementDrag(e) { e.preventDefault(); pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; pos3 = e.clientX; pos4 = e.clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; }
-            function dragTouchStart(e) { pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; document.ontouchend = closeDragElement; document.ontouchmove = elementTouchDrag; }
-            function elementTouchDrag(e) { pos1 = pos3 - e.touches[0].clientX; pos2 = pos4 - e.touches[0].clientY; pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; }
-            function closeDragElement() { document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null; }
+        async function createRoom() {
+            await getMicrophone();
+            document.getElementById('toolbar').style.display = 'flex';
+            peer = new Peer(Math.random().toString(36).substring(2, 6).toUpperCase(), peerNetworkOptions);
+            peer.on('open', (id) => {
+                document.getElementById('ui-panel').style.display = 'block';
+                document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO:";
+                const codeDisplay = document.getElementById('room-code-display');
+                codeDisplay.innerText = id; codeDisplay.style.display = 'block';
+            });
+            peer.on('connection', (conn) => { 
+                connections.push(conn); 
+                conn.on('open', () => { 
+                    conn.send({ type: 'theme', index: currentThemeIdx });
+                    conn.send({ type: 'scroll', top: container.scrollTop });
+                }); 
+                conn.on('data', drawRemote); 
+            });
+            peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
         }
-        makeDraggable(pdfPanel, document.getElementById('pdf-header'));
-        makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
 
-        document.querySelectorAll('.floating-panel, #toolbar, #stamper').forEach(el => {
-            el.addEventListener('pointerdown', e => e.stopPropagation()); el.addEventListener('touchstart', e => e.stopPropagation(), {passive: false});
-        });
-    
+        async function joinRoom() {
+            const roomId = document.getElementById('roomIdInput').value.toUpperCase();
+            if (!roomId) return alert("Ingresa un código");
+            await getMicrophone();
+            peer = new Peer(peerNetworkOptions);
+            peer.on('open', () => {
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                document.getElementById('toolbar').style.display = 'flex';
+                
+                const conn = peer.connect(roomId); connections.push(conn);
+                conn.on('data', drawRemote);
+                if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
+            });
+        }
 </script>
 
 <script>
-/* === ESCRITURA TÁCTIL MÓVIL DEL ALUMNO === */
+/* === ESCRITURA TÁCTIL Y UNIVERSAL (ALUMNO Y PROFESOR) === */
 (function(){
   const board = document.getElementById('board');
   const container = document.getElementById('canvas-container');
@@ -1872,8 +996,6 @@
   
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
-  
-  const mwUndo = [];
   let mwCtxState = { color: '', size: -1, mode: '', isChalk: null };
 
   let cachedMwRect = board.getBoundingClientRect();
@@ -1896,40 +1018,18 @@
     };
   }
 
-  function saveState(){
-    try{
-      if(mwUndo.length > 12) mwUndo.shift();
-      mwUndo.push(board.toDataURL('image/png'));
-    }catch(e){}
-  }
-  function restoreData(url){
-    const img = new Image();
-    img.onload = function(){
-      const c = board.getContext('2d');
-      c.clearRect(0,0,board.width,board.height);
-      c.drawImage(img,0,0);
-    };
-    img.src = url;
-  }
   function setMode(mode){
     mwMode = mode;
     ['mw-pen','mw-marker','mw-eraser'].forEach(id=>{
       const b=document.getElementById(id);
-      if(b) b.classList.toggle('active',
-        (id==='mw-pen'&&mode==='pen') ||
-        (id==='mw-marker'&&mode==='marker') ||
-        (id==='mw-eraser'&&mode==='eraser'));
+      if(b) b.classList.toggle('active', (id==='mw-pen'&&mode==='pen') || (id==='mw-marker'&&mode==='marker') || (id==='mw-eraser'&&mode==='eraser'));
     });
   }
   
   function start(ev){
-    if(ev.pointerType === 'mouse' && window.matchMedia('(pointer:fine)').matches) return;
     if(ev.target !== board) return;
     ev.preventDefault();
-    saveState();
-    
-    if(typeof hideBanner === 'function') hideBanner();
-    
+    hideBanner();
     updateMwRect();
 
     mwDrawing = true;
@@ -1953,16 +1053,13 @@
     }
 
     const c = board.getContext('2d');
-    c.lineCap = 'round';
-    c.lineJoin = 'round';
-
+    c.lineCap = 'round'; c.lineJoin = 'round';
     const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
 
     c.beginPath();
     c.moveTo(mwLastMidX, mwLastMidY);
 
     let e, p, pressure, pFactor, baseSize, finalSize, midX, midY;
-
     for (let i=0; i<events.length; i++) {
         e = events[i];
         p = pos(e);
@@ -1992,13 +1089,15 @@
 
         midX = (mwLastPosX + p.x) * 0.5;
         midY = (mwLastPosY + p.y) * 0.5;
-
         c.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
 
-        mwLastPosX = p.x;
-        mwLastPosY = p.y;
-        mwLastMidX = midX;
-        mwLastMidY = midY;
+        mwLastPosX = p.x; mwLastPosY = p.y;
+        mwLastMidX = midX; mwLastMidY = midY;
+        
+        // Si el alumno escribe, transmite su trazo al profesor/resto de la clase si es necesario
+        if (!isAdmin && typeof broadcastData === 'function') {
+            broadcastData({ type:'drawBezier', lastMidX: midX, lastMidY: midY, lastPosX: p.x, lastPosY: p.y, midX: midX, midY: midY, color: mwColor, size: finalSize, tool: mwMode });
+        }
     }
     c.stroke();
   }
@@ -2007,25 +1106,19 @@
     if(!mwDrawing) return;
     ev.preventDefault();
     mwDrawing=false;
-    
-    if(typeof showBanner === 'function') showBanner();
-
+    showBanner();
     const c=board.getContext('2d');
-    c.globalAlpha=1;
-    c.globalCompositeOperation='source-over';
+    c.globalAlpha=1; c.globalCompositeOperation='source-over';
     try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
   }
 
   board.addEventListener('pointerdown', start, {passive:false});
   board.addEventListener('pointermove', move, {passive:false});
   board.addEventListener('pointerup', end, {passive:false});
-  board.addEventListener('pointercancel', end, {passive:false});
-  board.addEventListener('contextmenu', e=>e.preventDefault());
 
   const pen=document.getElementById('mw-pen');
   const marker=document.getElementById('mw-marker');
   const eraser=document.getElementById('mw-eraser');
-  const undo=document.getElementById('mw-undo');
   const clear=document.getElementById('mw-clear');
   const color=document.getElementById('mw-color');
   const size=document.getElementById('mw-size');
@@ -2042,26 +1135,11 @@
   });
   
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
-
-  undo && undo.addEventListener('click',()=>{
-    const last=mwUndo.pop();
-    if(last) restoreData(last);
-  });
   clear && clear.addEventListener('click',()=>{
-    if(!confirm('¿Limpiar toda la escritura visible en la pizarra?')) return;
-    saveState();
+    if(!confirm('¿Limpiar toda la escritura?')) return;
     const c=board.getContext('2d');
     c.clearRect(0,0,board.width,board.height);
   });
-
-  container.addEventListener('touchstart',e=>{
-    if(e.target===board) e.preventDefault();
-  },{passive:false});
-  container.addEventListener('touchmove',e=>{
-    if(e.target===board) e.preventDefault();
-  },{passive:false});
-
-  window.MathBoardMobileWriting = {setMode};
 })();
 </script>
 
