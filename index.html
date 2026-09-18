@@ -307,7 +307,6 @@
             font-weight:700;
         }
 
-
 /* === ESCRITURA MÓVIL PARA ALUMNOS === */
 @media (max-width: 800px), (pointer: coarse) {
   #canvas-container {
@@ -599,10 +598,26 @@
         const container = document.getElementById('canvas-container');
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        
         let isDrawing = false, currentTool = 'pen', myColor = '#ffffff';
         let penSize = 4, eraserSize = 60; 
         let connections = [], peer, localStream = null;
         let audioContext, audioDestination;
+        let chalkPattern = null;
+
+        // Genera un patrón de ruido (granos de tiza) dinámico según el color seleccionado
+        function generateChalkPattern(colorHex) {
+            const pCanvas = document.createElement('canvas');
+            pCanvas.width = 50; 
+            pCanvas.height = 50;
+            const pCtx = pCanvas.getContext('2d');
+            pCtx.fillStyle = colorHex;
+            for(let i = 0; i < 1000; i++) {
+                pCtx.globalAlpha = Math.random() * 0.7 + 0.1;
+                pCtx.fillRect(Math.random() * 50, Math.random() * 50, Math.random() * 1.5, Math.random() * 2);
+            }
+            return ctx.createPattern(pCanvas, 'repeat');
+        }
 
         const toolSizeSlider = document.getElementById('toolSize');
         const sliderLabel = document.getElementById('slider-label');
@@ -627,7 +642,11 @@
             }
         }
 
-        document.getElementById('colorPicker').addEventListener('change', (e) => { myColor = e.target.value; setTool('pen'); });
+        document.getElementById('colorPicker').addEventListener('change', (e) => { 
+            myColor = e.target.value; 
+            chalkPattern = generateChalkPattern(myColor);
+            setTool('pen'); 
+        });
 
         const themes = [
             { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff', grid: true },
@@ -647,6 +666,7 @@
             
             myColor = newTheme.pen;
             document.getElementById('colorPicker').value = myColor;
+            chalkPattern = generateChalkPattern(myColor);
             setTool('pen');
             
             broadcastData({ type: 'theme', index: currentThemeIdx });
@@ -656,6 +676,7 @@
             canvas.classList.remove(themes[currentThemeIdx].class);
             currentThemeIdx = index;
             canvas.classList.add(themes[currentThemeIdx].class);
+            chalkPattern = generateChalkPattern(themes[currentThemeIdx].pen);
         }
 
         function toggleFullScreen() {
@@ -727,11 +748,6 @@
             }
         }
 
-        document.getElementById('colorPicker').addEventListener('change', (e) => {
-            myColor = e.target.value;
-            setTool('pen');
-        });
-
         function prepareStroke(color = myColor, size = penSize) {
             ctx.lineCap = 'round';
             ctx.lineJoin = 'round';
@@ -802,17 +818,6 @@
             targetCtx.restore();
         }
 
-        function getCanvasPos(e) {
-            const rect = canvas.getBoundingClientRect();
-            const scaleX = canvas.width / rect.width;
-            const scaleY = canvas.height / rect.height;
-            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
-        }
-
-        canvas.addEventListener('pointerdown', startDrawing);
-        canvas.addEventListener('pointermove', draw);
-        window.addEventListener('pointerup', stopDrawing);
-
         function startDrawing(e) {
             if (e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return;
             isDrawing = true;
@@ -834,40 +839,54 @@
             draw(e);
         }
 
+        // ====== VERSIÓN OPTIMIZADA DEL LÁPIZ PROFESOR ======
         function draw(e) {
             if (!isDrawing || !isAdmin || e.pointerType === 'touch') return;
-            const pos = getCanvasPos(e);
+            
+            const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+            const isChalkTheme = themes[currentThemeIdx].id === 'chalk';
 
-            if (shapeStart) {
-                // Restaurar el lienzo antes de cada previsualización.
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-                ctx.drawImage(shapePreview, 0, 0);
-                drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor,
-                    Number(toolSizeSlider.value) || penSize, true);
-                return;
+            for (let ev of events) {
+                const pos = getCanvasPos(ev);
+
+                if (shapeStart) {
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                    ctx.drawImage(shapePreview, 0, 0);
+                    drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor,
+                        Number(toolSizeSlider.value) || penSize, true);
+                    return; 
+                }
+
+                const pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 1;
+                const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
+                ctx.lineWidth = finalSize;
+
+                if (currentTool !== 'eraser') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    
+                    if (isChalkTheme && chalkPattern && currentTool === 'pen') {
+                        ctx.strokeStyle = chalkPattern;
+                        ctx.shadowBlur = 0;
+                        ctx.globalAlpha = 0.9;
+                    } else {
+                        ctx.strokeStyle = myColor;
+                        ctx.shadowBlur = finalSize * 0.4;
+                        ctx.shadowColor = myColor;
+                        ctx.globalAlpha = 0.85;
+                    }
+                } else {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1.0;
+                }
+
+                ctx.lineTo(pos.x, pos.y);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(pos.x, pos.y);
+                
+                broadcastData({ type:'draw', x:pos.x, y:pos.y, color:myColor, size:finalSize, tool:currentTool });
             }
-
-            const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1;
-            const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
-            ctx.lineWidth = finalSize;
-
-            if (currentTool !== 'eraser') {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = myColor;
-                ctx.shadowBlur = finalSize * 0.4;
-                ctx.shadowColor = myColor;
-                ctx.globalAlpha = 0.85;
-            } else {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.shadowBlur = 0;
-                ctx.globalAlpha = 1.0;
-            }
-
-            ctx.lineTo(pos.x, pos.y);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.moveTo(pos.x, pos.y);
-            broadcastData({ type:'draw', x:pos.x, y:pos.y, color:myColor, size:finalSize, tool:currentTool });
         }
 
         function stopDrawing(e) {
@@ -877,7 +896,6 @@
                 const pos = getCanvasPos(e);
                 const size = Number(toolSizeSlider.value) || penSize;
 
-                // Recuperamos la imagen limpia que había antes de la previsualización.
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 ctx.drawImage(shapePreview, 0, 0);
                 drawShape(ctx, currentTool, shapeStart.x, shapeStart.y, pos.x, pos.y, myColor, size);
@@ -1530,10 +1548,6 @@
             }
         });
 
-        // MOTOR DE ESTAMPADO DE TEXTO MATEMÁTICO
-        // Las fórmulas ahora se convierten en una imagen real y usan EXACTAMENTE
-        // el mismo estampador que los recortes de PDF: mover, redimensionar,
-        // recortar y finalmente pegar como objeto definido en la pizarra.
         function renderFormulaToStamp(formulaText) {
             if (!isAdmin) {
                 alert("Solo el profesor puede pegar fórmulas en la pizarra.");
@@ -1570,7 +1584,6 @@
             const stamper = document.getElementById('stamper');
             const boardRect = canvas.getBoundingClientRect();
 
-            // Centrar inicialmente sobre la zona visible de la pizarra.
             const centerX = boardRect.left + boardRect.width / 2;
             const centerY = Math.max(120, boardRect.top + Math.min(boardRect.height / 2, window.innerHeight / 2));
             stamper.style.position = 'fixed';
@@ -1579,7 +1592,6 @@
             stamper.style.transform = 'translate(-50%, -50%)';
             stamper.style.display = 'block';
 
-            // Cerrar paneles que puedan tapar el objeto.
             const fp = document.getElementById('formulas-panel');
             if (fp) fp.style.display = 'none';
             const ep = document.getElementById('examples-panel');
@@ -1700,14 +1712,10 @@
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
 
-        // ================= PDF HD =================
-        // PDF.js renderiza a una escala superior a la mostrada en pantalla.
-        // Esto evita que letras, fórmulas y líneas se vean borrosas al ampliar.
         function getPdfRenderScale(page, targetWidth) {
             const base = page.getViewport({ scale: 1 });
             const cssWidth = Math.max(320, targetWidth || 900);
             const device = Math.min(window.devicePixelRatio || 1, 3);
-            // 2x–3x de densidad, limitado para no consumir memoria excesiva.
             return Math.max(1.75, Math.min(3.2, (cssWidth / base.width) * device));
         }
 
@@ -1724,8 +1732,6 @@
             canvasEl.width = Math.ceil(viewport.width * outputScale);
             canvasEl.height = Math.ceil(viewport.height * outputScale);
 
-            // El tamaño CSS sigue siendo el tamaño de lectura, mientras que
-            // los píxeles internos son mucho mayores.
             const cssHeight = viewport.height / scale;
             canvasEl.style.width = '100%';
             canvasEl.style.height = cssHeight + 'px';
@@ -1743,8 +1749,6 @@
             canvasEl.dataset.pdfScale = String(scale);
         }
 
-        // Re-renderiza páginas visibles con la resolución adecuada después
-        // de cambiar el tamaño de la ventana.
         let pdfHdResizeTimer = null;
         window.addEventListener('resize', function() {
             clearTimeout(pdfHdResizeTimer);
@@ -1757,9 +1761,6 @@
             }, 250);
         });
 
-        // ================= IMÁGENES / CÁMARA =================
-        // Cualquier foto se convierte en un objeto estampable: mover, cambiar
-        // tamaño, recortar y pegar en la pizarra.
         function loadImageIntoStamp(file) {
             if (!file || !file.type || !file.type.startsWith('image/')) return;
 
@@ -1812,7 +1813,6 @@
             }
         });
 
-        // Recorte sobre el objeto actual del estampador.
         let stampCropMode = false;
         let stampCropStart = null;
         let stampCropBox = null;
@@ -2104,6 +2104,7 @@
         /* ================= 6. CONEXIÓN ALUMNOS ================= */
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
+        // Función remota para que los alumnos reciban el efecto de tiza del profesor
         function drawRemote(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
             if (data.type === 'theme') { applyTheme(data.index); return; }
@@ -2122,13 +2123,21 @@
             }
             
             ctx.lineWidth = data.size;
+            const isChalkTheme = canvas.classList.contains('theme-chalk');
 
             if (data.tool !== 'eraser') {
                 ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = data.color;
-                ctx.shadowBlur = data.size * 0.4;
-                ctx.shadowColor = data.color;
-                ctx.globalAlpha = 0.85;
+                if (isChalkTheme && data.tool === 'pen') {
+                    if (!chalkPattern) chalkPattern = generateChalkPattern(data.color);
+                    ctx.strokeStyle = chalkPattern;
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 0.9;
+                } else {
+                    ctx.strokeStyle = data.color;
+                    ctx.shadowBlur = data.size * 0.4;
+                    ctx.shadowColor = data.color;
+                    ctx.globalAlpha = 0.85;
+                }
             } else {
                 ctx.globalCompositeOperation = 'destination-out';
                 ctx.shadowBlur = 0;
@@ -2137,6 +2146,7 @@
 
             ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
         }
+
 
         async function createRoom() {
             await getMicrophone();
@@ -2215,7 +2225,6 @@
   let mwSize = 5;
   let mwDrawing = false;
   let mwLast = null;
-  let mwSnapshot = null;
   const mwUndo = [];
 
   function pos(ev){
@@ -2264,29 +2273,57 @@
     c.beginPath();
     c.moveTo(mwLast.x,mwLast.y);
   }
+
+  // ====== VERSIÓN OPTIMIZADA DEL LÁPIZ ALUMNO MÓVIL ======
   function move(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
-    const p=pos(ev);
-    const c=board.getContext('2d');
-    c.lineCap='round';
-    c.lineJoin='round';
-    if(mwMode==='eraser'){
-      c.globalCompositeOperation='destination-out';
-      c.lineWidth=Math.max(18,mwSize*3.5);
-    }else{
-      c.globalCompositeOperation='source-over';
-      c.strokeStyle=mwColor;
-      c.lineWidth=mwMode==='marker' ? Math.max(12,mwSize*2.2) : mwSize;
-      if(mwMode==='marker') c.globalAlpha=.42;
-      else c.globalAlpha=1;
+    
+    // Detectar si el tema actual es tiza
+    const isChalkTheme = board.classList.contains('theme-chalk');
+    if (isChalkTheme && !chalkPattern) {
+        chalkPattern = generateChalkPattern(mwColor);
     }
-    c.beginPath();
-    c.moveTo(mwLast.x,mwLast.y);
-    c.lineTo(p.x,p.y);
-    c.stroke();
-    mwLast=p;
+
+    const c = board.getContext('2d');
+    c.lineCap = 'round';
+    c.lineJoin = 'round';
+
+    // Aprovechamos los micro-eventos del celular si están disponibles
+    const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
+
+    for (let e of events) {
+        const p = pos(e);
+
+        if(mwMode === 'eraser'){
+            c.globalCompositeOperation = 'destination-out';
+            c.lineWidth = Math.max(18, mwSize * 3.5);
+            c.shadowBlur = 0;
+            c.globalAlpha = 1;
+        } else {
+            c.globalCompositeOperation = 'source-over';
+            c.lineWidth = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
+            
+            if (isChalkTheme && mwMode === 'pen') {
+                c.strokeStyle = chalkPattern || mwColor;
+                c.shadowBlur = 0;
+                c.globalAlpha = 0.9;
+            } else {
+                c.strokeStyle = mwColor;
+                c.shadowBlur = c.lineWidth * 0.3;
+                c.shadowColor = mwColor;
+                c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.85;
+            }
+        }
+
+        c.beginPath();
+        c.moveTo(mwLast.x, mwLast.y);
+        c.lineTo(p.x, p.y);
+        c.stroke();
+        mwLast = p;
+    }
   }
+
   function end(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
@@ -2315,7 +2352,14 @@
   pen && pen.addEventListener('click',()=>setMode('pen'));
   marker && marker.addEventListener('click',()=>setMode('marker'));
   eraser && eraser.addEventListener('click',()=>setMode('eraser'));
-  color && color.addEventListener('input',e=>{mwColor=e.target.value; setMode('pen');});
+  
+  // Refrescar patrón de tiza si el alumno cambia color
+  color && color.addEventListener('input', e => { 
+      mwColor = e.target.value; 
+      chalkPattern = generateChalkPattern(mwColor);
+      setMode('pen');
+  });
+  
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
 
   undo && undo.addEventListener('click',()=>{
@@ -2329,7 +2373,6 @@
     c.clearRect(0,0,board.width,board.height);
   });
 
-  // Evita que el navegador haga scroll/zoom mientras el alumno escribe.
   container.addEventListener('touchstart',e=>{
     if(e.target===board) e.preventDefault();
   },{passive:false});
@@ -2337,7 +2380,6 @@
     if(e.target===board) e.preventDefault();
   },{passive:false});
 
-  // Si la app ya cambia de herramienta, el modo táctil sigue disponible para alumnos.
   window.MathBoardMobileWriting = {setMode};
 })();
 </script>
