@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - La Pizarra Definitiva</title>
+    <title>MathBoard Pro - Master Edition</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -29,11 +29,14 @@
         #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #121212; }
         #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
-        canvas#board {
+        /* Capas de Pizarra: Principal y Fantasma (Overlay para Formas) */
+        canvas.board-layer {
             display: block; touch-action: none;
             width: 100%; height: auto; min-height: 300vh; 
-            transition: background 0.3s ease;
+            position: absolute; top: 0; left: 0;
         }
+        canvas#board { z-index: 1; transition: background 0.3s ease; }
+        canvas#overlay-board { z-index: 2; pointer-events: none; }
 
         .theme-dark { background-color: #121212; background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 30px 30px; }
         .theme-chalk { background-color: #1e382b; background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>'); background-size: cover, 150px 150px; }
@@ -61,30 +64,30 @@
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; }
         
+        /* Widget de Fórmulas y Buscador */
+        #formulas-panel { top: 80px; right: 30px; width: 500px; display: none; max-height: 85vh; overflow: hidden; resize: both; }
+        .formula-search-bar { padding: 10px; background: #111; border-bottom: 1px solid #333; }
+        .formula-search-input { width: 100%; padding: 8px; border-radius: 20px; border: 1px solid #444; background: #222; color: white; text-align: center; font-size: 0.9rem; box-sizing: border-box; }
+        
+        .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; cursor: grab; }
+        .formula-tab-btns:active { cursor: grabbing; }
+        .formula-tab-btns::-webkit-scrollbar { height: 4px; }
+        .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; transition: 0.2s; }
+        .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
+        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
+        
+        .f-btn { background: #222; border: 1px solid #333; color: #fff; font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.35rem; padding: 15px; cursor: pointer; border-radius: 8px; transition: 0.2s; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .f-btn:hover { background: #2a2a2a; border-color: #3b82f6; transform: translateY(-2px); }
+        .f-title { font-size: 0.75rem; color: #8b5cf6; font-family: 'Segoe UI', sans-serif; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
+
+        /* Visor PDF */
         #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
-        /* Widget de Fórmulas Matemáticas Definitivo */
-        #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
-        
-        /* Scrollbar oculto pero funcional para las pestañas de fórmulas */
-        .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
-        .formula-tab-btns::-webkit-scrollbar { height: 4px; }
-        .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        
-        .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
-        .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
-        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
-        
-        /* Estilos de las fórmulas a inyectar */
-        .f-btn { background: #222; border: 1px solid #333; color: #fff; font-family: "Cambria Math", "Times New Roman", serif; font-size: 1.3rem; padding: 15px; cursor: pointer; border-radius: 8px; transition: 0.2s; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
-        .f-btn:hover { background: #2a2a2a; border-color: #3b82f6; transform: translateY(-2px); }
-        .f-title { font-size: 0.75rem; color: #8b5cf6; font-family: 'Segoe UI', sans-serif; display: block; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px; font-weight: bold; }
-
-        /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         #stamper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 20; }
@@ -94,7 +97,7 @@
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(30,30,30,0.95); padding: 6px 12px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; }
 
-        /* Toolbar */
+        /* Toolbar Principal */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 4px; }
@@ -105,10 +108,10 @@
         
         #toolbar {
             position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
-            background: rgba(20, 20, 20, 0.9); padding: 6px 12px;
-            border-radius: 20px; display: flex; gap: 6px; align-items: center; justify-content: center;
-            border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 50; flex-wrap: wrap;
-            backdrop-filter: blur(5px);
+            background: rgba(20, 20, 20, 0.95); padding: 8px 12px;
+            border-radius: 30px; display: flex; gap: 6px; align-items: center; justify-content: center;
+            border: 1px solid #333; box-shadow: 0 8px 25px rgba(0,0,0,0.8); z-index: 50; flex-wrap: wrap;
+            backdrop-filter: blur(10px);
         }
         
         .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 50px; }
@@ -119,11 +122,10 @@
         .hidden-file { display: none; }
 
         @media (max-width: 900px) {
-            #toolbar { width: 95%; bottom: 5px; padding: 6px; gap: 4px; border-radius: 12px; }
+            #toolbar { width: 95%; bottom: 5px; padding: 6px; gap: 4px; border-radius: 15px; }
             button { padding: 5px 8px; font-size: 0.8rem; }
             .hide-mobile { display: none; }
-            #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
-            #formulas-panel { width: 95%; left: 2.5%; top: 5%; }
+            #pdf-panel, #formulas-panel { width: 95%; left: 2.5%; top: 5%; }
         }
     </style>
 </head>
@@ -131,7 +133,7 @@
 
     <div id="login-overlay">
         <div class="login-box">
-            <div class="login-title">📐 MathBoard</div>
+            <div class="login-title">📐 MathBoard Pro</div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
             <div id="role-selection">
                 <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
@@ -162,19 +164,25 @@
             <span>🧮 Gran Biblioteca Matemática</span>
             <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px;">_</button>
         </div>
-        <!-- Pestañas deslizable horizontalmente -->
-        <div class="formula-tab-btns">
+        <div class="formula-search-bar">
+            <input type="text" id="formula-search" class="formula-search-input" placeholder="🔍 Buscar fórmula rápida..." onkeyup="filterFormulas()">
+        </div>
+        <div class="formula-tab-btns" id="formula-tabs">
             <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
             <button class="f-tab" onclick="loadFormulas('geometry', this)">Geometría</button>
-            <button class="f-tab" onclick="loadFormulas('analytic_geometry', this)">G. Analítica</button>
+            <button class="f-tab" onclick="loadFormulas('analytic', this)">G. Analítica</button>
             <button class="f-tab" onclick="loadFormulas('trigonometry', this)">Trigonometría</button>
-            <button class="f-tab" onclick="loadFormulas('calculus', this)">Cálculo</button>
-            <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
-            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
+            <button class="f-tab" onclick="loadFormulas('calculus_limits', this)">Límites y Series</button>
+            <button class="f-tab" onclick="loadFormulas('calculus_deriv', this)">Derivadas</button>
+            <button class="f-tab" onclick="loadFormulas('calculus_int', this)">Integrales</button>
+            <button class="f-tab" onclick="loadFormulas('calculus_multi', this)">Calc. Multivariable</button>
+            <button class="f-tab" onclick="loadFormulas('complex', this)">Números Complejos</button>
+            <button class="f-tab" onclick="loadFormulas('stats', this)">Prob. y Estadística</button>
+            <button class="f-tab" onclick="loadFormulas('continuous', this)">Variables Continuas</button>
+            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología y Diferencial</button>
         </div>
-        <div class="formula-grid" id="formula-grid-container">
-            <!-- Cargadas por JavaScript -->
-        </div>
+        <div class="formula-grid" id="formula-grid-container"></div>
+        <div class="resize-handle resize-handle-pdf" id="formula-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Visor PDF -->
@@ -202,14 +210,14 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General (Para PDFs y Fórmulas) -->
+    <!-- Estampador General -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-content">
             <img id="stamp-img" src="">
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
-            <button onclick="applyStamp()" style="background: #10b981;">✅ Pegar en Pizarra</button>
+            <button onclick="applyStamp()" style="background: #10b981;">✅ Fijar en Pizarra</button>
             <button onclick="cancelStamp()" class="danger-btn">❌</button>
         </div>
     </div>
@@ -224,13 +232,17 @@
         <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
         <div id="admin-tools" style="display:none; align-items:center; gap:5px;">
-            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
+            <!-- Herramientas de dibujo -->
+            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz Libre">✏️</button>
+            <button id="btn-line" class="tool-btn" onclick="setTool('line')" title="Línea Recta">➖</button>
+            <button id="btn-rect" class="tool-btn" onclick="setTool('rect')" title="Rectángulo">⬜</button>
+            <button id="btn-circle" class="tool-btn" onclick="setTool('circle')" title="Círculo">⭕</button>
             <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
             
             <input type="color" id="colorPicker" value="#ffffff" title="Color">
             
             <div class="slider-container">
-                <span id="slider-label" class="slider-label">Lápiz</span>
+                <span id="slider-label" class="slider-label">Grosor</span>
                 <input type="range" id="toolSize" min="1" max="20" value="4">
             </div>
             
@@ -255,7 +267,9 @@
     </div>
 
     <div id="canvas-container">
-        <canvas id="board" width="1920" height="4000" class="theme-dark"></canvas>
+        <!-- Dos capas: La principal y la fantasma para previsualizar formas geométricas -->
+        <canvas id="board" width="1920" height="4000" class="board-layer theme-dark"></canvas>
+        <canvas id="overlay-board" width="1920" height="4000" class="board-layer"></canvas>
     </div>
 
     <script>
@@ -276,40 +290,48 @@
             } else { alert("PIN Incorrecto."); }
         }
 
+        /* ================= 1. MOTOR GRÁFICO (TRAZO LIBRE Y GEOMETRÍA) ================= */
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
+        const overlayCanvas = document.getElementById('overlay-board');
+        const oCtx = overlayCanvas.getContext('2d');
         const container = document.getElementById('canvas-container');
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        oCtx.lineCap = 'round'; oCtx.lineJoin = 'round';
+
         let isDrawing = false, currentTool = 'pen', myColor = '#ffffff';
         let penSize = 4, eraserSize = 60; 
+        let startShapeX = 0, startShapeY = 0;
         let connections = [], peer, localStream = null;
         let audioContext, audioDestination;
 
         const toolSizeSlider = document.getElementById('toolSize');
-        const sliderLabel = document.getElementById('slider-label');
 
         toolSizeSlider.addEventListener('input', (e) => {
-            if (currentTool === 'pen') penSize = e.target.value;
-            else eraserSize = e.target.value;
+            if (currentTool === 'eraser') eraserSize = e.target.value;
+            else penSize = e.target.value;
         });
 
         function setTool(tool) {
             currentTool = tool;
-            document.getElementById('btn-pen').classList.toggle('active', tool === 'pen');
-            document.getElementById('btn-eraser').classList.toggle('active', tool === 'eraser');
+            ['btn-pen', 'btn-line', 'btn-rect', 'btn-circle', 'btn-eraser'].forEach(id => {
+                document.getElementById(id).classList.remove('active');
+            });
+            document.getElementById('btn-' + tool).classList.add('active');
+            
             canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
             
-            if (tool === 'pen') {
-                toolSizeSlider.min = 1; toolSizeSlider.max = 20;
-                toolSizeSlider.value = penSize; sliderLabel.innerText = 'Lápiz';
-            } else {
+            if (tool === 'eraser') {
                 toolSizeSlider.min = 20; toolSizeSlider.max = 150;
-                toolSizeSlider.value = eraserSize; sliderLabel.innerText = 'Goma';
+                toolSizeSlider.value = eraserSize; 
+            } else {
+                toolSizeSlider.min = 1; toolSizeSlider.max = 30;
+                toolSizeSlider.value = penSize; 
             }
         }
 
-        document.getElementById('colorPicker').addEventListener('change', (e) => { myColor = e.target.value; setTool('pen'); });
+        document.getElementById('colorPicker').addEventListener('change', (e) => { myColor = e.target.value; if(currentTool === 'eraser') setTool('pen'); });
 
         const themes = [
             { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff', grid: true },
@@ -322,15 +344,12 @@
             canvas.classList.remove(themes[currentThemeIdx].class);
             currentThemeIdx = (currentThemeIdx + 1) % themes.length;
             const newTheme = themes[currentThemeIdx];
-            
             canvas.classList.add(newTheme.class);
             document.getElementById('theme-icon').innerText = newTheme.icon;
             document.getElementById('theme-name').innerText = newTheme.name;
-            
             myColor = newTheme.pen;
             document.getElementById('colorPicker').value = myColor;
-            setTool('pen');
-            
+            if(currentTool === 'eraser') setTool('pen');
             broadcastData({ type: 'theme', index: currentThemeIdx });
         }
 
@@ -352,17 +371,43 @@
             return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
         }
 
-        canvas.addEventListener('pointerdown', startDrawing);
-        canvas.addEventListener('pointermove', draw);
+        // Eventos en la capa transparente (overlay) que está por encima
+        overlayCanvas.addEventListener('pointerdown', startDrawing);
+        overlayCanvas.addEventListener('pointermove', draw);
         window.addEventListener('pointerup', stopDrawing);
 
         function startDrawing(e) { 
-            if(e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return; 
+            if(e.pointerType === 'touch' || !isAdmin) return; 
             isDrawing = true; 
             const pos = getCanvasPos(e);
-            ctx.beginPath(); ctx.moveTo(e.clientX, e.clientY);
-            broadcastData({ type: 'start', x: pos.x, y: pos.y }); 
-            draw(e); 
+            
+            if (currentTool === 'pen' || currentTool === 'eraser') {
+                ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+                broadcastData({ type: 'start', x: pos.x, y: pos.y }); 
+                draw(e); 
+            } else {
+                // Herramientas geométricas: guardar punto de inicio
+                startShapeX = pos.x; startShapeY = pos.y;
+            }
+        }
+
+        function drawShapeParams(context, tool, x1, y1, x2, y2, size, color) {
+            context.beginPath();
+            context.lineWidth = size;
+            context.strokeStyle = color;
+            context.shadowBlur = size * 0.4;
+            context.shadowColor = color;
+            context.globalAlpha = 0.85;
+
+            if (tool === 'line') {
+                context.moveTo(x1, y1); context.lineTo(x2, y2);
+            } else if (tool === 'circle') {
+                const r = Math.sqrt(Math.pow(x2-x1, 2) + Math.pow(y2-y1, 2));
+                context.arc(x1, y1, r, 0, 2 * Math.PI);
+            } else if (tool === 'rect') {
+                context.rect(x1, y1, x2-x1, y2-y1);
+            }
+            context.stroke();
         }
 
         function draw(e) {
@@ -371,142 +416,218 @@
             const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
             const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
 
-            ctx.lineWidth = finalSize; 
-
-            if (currentTool !== 'eraser') {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = myColor;
-                ctx.shadowBlur = finalSize * 0.4; 
-                ctx.shadowColor = myColor;
-                ctx.globalAlpha = 0.85; 
+            if (currentTool === 'pen' || currentTool === 'eraser') {
+                ctx.lineWidth = finalSize; 
+                if (currentTool !== 'eraser') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = myColor; ctx.shadowBlur = finalSize * 0.4; ctx.shadowColor = myColor; ctx.globalAlpha = 0.85; 
+                } else {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
+                }
+                ctx.lineTo(pos.x, pos.y); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
+                broadcastData({ type: 'draw', x: pos.x, y: pos.y, color: myColor, size: finalSize, tool: currentTool });
             } else {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.shadowBlur = 0; 
-                ctx.globalAlpha = 1.0;
+                // Dibujar figura dinámica en la capa fantasma
+                oCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                drawShapeParams(oCtx, currentTool, startShapeX, startShapeY, pos.x, pos.y, finalSize, myColor);
             }
-            
-            ctx.lineTo(pos.x, pos.y); ctx.stroke();
-            ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
-            
-            broadcastData({ type: 'draw', x: pos.x, y: pos.y, color: myColor, size: finalSize, tool: currentTool });
         }
         
         function stopDrawing(e) { 
             if(!isDrawing || e.pointerType === 'touch') return; 
             isDrawing = false; 
-            ctx.beginPath(); 
-            ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
-            broadcastData({ type: 'stop' }); 
+            
+            if (currentTool === 'pen' || currentTool === 'eraser') {
+                ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
+                broadcastData({ type: 'stop' }); 
+            } else {
+                // Al soltar el lápiz, pasar la figura final de la capa fantasma a la pizarra real
+                const pos = getCanvasPos(e);
+                const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
+                const finalSize = penSize * (pressure * 1.5);
+                
+                oCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                ctx.globalCompositeOperation = 'source-over';
+                drawShapeParams(ctx, currentTool, startShapeX, startShapeY, pos.x, pos.y, finalSize, myColor);
+                
+                // Enviar la orden de dibujo de figura a los alumnos
+                broadcastData({ type: 'shape', tool: currentTool, x1: startShapeX, y1: startShapeY, x2: pos.x, y2: pos.y, size: finalSize, color: myColor });
+            }
         }
-        function clearCanvas() { if(isAdmin) { ctx.clearRect(0, 0, canvas.width, canvas.height); broadcastData({ type: 'clear' }); } }
+        
+        function clearCanvas() { 
+            if(isAdmin) { 
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                oCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height);
+                broadcastData({ type: 'clear' }); 
+            } 
+        }
 
-        /* ================= BASE DE DATOS DE FÓRMULAS ÉPICA ================= */
+        /* ================= BASE DE DATOS DE FÓRMULAS MUNDIAL DEFINITIVA ================= */
         const mathFormulas = {
             algebra: [
                 { name: "Fórmula Cuadrática", eq: "x = (-b ± √(b² - 4ac)) / 2a" },
-                { name: "Binomio al Cuadrado", eq: "(a ± b)² = a² ± 2ab + b²" },
+                { name: "Binomio de Newton", eq: "(x+y)^n = Σ (nCk) x^(n-k) y^k" },
                 { name: "Diferencia de Cuadrados", eq: "a² - b² = (a - b)(a + b)" },
-                { name: "Propiedad de Logaritmos", eq: "log_b(x·y) = log_b(x) + log_b(y)" },
+                { name: "Suma de Cubos", eq: "a³ + b³ = (a+b)(a² - ab + b²)" },
+                { name: "Propiedades Logaritmo", eq: "log_b(x·y) = log_b(x) + log_b(y)" },
                 { name: "Cambio de Base (Log)", eq: "log_b(x) = log_c(x) / log_c(b)" },
-                { name: "Suma Serie Aritmética", eq: "S_n = n/2 · (a_1 + a_n)" },
-                { name: "Suma Serie Geométrica", eq: "S_n = a_1 · (1 - r^n) / (1 - r)" },
-                { name: "Número Complejo", eq: "z = a + bi" },
-                { name: "Fórmula de De Moivre", eq: "[r(cos θ + i sin θ)]^n = r^n(cos nθ + i sin nθ)" }
+                { name: "Serie Aritmética (Suma)", eq: "S_n = n/2 · (a_1 + a_n)" },
+                { name: "Serie Geométrica Infinita", eq: "S_∞ = a / (1 - r) , |r| < 1" },
+                { name: "Regla de Cramer (Matriz 2x2)", eq: "x = |Dx|/|D| , y = |Dy|/|D|" }
             ],
             geometry: [
                 { name: "Teorema de Pitágoras", eq: "c² = a² + b²" },
-                { name: "Fórmula de Herón (Triángulo)", eq: "A = √(s(s-a)(s-b)(s-c))" },
-                { name: "Área del Círculo", eq: "A = π · r²" },
-                { name: "Perímetro del Círculo", eq: "P = 2πr" },
-                { name: "Volumen Esfera", eq: "V = (4/3)π · r³" },
+                { name: "Fórmula de Herón (Área)", eq: "A = √(s(s-a)(s-b)(s-c))" },
+                { name: "Área y Perímetro Círculo", eq: "A = πr² , P = 2πr" },
+                { name: "Área de Trapecio", eq: "A = (a+b)h / 2" },
+                { name: "Volumen Esfera", eq: "V = (4/3)πr³" },
                 { name: "Área Superficial Esfera", eq: "A = 4πr²" },
                 { name: "Volumen Cilindro", eq: "V = πr²h" },
-                { name: "Volumen Cono", eq: "V = (1/3)πr²h" }
+                { name: "Volumen Cono", eq: "V = (1/3)πr²h" },
+                { name: "Teorema de Tales", eq: "a/b = c/d" }
             ],
-            analytic_geometry: [
+            analytic: [
                 { name: "Distancia entre 2 puntos", eq: "d = √((x₂ - x₁)² + (y₂ - y₁)²)" },
-                { name: "Punto Medio", eq: "M = ((x₁+x₂)/2 , (y₁+y₂)/2)" },
-                { name: "Pendiente de la Recta", eq: "m = (y₂ - y₁) / (x₂ - x₁)" },
-                { name: "Ecuación de la Recta", eq: "y - y₁ = m(x - x₁)" },
+                { name: "Pendiente de Recta", eq: "m = (y₂ - y₁) / (x₂ - x₁)" },
+                { name: "Ecuación Punto-Pendiente", eq: "y - y₁ = m(x - x₁)" },
                 { name: "Distancia Punto a Recta", eq: "d = |Ax₁ + By₁ + C| / √(A² + B²)" },
-                { name: "Ecuación Circunferencia", eq: "(x - h)² + (y - k)² = r²" },
-                { name: "Ecuación Elipse", eq: "(x - h)²/a² + (y - k)²/b² = 1" },
-                { name: "Ecuación Parábola", eq: "(x - h)² = 4p(y - k)" },
-                { name: "Ecuación Hipérbola", eq: "(x - h)²/a² - (y - k)²/b² = 1" }
+                { name: "Circunferencia (Centro h,k)", eq: "(x - h)² + (y - k)² = r²" },
+                { name: "Elipse (Centro h,k)", eq: "(x-h)²/a² + (y-k)²/b² = 1" },
+                { name: "Parábola", eq: "(x - h)² = 4p(y - k)" },
+                { name: "Hipérbola", eq: "(x-h)²/a² - (y-k)²/b² = 1" }
             ],
             trigonometry: [
-                { name: "Identidad Fundamental", eq: "sin²(θ) + cos²(θ) = 1" },
-                { name: "Seno de Ángulo Doble", eq: "sin(2θ) = 2sin(θ)cos(θ)" },
-                { name: "Coseno de Ángulo Doble", eq: "cos(2θ) = cos²(θ) - sin²(θ)" },
+                { name: "Identidad Pitagórica", eq: "sin²(θ) + cos²(θ) = 1" },
                 { name: "Ley de Senos", eq: "a/sin(A) = b/sin(B) = c/sin(C)" },
                 { name: "Ley de Cosenos", eq: "c² = a² + b² - 2ab·cos(C)" },
                 { name: "Suma de Ángulos (Sen)", eq: "sin(α ± β) = sin(α)cos(β) ± cos(α)sin(β)" },
                 { name: "Suma de Ángulos (Cos)", eq: "cos(α ± β) = cos(α)cos(β) ∓ sin(α)sin(β)" },
-                { name: "Fórmula de Euler", eq: "e^(ix) = cos(x) + i·sin(x)" }
+                { name: "Ángulo Doble (Sen)", eq: "sin(2θ) = 2sin(θ)cos(θ)" },
+                { name: "Ángulo Doble (Cos)", eq: "cos(2θ) = cos²(θ) - sin²(θ)" },
+                { name: "Transformación a Producto", eq: "sin(A)+sin(B) = 2sin((A+B)/2)cos((A-B)/2)" }
             ],
-            calculus: [
+            calculus_limits: [
+                { name: "Definición de Límite", eq: "∀ε>0, ∃δ>0 : 0 < |x-a| < δ ⇒ |f(x)-L| < ε" },
+                { name: "Límite Fundamental Trig.", eq: "lim(x→0) [sin(x) / x] = 1" },
+                { name: "Límite Número e", eq: "lim(n→∞) (1 + 1/n)^n = e" },
+                { name: "Regla de L'Hôpital", eq: "lim [f(x)/g(x)] = lim [f'(x)/g'(x)]" },
+                { name: "Serie de Taylor", eq: "f(x) = Σ [f^(n)(a) / n!] (x - a)^n" },
+                { name: "Serie de Maclaurin (e^x)", eq: "e^x = Σ (x^n / n!)" }
+            ],
+            calculus_deriv: [
                 { name: "Definición de Derivada", eq: "f'(x) = lim(h→0) [f(x+h) - f(x)] / h" },
-                { name: "Regla de la Potencia", eq: "d/dx [x^n] = n · x^(n-1)" },
-                { name: "Regla del Producto", eq: "(u·v)' = u'v + uv'" },
+                { name: "Regla de la Potencia", eq: "d/dx [x^n] = n·x^(n-1)" },
+                { name: "Regla del Producto", eq: "(uv)' = u'v + uv'" },
                 { name: "Regla del Cociente", eq: "(u/v)' = (u'v - uv') / v²" },
                 { name: "Regla de la Cadena", eq: "d/dx [f(g(x))] = f'(g(x)) · g'(x)" },
-                { name: "Regla de L'Hôpital", eq: "lim [f(x)/g(x)] = lim [f'(x)/g'(x)]" },
+                { name: "Derivada Función Implícita", eq: "dy/dx = - (∂F/∂x) / (∂F/∂y)" }
+            ],
+            calculus_int: [
+                { name: "T. Fundamental del Cálculo", eq: "∫_a^b f(x)dx = F(b) - F(a)" },
                 { name: "Integración por Partes", eq: "∫ u dv = u·v - ∫ v du" },
-                { name: "Teorema Fundamental del Cálculo", eq: "∫_a^b f(x)dx = F(b) - F(a)" },
-                { name: "Serie de Taylor", eq: "f(x) = Σ [f^(n)(a) / n!] (x - a)^n" },
-                { name: "Transformada de Laplace", eq: "L{f(t)} = ∫_0^∞ e^(-st) f(t) dt" }
+                { name: "Regla de Sustitución", eq: "∫ f(g(x))g'(x)dx = ∫ f(u)du" },
+                { name: "Integral de Potencia", eq: "∫ x^n dx = (x^(n+1))/(n+1) + C" },
+                { name: "Integral de 1/x", eq: "∫ (1/x) dx = ln|x| + C" },
+                { name: "Longitud de Arco", eq: "L = ∫_a^b √(1 + [f'(x)]²) dx" },
+                { name: "Volumen (Método Discos)", eq: "V = π ∫_a^b [f(x)]² dx" }
+            ],
+            calculus_multi: [
+                { name: "Vector Gradiente", eq: "∇f = (∂f/∂x, ∂f/∂y, ∂f/∂z)" },
+                { name: "Derivada Direccional", eq: "D_u f = ∇f · u" },
+                { name: "Divergencia", eq: "div(F) = ∇ · F = ∂P/∂x + ∂Q/∂y + ∂R/∂z" },
+                { name: "Rotacional (Curl)", eq: "curl(F) = ∇ × F" },
+                { name: "Teorema de Green", eq: "∮_C (P dx + Q dy) = ∬_D (∂Q/∂x - ∂P/∂y) dA" },
+                { name: "Teorema de Stokes", eq: "∮_C F · dr = ∬_S (∇ × F) · dS" },
+                { name: "Teorema Divergencia (Gauss)", eq: "∬_S F · dS = ∭_E (∇ · F) dV" }
+            ],
+            complex: [
+                { name: "Forma Binómica", eq: "z = a + bi" },
+                { name: "Módulo y Conjugado", eq: "|z| = √(a²+b²) , z̄ = a - bi" },
+                { name: "Fórmula de Euler", eq: "e^(iθ) = cos(θ) + i·sin(θ)" },
+                { name: "Forma Polar", eq: "z = r·e^(iθ) = r(cos θ + i sin θ)" },
+                { name: "Fórmula de De Moivre", eq: "z^n = r^n(cos nθ + i sin nθ)" },
+                { name: "Raíces n-ésimas", eq: "z_k = r^(1/n) · e^(i(θ+2πk)/n)" }
             ],
             stats: [
                 { name: "Media Poblacional", eq: "μ = (Σ x_i) / N" },
-                { name: "Varianza Poblacional", eq: "σ² = Σ (x_i - μ)² / N" },
-                { name: "Desviación Estándar", eq: "σ = √(Σ (x_i - μ)² / N)" },
+                { name: "Varianza y Desv. Estándar", eq: "σ² = Σ(x_i - μ)²/N , σ = √σ²" },
+                { name: "Covarianza", eq: "Cov(X,Y) = Σ(x_i - x̄)(y_i - ȳ) / (n-1)" },
                 { name: "Probabilidad Condicional", eq: "P(A|B) = P(A ∩ B) / P(B)" },
+                { name: "Teorema de Prob. Total", eq: "P(A) = Σ P(A|B_i)P(B_i)" },
                 { name: "Teorema de Bayes", eq: "P(A|B) = [P(B|A)P(A)] / P(B)" },
                 { name: "Distribución Binomial", eq: "P(X=k) = (nCk) · p^k · (1-p)^(n-k)" },
-                { name: "Distribución Poisson", eq: "P(X=k) = (λ^k · e^-λ) / k!" },
-                { name: "Densidad Normal", eq: "f(x) = (1 / σ√2π) · e^(-(x-μ)² / 2σ²)" }
+                { name: "Distribución de Poisson", eq: "P(X=k) = (λ^k · e^-λ) / k!" }
+            ],
+            continuous: [
+                { name: "Función Densidad (PDF)", eq: "∫_{-∞}^{∞} f(x) dx = 1" },
+                { name: "Esperanza Matemática", eq: "E[X] = ∫_{-∞}^{∞} x·f(x) dx" },
+                { name: "Varianza Continua", eq: "Var(X) = E[X²] - (E[X])²" },
+                { name: "Distribución Normal", eq: "f(x) = (1 / σ√2π) · e^(-(x-μ)² / 2σ²)" },
+                { name: "Distribución Exponencial", eq: "f(x) = λe^(-λx) (x ≥ 0)" }
             ],
             topology: [
-                { name: "Característica de Euler (Poliedros)", eq: "χ = V - E + F" },
+                { name: "Característica Euler (Poliedros)", eq: "χ = V - E + F" },
                 { name: "Característica Euler (Superficies)", eq: "χ = 2 - 2g" },
-                { name: "Números de Betti", eq: "χ = b₀ - b₁ + b₂" },
-                { name: "Género de Superficie", eq: "g = 1 - χ/2" },
                 { name: "Teorema Gauss-Bonnet", eq: "∫_M K dA + ∫_∂M k_g ds = 2πχ(M)" },
-                { name: "Grupo Fundamental (Círculo)", eq: "π₁(S¹) ≅ ℤ" }
+                { name: "Métrica Euclidiana ℝⁿ", eq: "d(x,y) = √(Σ (x_i - y_i)²)" }
             ]
         };
+
+        // Scroll horizontal suave para las pestañas (Arrastrar para navegar)
+        const tabsContainer = document.getElementById('formula-tabs');
+        let isDown = false; let startX; let scrollLeft;
+        tabsContainer.addEventListener('mousedown', (e) => { isDown = true; startX = e.pageX - tabsContainer.offsetLeft; scrollLeft = tabsContainer.scrollLeft; });
+        tabsContainer.addEventListener('mouseleave', () => { isDown = false; });
+        tabsContainer.addEventListener('mouseup', () => { isDown = false; });
+        tabsContainer.addEventListener('mousemove', (e) => {
+            if(!isDown) return; e.preventDefault();
+            const x = e.pageX - tabsContainer.offsetLeft; const walk = (x - startX) * 2;
+            tabsContainer.scrollLeft = scrollLeft - walk;
+        });
+
+        // Buscador Inteligente
+        function filterFormulas() {
+            const query = document.getElementById('formula-search').value.toLowerCase();
+            const btns = document.querySelectorAll('.f-btn');
+            btns.forEach(btn => {
+                if(btn.innerText.toLowerCase().includes(query)) btn.style.display = 'flex';
+                else btn.style.display = 'none';
+            });
+        }
 
         function toggleFormulasPanel() {
             const panel = document.getElementById('formulas-panel');
             if (panel.style.display === 'none' || panel.style.display === '') {
                 panel.style.display = 'flex';
-                // Cargar primer tab por defecto si está vacío
                 if(document.getElementById('formula-grid-container').innerHTML.trim() === '') {
                     loadFormulas('algebra', document.querySelector('.f-tab'));
                 }
-            } else {
-                panel.style.display = 'none';
-            }
+            } else { panel.style.display = 'none'; }
         }
 
         function loadFormulas(category, tabBtn) {
             document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
             tabBtn.classList.add('active');
             
+            // Centrar pestaña activa
+            tabBtn.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+            
             const grid = document.getElementById('formula-grid-container');
-            grid.innerHTML = ''; // Limpiar grilla
+            grid.innerHTML = ''; 
             
             mathFormulas[category].forEach(f => {
                 const btn = document.createElement('button');
                 btn.className = 'f-btn';
                 btn.innerHTML = `<span class="f-title">${f.name}</span>${f.eq}`;
-                // Solo el profe puede estampar fórmulas para evitar troleos de alumnos
-                btn.onclick = () => { if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede pegar fórmulas en la pizarra."); };
+                btn.onclick = () => { if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede estampar fórmulas."); };
                 grid.appendChild(btn);
             });
+            document.getElementById('formula-search').value = ''; // Resetear busqueda
         }
 
-        // MOTOR DE ESTAMPADO DE TEXTO MATEMÁTICO
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -516,18 +637,12 @@
             const width = Math.max(metrics.width + 60, 200); 
             const height = 120;
             
-            tempCanvas.width = width;
-            tempCanvas.height = height;
+            tempCanvas.width = width; tempCanvas.height = height;
             
             tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
-            tCtx.textBaseline = 'middle';
-            tCtx.textAlign = 'center';
+            tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
             tCtx.fillStyle = myColor;
-            
-            // Simular el efecto de la tiza/fibrón en la fórmula generada
-            tCtx.shadowBlur = parseInt(penSize) * 0.5;
-            tCtx.shadowColor = myColor;
-            tCtx.globalAlpha = 0.9;
+            tCtx.shadowBlur = 4; tCtx.shadowColor = myColor; tCtx.globalAlpha = 0.9;
             
             tCtx.fillText(formulaText, width / 2, height / 2);
             
@@ -535,15 +650,14 @@
             img.src = tempCanvas.toDataURL("image/png");
             
             const stamperContent = document.getElementById('stamper-content');
-            stamperContent.style.width = width + 'px';
-            stamperContent.style.height = height + 'px';
+            stamperContent.style.width = width + 'px'; stamperContent.style.height = height + 'px';
             
             const stamper = document.getElementById('stamper');
             stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px'; 
             stamper.style.left = (window.innerWidth/2) + 'px'; 
             stamper.style.display = 'block';
             
-            document.getElementById('formulas-panel').style.display = 'none'; // Auto-ocultar al seleccionar
+            document.getElementById('formulas-panel').style.display = 'none'; 
         }
 
         function saveAsPDF() {
@@ -555,8 +669,7 @@
             const tCtx = tempCanvas.getContext('2d');
             const theme = themes[currentThemeIdx];
             
-            tCtx.fillStyle = theme.bg;
-            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            tCtx.fillStyle = theme.bg; tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
             if (theme.grid) {
                 tCtx.strokeStyle = theme.id === 'white' ? 'rgba(0,0,0,0.06)' : 'rgba(255,255,255,0.06)';
@@ -572,21 +685,18 @@
             pdf.save(filename + ".pdf");
         }
 
+        /* ================= GRABADOR DE VIDEO MP4 ================= */
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
-
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
         function startRecording() {
             if (!audioDestination) { alert("El audio no está inicializado."); return; }
-            
             const canvasStream = canvas.captureStream(15); 
             const combinedTracks = [ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ];
             const combinedStream = new MediaStream(combinedTracks);
-
             const mimeTypes = ['video/mp4', 'video/webm;codecs=h264', 'video/webm'];
             let selectedMime = '';
             for (let mime of mimeTypes) { if (MediaRecorder.isTypeSupported(mime)) { selectedMime = mime; break; } }
-
             mediaRecorder = new MediaRecorder(combinedStream, { mimeType: selectedMime });
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
@@ -599,18 +709,17 @@
                 }
                 URL.revokeObjectURL(url); recordedChunks = [];
             };
-
             mediaRecorder.start(); isRecording = true;
             const btn = document.getElementById('btn-record');
             btn.innerHTML = '⏹️ <span class="hide-mobile">Grabando</span>'; btn.classList.add('record-active');
         }
-
         function stopRecording() {
             mediaRecorder.stop(); isRecording = false;
             const btn = document.getElementById('btn-record');
             btn.innerHTML = '⏺️ <span class="hide-mobile">MP4</span>'; btn.classList.remove('record-active');
         }
 
+        /* ================= AUDIO ================= */
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
             try { 
@@ -654,6 +763,7 @@
             }
         }
 
+        /* ================= LECTOR DE PDF Y RECORTE EXACTO ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -674,7 +784,7 @@
                 });
             }
             reader.readAsArrayBuffer(file);
-            this.value = ''; // Permite cargar otro archivo o el mismo de nuevo sin recargar web
+            this.value = ''; 
         });
 
         function renderPage(num) {
@@ -808,41 +918,39 @@
         }
         function cancelStamp() { stamper.style.display = 'none'; }
 
-        /* ================= 6. CONEXIÓN ALUMNOS ================= */
+        /* ================= 6. CONEXIÓN (PEERJS) Y SYNC DE FORMAS ================= */
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
         function drawRemote(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
             if (data.type === 'theme') { applyTheme(data.index); return; }
-            if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
+            if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); oCtx.clearRect(0, 0, overlayCanvas.width, overlayCanvas.height); return; }
             
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
             if (data.type === 'stop') { ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return; }
             
             if (data.type === 'image') {
                 const img = new Image();
-                img.onload = () => { 
-                    ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
-                    ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, data.x, data.y, data.w, data.h); 
-                };
+                img.onload = () => { ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, data.x, data.y, data.w, data.h); };
                 img.src = data.src; return;
+            }
+
+            if (data.type === 'shape') {
+                ctx.globalCompositeOperation = 'source-over';
+                drawShapeParams(ctx, data.tool, data.x1, data.y1, data.x2, data.y2, data.size, data.color);
+                return;
             }
             
             ctx.lineWidth = data.size;
-
-            if (data.tool !== 'eraser') {
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.strokeStyle = data.color;
-                ctx.shadowBlur = data.size * 0.4;
-                ctx.shadowColor = data.color;
-                ctx.globalAlpha = 0.85;
-            } else {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.shadowBlur = 0;
-                ctx.globalAlpha = 1.0;
+            if (data.tool === 'pen' || data.tool === 'eraser') {
+                if (data.tool !== 'eraser') {
+                    ctx.globalCompositeOperation = 'source-over'; ctx.strokeStyle = data.color;
+                    ctx.shadowBlur = data.size * 0.4; ctx.shadowColor = data.color; ctx.globalAlpha = 0.85;
+                } else {
+                    ctx.globalCompositeOperation = 'destination-out'; ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
+                }
+                ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
             }
-
-            ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
         }
 
         async function createRoom() {
@@ -904,8 +1012,16 @@
         makeDraggable(pdfPanel, document.getElementById('pdf-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
 
+        // Permitir scroll interno en el widget de formulas sin mover el panel
+        document.getElementById('formulas-header').addEventListener('pointerdown', e => e.stopPropagation());
+        document.getElementById('formula-grid-container').addEventListener('pointerdown', e => e.stopPropagation());
+        document.querySelector('.formula-search-bar').addEventListener('pointerdown', e => e.stopPropagation());
+
         document.querySelectorAll('.floating-panel, #toolbar, #stamper').forEach(el => {
-            el.addEventListener('pointerdown', e => e.stopPropagation()); el.addEventListener('touchstart', e => e.stopPropagation(), {passive: false});
+            if(el.id !== 'formulas-panel') {
+                el.addEventListener('pointerdown', e => e.stopPropagation()); 
+                el.addEventListener('touchstart', e => e.stopPropagation(), {passive: false});
+            }
         });
     </script>
 </body>
