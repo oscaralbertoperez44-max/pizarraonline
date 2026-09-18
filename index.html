@@ -22,22 +22,49 @@
         #canvas-container {
             width: 100vw; height: 100vh;
             position: absolute; top: 0; left: 0; z-index: 1;
-            overflow: hidden; /* Cero scroll, máximo rendimiento */
+            overflow: hidden; 
             background-color: #ffffff;
         }
 
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            /* Diseño Pizarra Blanca con Cuadrícula Fija */
             background-color: #ffffff;
             background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
                               linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
             background-size: 35px 35px;
-            /* Aceleración de Hardware dedicada */
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
+            /* Puntero de Precisión Profesional */
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>') 12 12, crosshair !important;
+        }
+
+        /* Sistema de Cursores Remotos (Multijugador) */
+        .remote-cursor {
+            position: absolute;
+            top: 0; left: 0;
+            pointer-events: none;
+            z-index: 9997;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: opacity 0.3s ease;
+            opacity: 0;
+            transform-origin: top left;
+            margin-left: -5px;
+            margin-top: -5px;
+            will-change: transform;
+        }
+        .remote-cursor .cursor-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.5);
+        }
+        .remote-cursor .cursor-label {
+            margin-top: 4px; color: white; font-size: 11px;
+            padding: 3px 8px; border-radius: 10px; font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3);
+            text-transform: uppercase; letter-spacing: 0.5px;
         }
 
         #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
@@ -95,7 +122,6 @@
         .stamper-toolbar { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
         .stamper-toolbar button { touch-action: manipulation; }
 
-        /* Botones Base */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .danger-btn { background: #dc2626 !important; color: #fff; }
@@ -134,7 +160,7 @@
         #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
         #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
 
-        /* === BARRA UNIFICADA (ALUMNO Y PROFESOR) === */
+        /* === BARRA UNIFICADA Y OPTIMIZADA === */
         #main-toolbar {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
             z-index: 9999; gap: 8px; padding: 8px 16px;
@@ -287,7 +313,6 @@
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
             <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂</button>
-            <button id="btn-show-pdf" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
 
             <input type="file" id="imageInput" class="hidden-file" accept="image/*">
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
@@ -331,6 +356,7 @@
         let isAdmin = false; 
         let peer, connections = [], localStream = null;
         let audioContext, audioDestination;
+        let userRole = 'Alumno'; // Determina quién dibuja
 
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
         function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
@@ -342,6 +368,7 @@
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
+                userRole = 'Profesor';
                 document.getElementById('admin-tools').style.display = 'flex';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
@@ -350,14 +377,11 @@
         }
 
         const canvas = document.getElementById('board');
-        // Aceleración de Hardware dedicada
         const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
         
-        // Optimización Nivel Motor (C-Level JS)
         ctx.lineCap = 'round'; 
         ctx.lineJoin = 'round';
 
-        // Variables dinámicas para Viewport Canvas
         let internalWidth = 1920;
         let internalHeight = 1080;
 
@@ -366,7 +390,6 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
-            // Rellenar fondo blanco nativo al iniciar
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
@@ -393,7 +416,6 @@
         initCanvas();
         window.addEventListener('resize', resizeCanvas, { passive: true });
 
-        // Cola de red ultra-eficiente
         let broadcastQueue = [];
         setInterval(() => {
             if(broadcastQueue.length > 0 && connections.length > 0) {
@@ -404,16 +426,15 @@
         }, 16);
 
         function broadcastData(data) { 
+            // Inyectamos el ID y el Rol para el Cursor Multijugador
+            data.peerId = peer ? peer.id : 'local';
+            data.role = userRole;
+
             if(data.type === 'drawBezier' || data.type === 'draw') {
                 broadcastQueue.push(data);
             } else {
                 connections.forEach(conn => { if (conn.open) conn.send(data); }); 
             }
-        }
-
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => {});
-            else if (document.exitFullscreen) document.exitFullscreen();
         }
 
         function clearCanvas() {
@@ -609,7 +630,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER (Normalizadas por canvas.width) =================
+        // ================= RUTINAS STAMPER =================
         function renderFormulaToStamp(formulaText) {
             if (!isAdmin) return;
             const tempCanvas = document.createElement('canvas');
@@ -631,7 +652,6 @@
             const stamper = document.getElementById('stamper');
             stamper.style.display = 'block';
             
-            // Centrar el stamper dinámicamente
             stamper.style.top = (window.innerHeight/2) + 'px';
             stamper.style.left = (window.innerWidth/2) + 'px';
             
@@ -652,7 +672,6 @@
             
             if(window.refreshCtxState) window.refreshCtxState();
             
-            // Sincronización Normalizada para adaptarse a otras pantallas
             broadcastData({ type: 'image', src: img.src, x: realX / canvas.width, y: realY / canvas.width, w: realW / canvas.width, h: realH / canvas.width });
             
             document.getElementById('stamper').style.display = 'none';
@@ -716,7 +735,6 @@
             stampCropBox.style.display = 'none'; stampCropStart = null;
         }, true);
 
-        // Subida de Fotos
         function loadImageIntoStamp(file) {
             if (!file || !file.type || !file.type.startsWith('image/')) return;
             const reader = new FileReader();
@@ -852,7 +870,6 @@
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
             
-            // Ajustar formato dinámicamente según si es horizontal o vertical
             const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
             const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
             pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
@@ -911,10 +928,38 @@
             });
         }
 
-        // ================= CONEXIÓN Y SINCRONIZACIÓN NORMALIZADA =================
+        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR (CURSORES REMOTOS) =================
+        function updateRemoteCursor(data) {
+            if (!data.peerId) return;
+            let cursor = document.getElementById('cursor-' + data.peerId);
+            if (!cursor) {
+                cursor = document.createElement('div');
+                cursor.id = 'cursor-' + data.peerId;
+                cursor.className = 'remote-cursor';
+                cursor.innerHTML = `<div class="cursor-dot"></div><div class="cursor-label">${data.role}</div>`;
+                document.getElementById('canvas-container').appendChild(cursor);
+            }
+            
+            const realX = (data.lastPosX || data.x) * canvas.width;
+            const realY = (data.lastPosY || data.y) * canvas.width;
+            
+            cursor.style.transform = `translate(${realX}px, ${realY}px)`;
+            cursor.querySelector('.cursor-dot').style.backgroundColor = data.color || '#3b82f6';
+            cursor.querySelector('.cursor-label').style.backgroundColor = data.role === 'Profesor' ? '#10b981' : '#2563eb';
+            
+            clearTimeout(cursor.timeout);
+            cursor.style.opacity = '1';
+            cursor.timeout = setTimeout(() => { cursor.style.opacity = '0'; }, 600);
+        }
+
         function processRemoteCommand(data) {
             if (data.type === 'clear') { ctx.fillStyle='#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); return; }
-            if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x * canvas.width, data.y * canvas.width); return; }
+            
+            if (data.type === 'start') { 
+                updateRemoteCursor(data);
+                ctx.beginPath(); ctx.moveTo(data.x * canvas.width, data.y * canvas.width); 
+                return; 
+            }
             if (data.type === 'stop') { ctx.beginPath(); return; }
             if (data.type === 'image') {
                 const img = new Image();
@@ -922,6 +967,8 @@
                 img.src = data.src; return;
             }
             if (data.type === 'drawBezier') {
+                updateRemoteCursor(data);
+                
                 const finalSize = data.size * canvas.width;
                 if(data.tool === 'eraser'){
                     ctx.lineWidth = finalSize;
@@ -974,14 +1021,13 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
-                // Desaparecer código en exactamente 40 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
                         uiPanel.style.opacity = '0'; 
                         setTimeout(() => uiPanel.style.display = 'none', 1000); 
                     }
-                }, 40000); // 40 SEGUNDOS
+                }, 40000); 
             });
             peer.on('connection', (conn) => { 
                 connections.push(conn); 
@@ -1027,7 +1073,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y NORMALIZADA === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
@@ -1068,7 +1114,6 @@
       const c = board.getContext('2d');
       c.fillStyle='#ffffff'; c.fillRect(0,0,board.width,board.height);
       
-      // Restaurar grilla
       c.strokeStyle = 'rgba(0,0,0,0.05)'; c.lineWidth = 1.5;
       for(let x=0; x<board.width; x+=35) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,board.height); c.stroke(); }
       for(let y=0; y<board.height; y+=35) { c.beginPath(); c.moveTo(0,y); c.lineTo(board.width,y); c.stroke(); }
@@ -1087,8 +1132,7 @@
   }
   
   function start(ev){
-    // Evitar dibujo si tocas la UI
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar') || ev.target.closest('#toolbar')) return;
     ev.preventDefault();
     saveState();
 
@@ -1139,7 +1183,7 @@
                 c.globalCompositeOperation = 'source-over';
                 c.strokeStyle = inkColor;
                 c.shadowColor = inkColor;
-                c.shadowBlur = finalSize * 0.15; // Tint real
+                c.shadowBlur = finalSize * 0.15; 
                 c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
             }
             mwCtxState.color = inkColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode;
@@ -1155,15 +1199,10 @@
         if (typeof broadcastData === 'function') {
             broadcastData({ 
                 type:'drawBezier', 
-                lastMidX: midX / canvas.width, 
-                lastMidY: midY / canvas.width, 
-                lastPosX: p.x / canvas.width, 
-                lastPosY: p.y / canvas.width, 
-                midX: midX / canvas.width, 
-                midY: midY / canvas.width, 
-                color: inkColor, 
-                size: finalSize / canvas.width, 
-                tool: mwMode 
+                lastMidX: midX / canvas.width, lastMidY: midY / canvas.width, 
+                lastPosX: p.x / canvas.width, lastPosY: p.y / canvas.width, 
+                midX: midX / canvas.width, midY: midY / canvas.width, 
+                color: inkColor, size: finalSize / canvas.width, tool: mwMode 
             });
         }
     }
