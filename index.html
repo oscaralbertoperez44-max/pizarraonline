@@ -29,13 +29,17 @@
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            background-color: #ffffff;
+            /* Diseño Pizarra Blanca con Cuadrícula Fija (Capa de Fondo) */
+            background-color: transparent;
             background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
                               linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
             background-size: 35px 35px;
+            
+            /* Aceleración de Hardware dedicada */
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
+            /* Puntero de Precisión Profesional */
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>') 12 12, crosshair !important;
         }
 
@@ -73,12 +77,12 @@
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
-        /* Panel del Código de la clase */
         #ui-panel { 
             top: 20px; left: 20px; padding: 20px; 
             text-align: center; background: rgba(15, 23, 42, 0.95); 
             border: 1px solid #3b82f6; border-radius: 16px;
-            transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            transition: opacity 1s ease; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
         #pdf-panel { top: 80px; left: 30px; width: 500px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
@@ -96,7 +100,6 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
         
-        /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         
@@ -105,11 +108,15 @@
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); cursor: crosshair; min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px;}
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
+        .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
+        .stamper-toolbar button { touch-action: manipulation; }
 
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .danger-btn { background: #dc2626 !important; color: #fff; }
+        .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
+        @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         .hidden-file { display: none; }
         #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
@@ -135,6 +142,10 @@
         .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
         .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
         .formula-card-actions button:hover{background:rgba(139,92,246,.25);}
+
+        #pdf-panel canvas, #pdf-panel .pdf-page canvas, #pdf-viewer canvas { image-rendering: auto !important; image-rendering: -webkit-optimize-contrast !important; }
+        #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
+        #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
 
         /* === BARRA UNIFICADA (ALUMNO Y PROFESOR) === */
         #main-toolbar {
@@ -278,21 +289,29 @@
         </div>
     </div>
 
-    <!-- Barra Única Unificada (Para Profesores y Alumnos) -->
+    <!-- Barra Única Unificada (Profesor y Alumno juntos) -->
     <div id="main-toolbar">
-        <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
-        <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
         
-        <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-        <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂</button>
+        <!-- Opciones de Profesor (Ocultas para alumnos) -->
+        <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
+            <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
+            <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
+            
+            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
+            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂</button>
 
-        <input type="file" id="imageInput" class="hidden-file" accept="image/*">
-        <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de dispositivo">🖼️</button>
-        <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
-        
-        <div class="toolbar-divider"></div>
+            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
+            <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
+            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC">🖼️</button>
+            <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
+            
+            <button onclick="saveAsPDF()" title="Guardar Clase en PDF">💾</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase">⏺️</button>
+            
+            <div class="toolbar-divider"></div>
+        </div>
 
+        <!-- Opciones Universales de Dibujo (Todos) -->
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
         <button type="button" id="mw-eraser" title="Borrador">🧼</button>
@@ -306,6 +325,7 @@
         
         <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
         <button type="button" id="mw-clear" title="Limpiar Pizarra Blanca" class="danger-btn">🗑️</button>
+        <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa">🔲</button>
     </div>
 
     <div id="canvas-container">
@@ -313,6 +333,15 @@
     </div>
 
 <script>
+        // Declarar función Pantalla Completa globalmente
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        };
+
         const peerNetworkOptions = { 
             config: { 
                 'iceServers': [ 
@@ -338,6 +367,7 @@
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
                 userRole = 'Profesor';
+                document.getElementById('admin-tools').style.display = 'flex';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 createRoom();
@@ -345,7 +375,8 @@
         }
 
         const canvas = document.getElementById('board');
-        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
+        // Alpha TRUE para que el fondo CSS se vea a través y la Goma funcione.
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
         
         ctx.lineCap = 'round'; 
         ctx.lineJoin = 'round';
@@ -358,8 +389,7 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            // No pintamos fondo blanco; la cuadrícula y el blanco vienen del CSS para usar la goma.
         }
 
         function resizeCanvas() {
@@ -368,9 +398,6 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
-            
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             const img = new Image();
             img.onload = () => {
@@ -405,12 +432,11 @@
         }
 
         function clearCanvas() {
-            if(!confirm('¿Limpiar toda la escritura de la pizarra?')) return;
-            ctx.fillStyle = '#ffffff';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(typeof saveState === 'function') saveState(); 
             broadcastData({ type:'clear' });
         }
+        window.clearCanvas = clearCanvas;
 
         /* ================= BIBLIOTECA MATEMÁTICA ================= */
         const mathFormulas = {
@@ -597,7 +623,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER Y PDF (Mejoras Solicitadas) =================
+        // ================= RUTINAS STAMPER Y PDF =================
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -697,7 +723,7 @@
                 };
                 img.src = out.toDataURL('image/png');
             }
-            stampCropMode = false; document.getElementById('stamper-content').style.cursor = 'grab';
+            stampCropMode = false; document.getElementById('stamper-content').style.cursor = 'crosshair';
             stampCropBox.style.display = 'none'; stampCropStart = null;
         }, true);
 
@@ -817,6 +843,82 @@
             pdfCropStart = null;
         });
 
+        function saveAsPDF() {
+            const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
+            if (!filename) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            const tCtx = tempCanvas.getContext('2d');
+            
+            tCtx.fillStyle = '#ffffff'; 
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            tCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+            tCtx.lineWidth = 1.5;
+            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
+            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
+            
+            tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            const { jsPDF } = window.jspdf;
+            
+            const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
+            const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
+            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
+            pdf.save(filename + ".pdf");
+        }
+
+        let mediaRecorder; let recordedChunks = []; let isRecording = false;
+        function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
+        function startRecording() {
+            if (!audioDestination) { alert("Audio no inicializado."); return; }
+            const canvasStream = canvas.captureStream(15); 
+            const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
+            mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+            mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.webm'; a.click();
+                URL.revokeObjectURL(url); recordedChunks = [];
+            };
+            mediaRecorder.start(); isRecording = true;
+            document.getElementById('btn-record').classList.add('record-active');
+        }
+        function stopRecording() { mediaRecorder.stop(); isRecording = false; document.getElementById('btn-record').classList.remove('record-active'); }
+
+        async function getMicrophone() {
+            if (!navigator.mediaDevices) return false;
+            try { 
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioDestination = audioContext.createMediaStreamDestination();
+                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
+                return true; 
+            } catch(e) { return false; }
+        }
+
+        function toggleMic() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                audioTrack.enabled = !audioTrack.enabled;
+                const btn = document.getElementById('btn-mic');
+                btn.style.background = audioTrack.enabled ? '#10b981' : '#dc2626';
+            }
+        }
+
+        function playAudio(stream) { 
+            const audio = new Audio(); 
+            audio.srcObject = stream; audio.autoplay = true; audio.playsInline = true;
+            document.body.appendChild(audio); 
+            audio.play().catch(() => {
+                const unlock = document.createElement('button');
+                unlock.className = "audio-unlock-btn";
+                unlock.innerHTML = "🔊 Toca para escuchar la clase";
+                unlock.onclick = () => { audio.play(); unlock.remove(); };
+                document.body.appendChild(unlock);
+            });
+        }
+
         // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR (CURSORES REMOTOS) =================
         function updateRemoteCursor(data) {
             if (!data.peerId) return;
@@ -842,7 +944,7 @@
         }
 
         function processRemoteCommand(data) {
-            if (data.type === 'clear') { ctx.fillStyle='#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); return; }
+            if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             
             if (data.type === 'start') { 
                 updateRemoteCursor(data);
@@ -898,6 +1000,7 @@
         }
 
         async function createRoom() {
+            await getMicrophone();
             document.getElementById('main-toolbar').style.display = 'flex';
             
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
@@ -909,7 +1012,6 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
-                // Desaparecer código en exactamente 40 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
@@ -922,12 +1024,14 @@
                 connections.push(conn); 
                 conn.on('data', drawRemote); 
             });
+            peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
         }
 
         async function joinRoom() {
             const roomId = document.getElementById('roomIdInput').value.toUpperCase().trim();
             if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
             
+            await getMicrophone();
             peer = new Peer(peerNetworkOptions);
             peer.on('open', () => {
                 document.getElementById('login-overlay').style.opacity = '0';
@@ -937,17 +1041,13 @@
                 const conn = peer.connect(roomId); 
                 connections.push(conn);
                 conn.on('data', drawRemote);
+                if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
             });
             peer.on('error', () => {
                 alert("No se pudo conectar a la clase. Verifica el código.");
                 window.location.reload();
             });
         }
-
-        async function playAudio() {} // Deprecated audio
-        async function getMicrophone() {} // Deprecated audio
-        function toggleMic() {} // Deprecated audio
-
         
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
@@ -964,13 +1064,12 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y NORMALIZADA === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
 
   let mwMode = 'pen';
-  let mwColor = '#0f172a';
   let mwSize = 5;
   let mwDrawing = false;
   
@@ -1003,12 +1102,7 @@
     const img = new Image();
     img.onload = function(){
       const c = board.getContext('2d');
-      c.fillStyle='#ffffff'; c.fillRect(0,0,board.width,board.height);
-      
-      c.strokeStyle = 'rgba(0,0,0,0.05)'; c.lineWidth = 1.5;
-      for(let x=0; x<board.width; x+=35) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,board.height); c.stroke(); }
-      for(let y=0; y<board.height; y+=35) { c.beginPath(); c.moveTo(0,y); c.lineTo(board.width,y); c.stroke(); }
-      
+      c.clearRect(0,0,board.width,board.height);
       c.drawImage(img,0,0);
     };
     img.src = url;
@@ -1023,7 +1117,7 @@
   }
   
   function start(ev){
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar') || ev.target.closest('#toolbar')) return;
     ev.preventDefault();
     saveState();
 
