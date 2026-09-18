@@ -11,10 +11,10 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
     <style>
-        /* Base General */
+        /* Base General Ultra Optimizada */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
-            background-color: #050505; color: #fff;
+            background-color: #ffffff; color: #1e293b;
             font-family: 'Segoe UI', sans-serif; overflow: hidden;
             position: fixed; inset: 0; touch-action: none;
         }
@@ -22,47 +22,46 @@
         #canvas-container {
             width: 100vw; height: 100vh;
             position: absolute; top: 0; left: 0; z-index: 1;
-            overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
+            overflow: hidden; /* Cero scroll, máximo rendimiento */
+            background-color: #ffffff;
         }
-        #canvas-container::-webkit-scrollbar { width: 12px; }
-        #canvas-container::-webkit-scrollbar-track { background: #121212; border-left: 1px solid #333; }
-        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 8px; border: 2px solid #121212; }
-        
+
         canvas#board {
             display: block; touch-action: none;
-            width: 100%; height: auto; min-height: 300vh; 
-            transition: background 0.3s ease;
+            width: 100vw; height: 100vh; 
+            /* Diseño Pizarra Blanca con Cuadrícula Fija */
+            background-color: #ffffff;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 35px 35px;
+            /* Aceleración de Hardware dedicada */
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
         }
 
-        /* Estilos Reales de Pizarra */
-        .theme-dark { background-color: #121212; background-image: linear-gradient(rgba(255,255,255,0.06) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.06) 1px, transparent 1px); background-size: 35px 35px; }
-        .theme-chalk { background-color: #1e382b; background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>'); background-size: cover, 150px 150px; }
-        .theme-white { background-color: #ffffff; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 35px 35px; }
-        
         #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
-        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; }
+        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; }
         .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
-        .login-subtitle { color: #888; margin-bottom: 30px; font-size: 0.9rem; }
-        .role-btn { display: block; width: 100%; padding: 15px; margin-bottom: 15px; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
+        .login-subtitle { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
+        .role-btn { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
         .btn-student { background: #2563eb; color: white; }
         .btn-student:hover { background: #1d4ed8; }
         .btn-teacher { background: #10b981; color: white; }
         .btn-teacher:hover { background: #059669; }
-        .auth-form { display: none; margin-top: 20px; animation: fadeIn 0.3s; }
+        .auth-form { display: none; margin-top: 15px; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; }
         .auth-input:focus { outline: 2px solid #3b82f6; }
-        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 15px; padding: 5px; border: none; cursor: pointer; }
+        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 10px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
         
-        #ui-panel, #toolbar, .mobile-write-tools { display: none; }
+        #ui-panel, #main-toolbar { display: none; }
 
-        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.5); display: flex; flex-direction: column; }
+        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
+        /* Panel del Código de la clase */
         #ui-panel { 
             top: 20px; left: 20px; padding: 20px; 
             text-align: center; background: rgba(15, 23, 42, 0.95); 
@@ -86,7 +85,6 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
         
-        /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; }
@@ -95,37 +93,25 @@
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
+        .stamper-toolbar button { touch-action: manipulation; }
 
         /* Botones Base */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
-        .tool-btn { background: #334155; color: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; border-radius: 10px;}
-        .tool-btn.active { background: #10b981; box-shadow: 0 0 0 2px rgba(16,185,129,0.3); }
         .danger-btn { background: #dc2626 !important; color: #fff; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
-        
-        /* === BARRA SUPERIOR DEL PROFESOR (Evita taparse con la de abajo) === */
-        #toolbar {
-            position: fixed; bottom: 75px; left: 50%; transform: translateX(-50%);
-            background: rgba(15, 23, 42, 0.95); padding: 8px 16px;
-            border-radius: 30px; display: flex; gap: 8px; align-items: center; justify-content: center;
-            border: 1px solid rgba(255,255,255,0.15); box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 50;
-            backdrop-filter: blur(12px);
-            max-width: 95vw; overflow-x: auto; white-space: nowrap;
-        }
-        #toolbar::-webkit-scrollbar { display: none; }
         
         .hidden-file { display: none; }
         #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
         #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
         .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
+        #formulas-panel { width: min(430px, 38vw) !important; max-height: min(72vh, 760px) !important; overflow: hidden; z-index: 50; }
+        #formulas-panel .panel-body { max-height: calc(min(72vh, 760px) - 90px); overflow-y: auto; overflow-x: hidden; }
+
         @media (max-width: 900px) {
             #formula-search { font-size: .85rem; }
-            #toolbar { bottom: 70px; padding: 6px 12px; gap: 6px; border-radius: 20px; }
-            #toolbar .tool-btn { padding: 6px 10px; font-size: 0.8rem; }
-            .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
             #formulas-panel { width: 92vw !important; max-height:66vh !important; }
         }
@@ -140,6 +126,7 @@
         .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
         .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
         .formula-card-actions button:hover{background:rgba(139,92,246,.25);}
+
         #formulas-panel{overscroll-behavior:contain;}
         #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
@@ -147,23 +134,27 @@
         #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
         #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
 
-        /* === BARRA DE ESCRITURA UNIVERSAL (ABAJO) === */
-        .mobile-write-tools {
+        /* === BARRA UNIFICADA (ALUMNO Y PROFESOR) === */
+        #main-toolbar {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
             z-index: 9999; gap: 8px; padding: 8px 16px;
-            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.15);
-            border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
             align-items: center; backdrop-filter: blur(12px);
             max-width: 95vw; overflow-x: auto; white-space: nowrap;
         }
-        .mobile-write-tools::-webkit-scrollbar { display: none; }
-        .mobile-write-tools button {
+        #main-toolbar::-webkit-scrollbar { display: none; }
+        
+        .toolbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px; flex-shrink: 0; }
+        
+        #main-toolbar button {
             min-width: 44px; min-height: 42px; border: 0; border-radius: 12px;
-            padding: 6px 12px; font-size: 16px; color: #fff; background: #334155; cursor: pointer; transition: 0.2s;
+            padding: 6px 12px; font-size: 16px; color: #fff; background: #334155; cursor: pointer; transition: 0.2s; flex-shrink: 0;
         }
-        .mobile-write-tools button.active { outline: 2px solid #3b82f6; background: #2563eb; }
-        .mobile-write-tools input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6;}
-        .mobile-write-tools input[type="color"] { width: 36px; height: 36px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; }
+        #main-toolbar button:hover { background: #475569; }
+        #main-toolbar button.active { outline: 2px solid #3b82f6; background: #2563eb; }
+        #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
+        #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
         
         .audio-unlock-btn {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
@@ -208,7 +199,7 @@
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
-            <button class="tool-btn" onclick="toggleFormulasPanel()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
+            <button onclick="toggleFormulasPanel()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
         </div>
         <div class="formula-tab-btns">
             <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
@@ -241,7 +232,7 @@
             <button class="f-cat" data-cat="complex" onclick="selectFormulaCategory('complex')">Complejos</button>
             <button class="f-cat" data-cat="physics" onclick="selectFormulaCategory('physics')">Física</button>
         </div>
-        <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula, tema o palabra clave..." autocomplete="off">
+        <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula..." autocomplete="off">
         <div class="formula-count" id="formula-count"></div>
         <div class="formula-grid" id="formula-grid-container"></div>
     </div>
@@ -250,7 +241,7 @@
     <div id="pdf-panel" class="floating-panel">
         <div class="panel-header" id="pdf-header">
             <span>📄 Lector de PDF</span>
-            <button class="tool-btn" onclick="togglePdfMinimize()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
+            <button onclick="togglePdfMinimize()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
         </div>
         <div class="pdf-controls">
             <div class="pdf-controls-group">
@@ -262,7 +253,7 @@
                 <button onclick="zoomOut()" style="min-width:30px;">➖</button>
                 <button onclick="zoomIn()" style="min-width:30px;">➕</button>
             </div>
-            <button id="btn-crop" class="tool-btn" onclick="toggleCropMode()" style="background:#8b5cf6;">✂️ Recortar</button>
+            <button id="btn-crop" onclick="toggleCropMode()" style="background:#8b5cf6; padding: 6px 12px; border-radius: 8px;">✂️ Recortar</button>
         </div>
         <div id="pdf-render-container">
             <canvas id="pdf-canvas"></canvas>
@@ -271,7 +262,7 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General (Pegatinas móviles) -->
+    <!-- Estampador General -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-content">
             <img id="stamp-img" src="">
@@ -284,53 +275,47 @@
         </div>
     </div>
 
-    <!-- Toolbar Administrativa (Solo visible para el Profesor, encima de la de dibujo) -->
-    <div id="toolbar">
-        <button id="btn-mic" class="tool-btn" onclick="toggleMic()" title="Micrófono">🎙️ Mic</button>
-        <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
-        <button class="tool-btn" onclick="toggleFormulasPanel()" style="background:#8b5cf6;" title="Fórmulas">🧮 Fórmulas</button>
+    <!-- Barra Única Unificada (Profesor y Alumno juntos) -->
+    <div id="main-toolbar">
         
-        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
-        
-        <!-- Restauración de los Temas de Pizarra -->
-        <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 95px;">
-            <span id="theme-icon">🌙</span> <span id="theme-name">Oscura</span>
-        </button>
-        
-        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
+        <!-- Opciones de Profesor (Ocultas para alumnos) -->
+        <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
+            <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
+            <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
+            <button onclick="saveAsPDF()" title="Guardar Clase en PDF">💾</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase">⏺️</button>
+            
+            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
+            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂</button>
+            <button id="btn-show-pdf" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
 
-        <button class="tool-btn" onclick="saveAsPDF()" title="Guardar PDF">💾 PDF</button>
-        <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar">⏺️ MP4</button>
-        
-        <div style="width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
-        
-        <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-        <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂 PDF</button>
-        <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
-        <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
+            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
+            <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
+            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC">🖼️</button>
+            <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
+            
+            <div class="toolbar-divider"></div>
+        </div>
 
-        <input type="file" id="imageInput" class="hidden-file" accept="image/*">
-        <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-        <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir foto">🖼️ Foto</button>
-        <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Cámara">📷 Cámara</button>
+        <!-- Opciones Universales de Dibujo (Todos) -->
+        <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
+        <button type="button" id="mw-eraser" title="Borrador">🧼</button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <input id="mw-color" type="color" value="#0f172a" title="Color de Tinta">
+        <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor del Trazo">
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
+        <button type="button" id="mw-clear" title="Limpiar Pizarra Blanca" class="danger-btn">🗑️</button>
     </div>
 
-    <!-- Barra de Escritura Universal (Profesor y Alumnos, base inferior) -->
-    <div class="mobile-write-tools" id="mobile-write-tools">
-      <button type="button" id="mw-pen" class="active" title="Lápiz / Tiza">✏️</button>
-      <button type="button" id="mw-marker" title="Marcador">🖍️</button>
-      <button type="button" id="mw-eraser" title="Borrador">🧼</button>
-      <div style="width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
-      <input id="mw-color" type="color" value="#ffffff" title="Color">
-      <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor">
-      <div style="width: 1px; height: 28px; background: rgba(255,255,255,0.2); margin: 0 4px;"></div>
-      <button type="button" id="mw-undo" title="Deshacer">↩️</button>
-      <button type="button" id="mw-clear" title="Limpiar Pizarra" class="danger-btn">🗑️</button>
-    </div>
-
-    <!-- Contenedor Único de la Pizarra -->
+    <!-- Pizarra Blanca (Único Canvas - Tamaño Real) -->
     <div id="canvas-container">
-        <canvas id="board" width="1920" height="4000" class="theme-dark"></canvas>
+        <canvas id="board"></canvas>
     </div>
 
 <script>
@@ -357,7 +342,7 @@
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
-                document.getElementById('toolbar').style.display = 'flex';
+                document.getElementById('admin-tools').style.display = 'flex';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 createRoom();
@@ -365,25 +350,50 @@
         }
 
         const canvas = document.getElementById('board');
-        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
-        const container = document.getElementById('canvas-container');
+        // Aceleración de Hardware dedicada
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
         
-        ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-        let chalkPattern = null;
+        // Optimización Nivel Motor (C-Level JS)
+        ctx.lineCap = 'round'; 
+        ctx.lineJoin = 'round';
 
-        let cachedCanvasRect = canvas.getBoundingClientRect();
-        let cachedScaleX = canvas.width / cachedCanvasRect.width;
-        let cachedScaleY = canvas.height / cachedCanvasRect.height;
+        // Variables dinámicas para Viewport Canvas
+        let internalWidth = 1920;
+        let internalHeight = 1080;
 
-        function updateCanvasRect() {
-            cachedCanvasRect = canvas.getBoundingClientRect();
-            cachedScaleX = canvas.width / cachedCanvasRect.width;
-            cachedScaleY = canvas.height / cachedCanvasRect.height;
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            internalWidth = canvas.width;
+            internalHeight = canvas.height;
+            // Rellenar fondo blanco nativo al iniciar
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
 
-        window.addEventListener('resize', updateCanvasRect, { passive: true });
-        container.addEventListener('scroll', updateCanvasRect, { passive: true });
+        function resizeCanvas() {
+            const temp = canvas.toDataURL();
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            internalWidth = canvas.width;
+            internalHeight = canvas.height;
+            
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            const img = new Image();
+            img.onload = () => {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 1;
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = temp;
+        }
 
+        initCanvas();
+        window.addEventListener('resize', resizeCanvas, { passive: true });
+
+        // Cola de red ultra-eficiente
         let broadcastQueue = [];
         setInterval(() => {
             if(broadcastQueue.length > 0 && connections.length > 0) {
@@ -401,57 +411,17 @@
             }
         }
 
-        // ====== RESTAURACIÓN SISTEMA DE TEMAS (DARK / CHALK / WHITE) ======
-        const themes = [
-            { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff' },
-            { id: 'chalk', class: 'theme-chalk', icon: '🏫', name: 'Tiza', bg: '#1e382b', pen: '#f4f4f4' },
-            { id: 'white', class: 'theme-white', icon: '⚪', name: 'Blanca', bg: '#ffffff', pen: '#000000' }
-        ];
-        let currentThemeIdx = 0;
-
-        function generateChalkPattern(colorHex) {
-            const pCanvas = document.createElement('canvas');
-            pCanvas.width = 50; pCanvas.height = 50;
-            const pCtx = pCanvas.getContext('2d');
-            pCtx.fillStyle = colorHex;
-            for(let i = 0; i < 1000; i++) {
-                pCtx.globalAlpha = Math.random() * 0.7 + 0.1;
-                pCtx.fillRect(Math.random() * 50, Math.random() * 50, Math.random() * 1.5, Math.random() * 2);
-            }
-            return ctx.createPattern(pCanvas, 'repeat');
-        }
-
-        function cycleTheme() {
-            canvas.classList.remove(themes[currentThemeIdx].class);
-            currentThemeIdx = (currentThemeIdx + 1) % themes.length;
-            const newTheme = themes[currentThemeIdx];
-            
-            canvas.classList.add(newTheme.class);
-            document.getElementById('theme-icon').innerText = newTheme.icon;
-            document.getElementById('theme-name').innerText = newTheme.name;
-            
-            // Actualizar el color de la herramienta de dibujo unificada
-            const mwColorInput = document.getElementById('mw-color');
-            mwColorInput.value = newTheme.pen;
-            // Disparar evento para actualizar el motor de dibujo táctil
-            mwColorInput.dispatchEvent(new Event('input'));
-            
-            broadcastData({ type: 'theme', index: currentThemeIdx });
-        }
-
-        function applyTheme(index) {
-            canvas.classList.remove(themes[currentThemeIdx].class);
-            currentThemeIdx = index;
-            canvas.classList.add(themes[currentThemeIdx].class);
-            
-            const mwColorInput = document.getElementById('mw-color');
-            mwColorInput.value = themes[currentThemeIdx].pen;
-            mwColorInput.dispatchEvent(new Event('input'));
-        }
-
         function toggleFullScreen() {
             if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(err => {});
             else if (document.exitFullscreen) document.exitFullscreen();
+        }
+
+        function clearCanvas() {
+            if(!confirm('¿Limpiar toda la escritura de la pizarra?')) return;
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if(typeof saveState === 'function') saveState(); 
+            if(isAdmin) broadcastData({ type:'clear' });
         }
 
         /* ================= BIBLIOTECA MATEMÁTICA ================= */
@@ -460,19 +430,128 @@
                 {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
                 {name:"Identidad notable: cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
                 {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
+                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
+                {name:"Cubo de una diferencia",eq:"(a-b)³=a³-3a²b+3ab²-b³"},
+                {name:"Suma de cubos",eq:"a³+b³=(a+b)(a²-ab+b²)"},
+                {name:"Diferencia de cubos",eq:"a³-b³=(a-b)(a²+ab+b²)"},
                 {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
+                {name:"Discriminante",eq:"Δ=b²-4ac"},
+                {name:"Binomio general",eq:"(a+b)^n=Σₖ C(n,k)a^(n-k)b^k"},
+                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"},
+                {name:"Logaritmo del cociente",eq:"log(a/b)=log a-log b"},
+                {name:"Cambio de base",eq:"log_b(a)=ln(a)/ln(b)"},
                 {name:"Exponencial y logaritmo",eq:"ln(e^x)=x; e^(ln x)=x"}
             ],
             geometry: [
                 {name:"Pitágoras",eq:"a²+b²=c²"},
-                {name:"Área del Círculo",eq:"A = π · r²"},
-                {name:"Perímetro del Círculo",eq:"P = 2πr"},
+                {name:"Distancia entre puntos",eq:"d=√((x₂-x₁)²+(y₂-y₁)²)"},
+                {name:"Punto medio",eq:"M=((x₁+x₂)/2,(y₁+y₂)/2)"},
+                {name:"Pendiente",eq:"m=(y₂-y₁)/(x₂-x₁)"},
+                {name:"Recta",eq:"y-y₁=m(x-x₁)"},
+                {name:"Forma pendiente-intersección",eq:"y=mx+b"},
+                {name:"Área del triángulo",eq:"A=bh/2"},
+                {name:"Área del círculo",eq:"A=πr²"},
+                {name:"Longitud de circunferencia",eq:"C=2πr"},
+                {name:"Área del rectángulo",eq:"A=bh"},
+                {name:"Área del trapecio",eq:"A=(B+b)h/2"},
+                {name:"Área del rombo",eq:"A=Dd/2"},
+                {name:"Volumen del prisma",eq:"V=A_b h"},
+                {name:"Volumen del cilindro",eq:"V=πr²h"},
+                {name:"Volumen de la esfera",eq:"V=4πr³/3"},
                 {name:"Área de esfera",eq:"A=4πr²"}
             ],
+            trigonometry: [
+                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
+                {name:"Tangente",eq:"tan x=sin x/cos x"},
+                {name:"Secante",eq:"sec x=1/cos x"},
+                {name:"Cosecante",eq:"csc x=1/sin x"},
+                {name:"Ley de senos",eq:"a/sin A=b/sin B=c/sin C"},
+                {name:"Ley de cosenos",eq:"c²=a²+b²-2ab cos C"},
+                {name:"Suma del seno",eq:"sin(a+b)=sin a cos b+cos a sin b"},
+                {name:"Diferencia del seno",eq:"sin(a-b)=sin a cos b-cos a sin b"},
+                {name:"Suma del coseno",eq:"cos(a+b)=cos a cos b-sin a sin b"},
+                {name:"Diferencia del coseno",eq:"cos(a-b)=cos a cos b+sin a sin b"}
+            ],
             calculus: [
-                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
-                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
-                {name:"Integración por Partes",eq:"∫ u dv = u·v - ∫ v du"}
+                {name:"Derivada de potencia",eq:"d(x^n)/dx=nx^(n-1)"},
+                {name:"Derivada de exponencial",eq:"d(e^x)/dx=e^x"},
+                {name:"Derivada de logaritmo",eq:"d(ln x)/dx=1/x"},
+                {name:"Derivada del seno",eq:"d(sin x)/dx=cos x"},
+                {name:"Derivada del coseno",eq:"d(cos x)/dx=-sin x"},
+                {name:"Regla del producto",eq:"(fg)'=f'g+fg'"},
+                {name:"Regla del cociente",eq:"(f/g)'=(f'g-fg')/g²"},
+                {name:"Regla de la cadena",eq:"(f(g(x)))'=f'(g(x))g'(x)"},
+                {name:"Integral de potencia",eq:"∫x^n dx=x^(n+1)/(n+1)+C, n≠-1"},
+                {name:"Integral de 1/x",eq:"∫dx/x=ln|x|+C"},
+                {name:"Integral exponencial",eq:"∫e^x dx=e^x+C"},
+                {name:"Integral seno",eq:"∫sin x dx=-cos x+C"},
+                {name:"Integral coseno",eq:"∫cos x dx=sin x+C"},
+                {name:"Teorema fundamental",eq:"∫_a^b f(x)dx=F(b)-F(a), F'=f"},
+                {name:"Integración por partes",eq:"∫u dv=uv-∫v du"},
+                {name:"Sustitución",eq:"∫f(g(x))g'(x)dx=∫f(u)du"}
+            ],
+            statistics: [
+                {name:"Media",eq:"x̄=Σxᵢ/n"},
+                {name:"Media ponderada",eq:"x̄=Σwᵢxᵢ/Σwᵢ"},
+                {name:"Varianza poblacional",eq:"σ²=Σ(xᵢ-μ)²/N"},
+                {name:"Desviación estándar",eq:"σ=√σ²"},
+                {name:"Varianza muestral",eq:"s²=Σ(xᵢ-x̄)²/(n-1)"},
+                {name:"Puntaje Z",eq:"z=(x-μ)/σ"},
+                {name:"Regla empírica",eq:"≈68%-95%-99.7%"},
+                {name:"Covarianza",eq:"Cov(X,Y)=E[(X-μx)(Y-μy)]"},
+                {name:"Correlación",eq:"r=Cov(X,Y)/(σxσy)"}
+            ],
+            probability: [
+                {name:"Probabilidad clásica",eq:"P(A)=casos favorables/casos posibles"},
+                {name:"Complemento",eq:"P(Aᶜ)=1-P(A)"},
+                {name:"Unión",eq:"P(A∪B)=P(A)+P(B)-P(A∩B)"},
+                {name:"Condicional",eq:"P(A|B)=P(A∩B)/P(B)"},
+                {name:"Independencia",eq:"P(A∩B)=P(A)P(B)"},
+                {name:"Probabilidad total",eq:"P(B)=ΣᵢP(B|Aᵢ)P(Aᵢ)"},
+                {name:"Binomial: esperanza",eq:"E[X]=np"},
+                {name:"Binomial: varianza",eq:"Var(X)=np(1-p)"},
+                {name:"Geométrica",eq:"P(X=k)=(1-p)^(k-1)p"},
+                {name:"Poisson",eq:"P(X=k)=e^-λ λ^k/k!"},
+                {name:"Uniforme",eq:"f(x)=1/(b-a), a≤x≤b"}
+            ],
+            discrete: [
+                {name:"Factorial",eq:"n!=n(n-1)···2·1"},
+                {name:"Permutaciones",eq:"n!"},
+                {name:"Combinaciones",eq:"C(n,k)=n!/[k!(n-k)!]"},
+                {name:"Principio del palomar",eq:"n+1 objetos en n cajas ⇒ alguna caja tiene ≥2"},
+                {name:"Relación de recurrencia",eq:"aₙ=c₁aₙ₋₁+···+c_kaₙ₋ₖ"},
+                {name:"Euler para grafos planares",eq:"V-E+F=2"}
+            ],
+            numbers: [
+                {name:"MCD y MCM",eq:"mcd(a,b)·mcm(a,b)=|ab|"},
+                {name:"División euclídea",eq:"a=bq+r, 0≤r<b"},
+                {name:"Congruencia",eq:"a≡b (mod n) ⇔ n|(a-b)"},
+                {name:"Fermat",eq:"a^(p-1)≡1 (mod p), p∤a"},
+                {name:"Euler",eq:"a^φ(n)≡1 (mod n), mcd(a,n)=1"}
+            ],
+            financial: [
+                {name:"Interés simple",eq:"I=Prt"},
+                {name:"Monto simple",eq:"A=P(1+rt)"},
+                {name:"Interés compuesto",eq:"A=P(1+r/n)^(nt)"},
+                {name:"Valor presente",eq:"P=A/(1+r/n)^(nt)"},
+                {name:"Tasa efectiva",eq:"i_eff=(1+r/n)^n-1"}
+            ],
+            complex: [
+                {name:"Número complejo",eq:"z=a+bi"},
+                {name:"Módulo",eq:"|z|=√(a²+b²)"},
+                {name:"Conjugado",eq:"z̄=a-bi"},
+                {name:"Forma polar",eq:"z=r(cosθ+i sinθ)"},
+                {name:"Suma compleja",eq:"(a+bi)+(c+di)=(a+c)+(b+d)i"},
+                {name:"Producto complejo",eq:"(a+bi)(c+di)=(ac-bd)+(ad+bc)i"},
+                {name:"División compleja",eq:"z/w=z·w̄/|w|²"}
+            ],
+            physics: [
+                {name:"Velocidad",eq:"v=Δx/Δt"},
+                {name:"Aceleración",eq:"a=Δv/Δt"},
+                {name:"MRUA",eq:"x=x₀+v₀t+at²/2"},
+                {name:"Fuerza",eq:"F=ma"},
+                {name:"Energía cinética",eq:"E_k=mv²/2"},
+                {name:"Energía potencial",eq:"E_p=mgh"}
             ]
         };
 
@@ -530,7 +609,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER (Recortes, Formulas, Imagenes) =================
+        // ================= RUTINAS STAMPER (Normalizadas por canvas.width) =================
         function renderFormulaToStamp(formulaText) {
             if (!isAdmin) return;
             const tempCanvas = document.createElement('canvas');
@@ -542,7 +621,7 @@
             tempCanvas.width = width; tempCanvas.height = height;
             tCtx.font = 'bold 40px serif';
             tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
-            tCtx.fillStyle = document.getElementById('mw-color').value || '#ffffff';
+            tCtx.fillStyle = document.getElementById('mw-color').value || '#0f172a';
             tCtx.fillText(formulaText, width / 2, height / 2);
 
             const img = document.getElementById('stamp-img');
@@ -553,7 +632,7 @@
             stamper.style.display = 'block';
             
             // Centrar el stamper dinámicamente
-            stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px';
+            stamper.style.top = (window.innerHeight/2) + 'px';
             stamper.style.left = (window.innerWidth/2) + 'px';
             
             document.getElementById('formulas-panel').style.display = 'none';
@@ -563,22 +642,21 @@
             const img = document.getElementById('stamp-img');
             const rect = document.getElementById('stamper-content').getBoundingClientRect();
             
-            const scaleX = canvas.width / cachedCanvasRect.width; 
-            const scaleY = canvas.height / cachedCanvasRect.height;
-            
-            const realX = (rect.left - cachedCanvasRect.left) * scaleX; 
-            const realY = (rect.top - cachedCanvasRect.top) * scaleY;
-            const realW = rect.width * scaleX; const realH = rect.height * scaleY;
+            const realX = rect.left; 
+            const realY = rect.top;
+            const realW = rect.width; 
+            const realH = rect.height;
             
             ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1.0; ctx.shadowBlur = 0;
             ctx.drawImage(img, realX, realY, realW, realH);
             
-            // Refrescar estado para que el dibujo continue normal
             if(window.refreshCtxState) window.refreshCtxState();
             
-            broadcastData({ type: 'image', src: img.src, x: realX, y: realY, w: realW, h: realH });
+            // Sincronización Normalizada para adaptarse a otras pantallas
+            broadcastData({ type: 'image', src: img.src, x: realX / canvas.width, y: realY / canvas.width, w: realW / canvas.width, h: realH / canvas.width });
+            
             document.getElementById('stamper').style.display = 'none';
-            if(typeof window.saveState === 'function') window.saveState(); // Guardar en historial deshacer
+            if(typeof window.saveState === 'function') window.saveState(); 
         }
         function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
         
@@ -653,7 +731,7 @@
                         const sc = document.getElementById('stamper-content');
                         sc.style.width = w + 'px'; sc.style.height = h + 'px';
                         const stamper = document.getElementById('stamper');
-                        stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px';
+                        stamper.style.top = (window.innerHeight/2) + 'px';
                         stamper.style.left = (window.innerWidth/2) + 'px';
                         stamper.style.display = 'block';
                     };
@@ -748,7 +826,7 @@
                 document.getElementById('stamper-content').style.height = cssH + 'px';
                 
                 const stamper = document.getElementById('stamper');
-                stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px';
+                stamper.style.top = (window.innerHeight/2) + 'px';
                 stamper.style.left = (window.innerWidth/2) + 'px';
                 stamper.style.display = 'block';
                 togglePdfMinimize(); toggleCropMode();
@@ -760,29 +838,24 @@
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
             const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = 1920; tempCanvas.height = 4000;
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
             const tCtx = tempCanvas.getContext('2d');
-            const theme = themes[currentThemeIdx];
             
-            tCtx.fillStyle = theme.bg; 
+            tCtx.fillStyle = '#ffffff'; 
             tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
-            if(theme.id === 'white') {
-                tCtx.strokeStyle = 'rgba(0,0,0,0.05)';
-                tCtx.lineWidth = 1.5;
-                for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
-                for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
-            } else if(theme.id === 'dark') {
-                tCtx.strokeStyle = 'rgba(255,255,255,0.06)';
-                tCtx.lineWidth = 1.5;
-                for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
-                for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
-            }
+            tCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+            tCtx.lineWidth = 1.5;
+            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
+            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
             
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [1920, 4000] });
-            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, 1920, 4000);
+            
+            // Ajustar formato dinámicamente según si es horizontal o vertical
+            const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
+            const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
+            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
             pdf.save(filename + ".pdf");
         }
 
@@ -838,54 +911,40 @@
             });
         }
 
-        container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
-
-        let remoteRenderQueue = [];
-        let isRemoteRendering = false;
-        
+        // ================= CONEXIÓN Y SINCRONIZACIÓN NORMALIZADA =================
         function processRemoteCommand(data) {
-            if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
-            if (data.type === 'theme') { applyTheme(data.index); return; }
-            if (data.type === 'clear') { 
-                ctx.clearRect(0, 0, canvas.width, canvas.height); 
-                return; 
-            }
-            if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
+            if (data.type === 'clear') { ctx.fillStyle='#ffffff'; ctx.fillRect(0, 0, canvas.width, canvas.height); return; }
+            if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x * canvas.width, data.y * canvas.width); return; }
             if (data.type === 'stop') { ctx.beginPath(); return; }
             if (data.type === 'image') {
                 const img = new Image();
-                img.onload = () => { ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.drawImage(img, data.x, data.y, data.w, data.h); };
+                img.onload = () => { ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.drawImage(img, data.x * canvas.width, data.y * canvas.width, data.w * canvas.width, data.h * canvas.width); };
                 img.src = data.src; return;
             }
             if (data.type === 'drawBezier') {
+                const finalSize = data.size * canvas.width;
                 if(data.tool === 'eraser'){
-                    ctx.lineWidth = data.size;
+                    ctx.lineWidth = finalSize;
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.globalAlpha = 1;
                     ctx.shadowBlur = 0;
                 } else {
-                    const isChalkTheme = themes[currentThemeIdx].id === 'chalk';
-                    ctx.lineWidth = data.size;
+                    ctx.lineWidth = finalSize;
                     ctx.globalCompositeOperation = 'source-over';
-                    if (isChalkTheme) {
-                        if(!chalkPattern) chalkPattern = generateChalkPattern(data.color);
-                        ctx.strokeStyle = chalkPattern;
-                        ctx.shadowBlur = 0;
-                        ctx.globalAlpha = 0.9;
-                    } else {
-                        ctx.strokeStyle = data.color;
-                        ctx.shadowColor = data.color;
-                        ctx.shadowBlur = data.size * 0.15; // Tinta
-                        ctx.globalAlpha = data.tool === 'marker' ? 0.38 : 0.92;
-                    }
+                    ctx.strokeStyle = data.color;
+                    ctx.shadowColor = data.color;
+                    ctx.shadowBlur = finalSize * 0.15;
+                    ctx.globalAlpha = data.tool === 'marker' ? 0.38 : 0.92;
                 }
                 ctx.beginPath();
-                ctx.moveTo(data.lastMidX, data.lastMidY);
-                ctx.quadraticCurveTo(data.lastPosX, data.lastPosY, data.midX, data.midY);
+                ctx.moveTo(data.lastMidX * canvas.width, data.lastMidY * canvas.width);
+                ctx.quadraticCurveTo(data.lastPosX * canvas.width, data.lastPosY * canvas.width, data.midX * canvas.width, data.midY * canvas.width);
                 ctx.stroke();
             }
         }
 
+        let remoteRenderQueue = [];
+        let isRemoteRendering = false;
         function processRemoteRender() {
             if (remoteRenderQueue.length === 0) { isRemoteRendering = false; return; }
             const commands = remoteRenderQueue.splice(0, 500); 
@@ -904,7 +963,7 @@
 
         async function createRoom() {
             await getMicrophone();
-            document.getElementById('mobile-write-tools').style.display = 'flex';
+            document.getElementById('main-toolbar').style.display = 'flex';
             
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
             peer = new Peer(randomCode, peerNetworkOptions);
@@ -915,21 +974,17 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
-                // Desaparecer código en 40 segundos
+                // Desaparecer código en exactamente 40 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
                         uiPanel.style.opacity = '0'; 
                         setTimeout(() => uiPanel.style.display = 'none', 1000); 
                     }
-                }, 40000);
+                }, 40000); // 40 SEGUNDOS
             });
             peer.on('connection', (conn) => { 
                 connections.push(conn); 
-                conn.on('open', () => { 
-                    conn.send({ type: 'theme', index: currentThemeIdx });
-                    conn.send({ type: 'scroll', top: container.scrollTop });
-                }); 
                 conn.on('data', drawRemote); 
             });
             peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
@@ -944,7 +999,7 @@
             peer.on('open', () => {
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
-                document.getElementById('mobile-write-tools').style.display = 'flex';
+                document.getElementById('main-toolbar').style.display = 'flex';
                 
                 const conn = peer.connect(roomId); 
                 connections.push(conn);
@@ -972,32 +1027,30 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA (PROFESOR/ALUMNO) === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y NORMALIZADA === */
 (function(){
   const board = document.getElementById('board');
-  const container = document.getElementById('canvas-container');
-  if(!board || !container) return;
+  if(!board) return;
 
   let mwMode = 'pen';
+  let mwColor = '#0f172a';
   let mwSize = 5;
   let mwDrawing = false;
   
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
+  let mwCtxState = { color: '', size: -1, mode: '' };
 
   const mwUndo = [];
 
-  // Exponer al scope global para que los botones UI lo llamen
   window.refreshCtxState = function() {
       mwCtxState = { color: '', size: -1, mode: '' };
   }
 
-  let mwCtxState = { color: '', size: -1, mode: '' };
-
   function pos(ev){
     return {
-      x: (ev.clientX - cachedCanvasRect.left) * cachedScaleX,
-      y: (ev.clientY - cachedCanvasRect.top) * cachedScaleY
+      x: ev.clientX,
+      y: ev.clientY
     };
   }
 
@@ -1013,7 +1066,13 @@
     const img = new Image();
     img.onload = function(){
       const c = board.getContext('2d');
-      c.clearRect(0,0,board.width,board.height);
+      c.fillStyle='#ffffff'; c.fillRect(0,0,board.width,board.height);
+      
+      // Restaurar grilla
+      c.strokeStyle = 'rgba(0,0,0,0.05)'; c.lineWidth = 1.5;
+      for(let x=0; x<board.width; x+=35) { c.beginPath(); c.moveTo(x,0); c.lineTo(x,board.height); c.stroke(); }
+      for(let y=0; y<board.height; y+=35) { c.beginPath(); c.moveTo(0,y); c.lineTo(board.width,y); c.stroke(); }
+      
       c.drawImage(img,0,0);
     };
     img.src = url;
@@ -1031,7 +1090,6 @@
     // Evitar dibujo si tocas la UI
     if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
     ev.preventDefault();
-    updateCanvasRect();
     saveState();
 
     mwDrawing = true;
@@ -1045,7 +1103,7 @@
     c.moveTo(mwLastPosX, mwLastPosY);
     
     if (typeof broadcastData === 'function') {
-        broadcastData({ type:'start', x: p.x, y: p.y });
+        broadcastData({ type:'start', x: p.x / canvas.width, y: p.y / canvas.width });
     }
   }
 
@@ -1053,15 +1111,9 @@
     if(!mwDrawing) return;
     ev.preventDefault();
     
-    const isChalkTheme = themes[currentThemeIdx].id === 'chalk';
-    if (isChalkTheme && typeof chalkPattern === 'undefined' && typeof generateChalkPattern !== 'undefined') {
-        chalkPattern = generateChalkPattern(document.getElementById('mw-color').value);
-    }
-
     const c = board.getContext('2d');
     c.lineCap = 'round'; c.lineJoin = 'round';
     const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
-    
     const inkColor = document.getElementById('mw-color').value;
 
     c.beginPath();
@@ -1072,7 +1124,6 @@
         e = events[i];
         p = pos(e);
         
-        // Curva hiper suave
         pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 0.5;
         pFactor = e.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
         baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
@@ -1086,16 +1137,10 @@
                 c.shadowBlur = 0;
             } else {
                 c.globalCompositeOperation = 'source-over';
-                if (isChalkTheme) {
-                    c.strokeStyle = chalkPattern || inkColor;
-                    c.shadowBlur = 0;
-                    c.globalAlpha = 0.9;
-                } else {
-                    c.strokeStyle = inkColor;
-                    c.shadowColor = inkColor;
-                    c.shadowBlur = finalSize * 0.15; // Tint real
-                    c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
-                }
+                c.strokeStyle = inkColor;
+                c.shadowColor = inkColor;
+                c.shadowBlur = finalSize * 0.15; // Tint real
+                c.globalAlpha = mwMode === 'marker' ? 0.38 : 0.92;
             }
             mwCtxState.color = inkColor; mwCtxState.size = finalSize; mwCtxState.mode = mwMode;
         }
@@ -1108,7 +1153,18 @@
         mwLastMidX = midX; mwLastMidY = midY;
         
         if (typeof broadcastData === 'function') {
-            broadcastData({ type:'drawBezier', lastMidX: midX, lastMidY: midY, lastPosX: p.x, lastPosY: p.y, midX: midX, midY: midY, color: inkColor, size: finalSize, tool: mwMode });
+            broadcastData({ 
+                type:'drawBezier', 
+                lastMidX: midX / canvas.width, 
+                lastMidY: midY / canvas.width, 
+                lastPosX: p.x / canvas.width, 
+                lastPosY: p.y / canvas.width, 
+                midX: midX / canvas.width, 
+                midY: midY / canvas.width, 
+                color: inkColor, 
+                size: finalSize / canvas.width, 
+                tool: mwMode 
+            });
         }
     }
     c.stroke();
@@ -1146,7 +1202,6 @@
   eraser && eraser.addEventListener('click',()=>setMode('eraser'));
   
   color && color.addEventListener('input', e => { 
-      if(typeof generateChalkPattern !== 'undefined') chalkPattern = generateChalkPattern(e.target.value);
       setMode('pen');
       window.refreshCtxState(); 
   });
@@ -1157,7 +1212,7 @@
     const last=mwUndo.pop();
     if(last) {
         restoreData(last);
-        if (typeof broadcastData === 'function') broadcastData({ type: 'image', src: last, x: 0, y: 0, w: board.width, h: board.height });
+        if (typeof broadcastData === 'function') broadcastData({ type: 'image', src: last, x: 0, y: 0, w: 1, h: canvas.height/canvas.width });
     }
   });
 
