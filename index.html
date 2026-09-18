@@ -275,7 +275,39 @@
         #formulas-panel{overscroll-behavior:contain;}
         #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
-    </style>
+    
+        /* ===== PDF HD / lectura nítida ===== */
+        #pdf-panel canvas,
+        #pdf-panel .pdf-page canvas,
+        #pdf-viewer canvas {
+            image-rendering: auto !important;
+            image-rendering: -webkit-optimize-contrast !important;
+        }
+        #pdf-panel .pdf-page {
+            background: #fff;
+            box-shadow: 0 8px 30px rgba(0,0,0,.35);
+            margin: 14px auto;
+            overflow: hidden;
+        }
+        #pdf-panel .pdf-page canvas {
+            display: block;
+            width: 100% !important;
+            height: auto !important;
+        }
+        .pdf-quality-badge {
+            display:inline-flex;
+            align-items:center;
+            gap:5px;
+            padding:4px 8px;
+            border-radius:10px;
+            background:rgba(16,185,129,.14);
+            border:1px solid rgba(16,185,129,.35);
+            color:#6ee7b7;
+            font-size:.7rem;
+            font-weight:700;
+        }
+
+</style>
 </head>
 <body>
 
@@ -1590,6 +1622,64 @@
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
+
+        // ================= PDF HD =================
+        // PDF.js renderiza a una escala superior a la mostrada en pantalla.
+        // Esto evita que letras, fórmulas y líneas se vean borrosas al ampliar.
+        function getPdfRenderScale(page, targetWidth) {
+            const base = page.getViewport({ scale: 1 });
+            const cssWidth = Math.max(320, targetWidth || 900);
+            const device = Math.min(window.devicePixelRatio || 1, 3);
+            // 2x–3x de densidad, limitado para no consumir memoria excesiva.
+            return Math.max(1.75, Math.min(3.2, (cssWidth / base.width) * device));
+        }
+
+        async function renderPdfPageHD(page, canvasEl, cssWidth) {
+            if (!page || !canvasEl) return;
+
+            const scale = getPdfRenderScale(page, cssWidth);
+            const viewport = page.getViewport({ scale });
+
+            const ctx = canvasEl.getContext('2d', { alpha:false });
+            const dpr = Math.min(window.devicePixelRatio || 1, 2);
+            const outputScale = dpr > 1 ? dpr : 1;
+
+            canvasEl.width = Math.ceil(viewport.width * outputScale);
+            canvasEl.height = Math.ceil(viewport.height * outputScale);
+
+            // El tamaño CSS sigue siendo el tamaño de lectura, mientras que
+            // los píxeles internos son mucho mayores.
+            const cssHeight = viewport.height / scale;
+            canvasEl.style.width = '100%';
+            canvasEl.style.height = cssHeight + 'px';
+
+            await page.render({
+                canvasContext: ctx,
+                viewport: viewport,
+                transform: outputScale !== 1
+                    ? [outputScale, 0, 0, outputScale, 0, 0]
+                    : null,
+                intent: 'display'
+            }).promise;
+
+            canvasEl.dataset.pdfHd = 'true';
+            canvasEl.dataset.pdfScale = String(scale);
+        }
+
+        // Re-renderiza páginas visibles con la resolución adecuada después
+        // de cambiar el tamaño de la ventana.
+        let pdfHdResizeTimer = null;
+        window.addEventListener('resize', function() {
+            clearTimeout(pdfHdResizeTimer);
+            pdfHdResizeTimer = setTimeout(function() {
+                if (typeof pdfDoc !== 'undefined' && pdfDoc) {
+                    if (typeof renderPdfPages === 'function') {
+                        try { renderPdfPages(); } catch(e) {}
+                    }
+                }
+            }, 250);
+        });
+
         // ================= IMÁGENES / CÁMARA =================
         // Cualquier foto se convierte en un objeto estampable: mover, cambiar
         // tamaño, recortar y pegar en la pizarra.
