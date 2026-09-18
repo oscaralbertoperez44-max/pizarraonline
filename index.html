@@ -332,7 +332,7 @@
             <button class="f-tab" onclick="loadFormulas('matrices', this)">Matrices</button>
             <button class="f-tab" onclick="loadFormulas('vectors', this)">Vectores</button>
             <button class="f-tab" onclick="loadFormulas('discrete', this)">Discreta</button>
-            <button class="f-tab" onclick="loadFormulas('number_theory', this)">Números</button>
+            <button class="f-tab" onclick="loadFormulas('numbers', this)">Números</button>
             <button class="f-tab" onclick="loadFormulas('financial', this)">Financiera</button>
         </div>
         <div id="formula-category-selector" class="formula-category-selector">
@@ -451,6 +451,7 @@
     </div>
 
     <script>
+
         const peerNetworkOptions = { config: { 'iceServers': [ { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' } ] } };
         let isAdmin = false; 
         
@@ -829,7 +830,7 @@
                 { name: "Recurrencia lineal", eq: "aₙ = c₁aₙ₋₁ + ··· + cₖaₙ₋ₖ" },
                 { name: "Grado de un vértice", eq: "deg(v) = número de aristas incidentes" }
             ],
-            number_theory: [
+            numbers: [
                 { name: "Teorema fundamental", eq: "n = p₁^a¹·p₂^a²·...·pₖ^aᵏ" },
                 { name: "Congruencia", eq: "a ≡ b (mod n) ⇔ n | (a-b)" },
                 { name: "Pequeño teorema de Fermat", eq: "a^(p-1) ≡ 1 (mod p)" },
@@ -1306,6 +1307,46 @@
             if(p) p.classList.toggle('compact');
         }
 
+
+        async function copyFormulaText(text) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    showFormulaToast('✅ Fórmula copiada');
+                    return true;
+                }
+            } catch (err) {}
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.left = '-9999px';
+            ta.style.top = '0';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, ta.value.length);
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (err) { ok = false; }
+            ta.remove();
+            showFormulaToast(ok ? '✅ Fórmula copiada' : '⚠️ Selecciona y copia la fórmula');
+            return ok;
+        }
+
+        function showFormulaToast(message) {
+            let toast = document.getElementById('formula-copy-toast');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'formula-copy-toast';
+                toast.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);z-index:10001;background:rgba(20,20,20,.96);color:#fff;border:1px solid #555;border-radius:999px;padding:8px 14px;font-size:.82rem;box-shadow:0 8px 25px rgba(0,0,0,.4);pointer-events:none;';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.style.display = 'block';
+            clearTimeout(window.__formulaToastTimer);
+            window.__formulaToastTimer = setTimeout(()=>toast.style.display='none', 1500);
+        }
+
         function renderFormulaList() {
             const grid = document.getElementById('formula-grid-container');
             const query = (document.getElementById('formula-search')?.value || '').trim().toLowerCase();
@@ -1322,7 +1363,7 @@
                 actions.className='formula-card-actions';
                 const copy=document.createElement('button');
                 copy.textContent='📋 Copiar';
-                copy.onclick=()=>navigator.clipboard?.writeText(f.eq);
+                copy.onclick=()=>copyFormulaText(f.eq);
                 const stamp=document.createElement('button');
                 stamp.textContent='✏️ Pegar en pizarra';
                 stamp.onclick=()=>{ if(isAdmin) renderFormulaToStamp(f.eq); else alert("Solo el profesor puede pegar fórmulas en la pizarra."); };
@@ -1576,45 +1617,88 @@
             }
         }
 
-        let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
+        let pdfDoc = null, pageNum = 1, pdfScale = 1.5;
+        let pdfLoadingTask = null;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
         const cropOverlay = document.getElementById('crop-overlay');
-        
-        document.getElementById('pdfInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if(!file || file.type !== 'application/pdf') return;
-            const reader = new FileReader();
-            reader.onload = function() {
-                const typedarray = new Uint8Array(this.result);
-                pdfjsLib.getDocument(typedarray).promise.then(pdf => {
-                    pdfDoc = pdf; document.getElementById('page-num').textContent = 1; pageNum = 1; pdfScale = 1.5; 
-                    renderPage(pageNum); pdfPanel.style.display = 'flex';
-                    document.getElementById('btn-show-pdf').style.display = 'none';
-                    if(window.innerWidth <= 768) { document.getElementById('btn-open-pdf-mobile').style.display = 'none'; }
-                });
-            }
-            reader.readAsArrayBuffer(file);
-            this.value = ''; // Permite cargar otro archivo o el mismo de nuevo sin recargar web
-        });
 
-        function renderPage(num) {
-            pdfDoc.getPage(num).then(page => {
-                const viewport = page.getViewport({ scale: pdfScale });
-                const outputScale = window.devicePixelRatio || 1;
-                pdfAppCanvas.width = Math.floor(viewport.width * outputScale); pdfAppCanvas.height = Math.floor(viewport.height * outputScale);
-                pdfAppCanvas.style.width = Math.floor(viewport.width) + "px"; pdfAppCanvas.style.height = Math.floor(viewport.height) + "px";
-                page.render({ canvasContext: pdfCtx, transform: outputScale !== 1 ? [outputScale, 0, 0, outputScale, 0, 0] : null, viewport: viewport });
-                document.getElementById('page-num').textContent = num;
-                cropOverlay.style.width = pdfAppCanvas.style.width; cropOverlay.style.height = pdfAppCanvas.style.height;
-            });
+        function showPdfError(message) {
+            let box = document.getElementById('pdf-error');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'pdf-error';
+                box.style.cssText = 'position:absolute;left:12px;right:12px;bottom:12px;z-index:30;background:rgba(127,29,29,.96);color:#fff;border:1px solid rgba(255,255,255,.2);border-radius:10px;padding:10px 12px;font-size:.8rem;box-shadow:0 8px 25px rgba(0,0,0,.4);';
+                pdfPanel.appendChild(box);
+            }
+            box.textContent = message;
+            box.style.display = 'block';
+            setTimeout(()=>{ if(box) box.style.display='none'; }, 5000);
         }
 
-        function prevPage() { if (pageNum <= 1) return; pageNum--; renderPage(pageNum); }
-        function nextPage() { if (pageNum >= pdfDoc.numPages) return; pageNum++; renderPage(pageNum); }
-        function zoomIn() { pdfScale += 0.25; renderPage(pageNum); }
-        function zoomOut() { if (pdfScale > 0.5) { pdfScale -= 0.25; renderPage(pageNum); } }
+        function clearPdfError() {
+            const box=document.getElementById('pdf-error');
+            if(box) box.style.display='none';
+        }
+
+        const pdfInput = document.getElementById('pdfInput');
+        if (pdfInput) pdfInput.addEventListener('change', async function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            clearPdfError();
+            try {
+                if (typeof pdfjsLib === 'undefined') throw new Error('El motor PDF.js no se cargó. Revisa tu conexión a Internet y vuelve a abrir la página.');
+                const buffer = await file.arrayBuffer();
+                if (!buffer || !buffer.byteLength) throw new Error('El archivo PDF está vacío o no pudo leerse.');
+                if (pdfLoadingTask && pdfLoadingTask.destroy) { try { await pdfLoadingTask.destroy(); } catch(err) {} }
+                pdfLoadingTask = pdfjsLib.getDocument({ data: new Uint8Array(buffer) });
+                pdfDoc = await pdfLoadingTask.promise;
+                pageNum = 1;
+                pdfScale = 1.5;
+                document.getElementById('page-num').textContent = '1';
+                pdfPanel.style.display = 'flex';
+                await renderPage(pageNum);
+                document.getElementById('btn-show-pdf').style.display = 'none';
+                if(window.innerWidth <= 768) document.getElementById('btn-open-pdf-mobile').style.display = 'none';
+            } catch (err) {
+                console.error('MathBoard PDF:', err);
+                showPdfError('❌ No se pudo abrir el PDF. Prueba con otro archivo o verifica que PDF.js tenga acceso a Internet.');
+            } finally {
+                this.value = '';
+            }
+        });
+
+        async function renderPage(num) {
+            if (!pdfDoc) return;
+            try {
+                const page = await pdfDoc.getPage(num);
+                const viewport = page.getViewport({ scale: pdfScale });
+                const outputScale = window.devicePixelRatio || 1;
+                pdfAppCanvas.width = Math.floor(viewport.width * outputScale);
+                pdfAppCanvas.height = Math.floor(viewport.height * outputScale);
+                pdfAppCanvas.style.width = Math.floor(viewport.width) + 'px';
+                pdfAppCanvas.style.height = Math.floor(viewport.height) + 'px';
+                pdfCtx.setTransform(1,0,0,1,0,0);
+                pdfCtx.clearRect(0,0,pdfAppCanvas.width,pdfAppCanvas.height);
+                await page.render({
+                    canvasContext: pdfCtx,
+                    transform: outputScale !== 1 ? [outputScale,0,0,outputScale,0,0] : null,
+                    viewport
+                }).promise;
+                document.getElementById('page-num').textContent = num;
+                cropOverlay.style.width = pdfAppCanvas.style.width;
+                cropOverlay.style.height = pdfAppCanvas.style.height;
+            } catch (err) {
+                console.error('MathBoard PDF render:', err);
+                showPdfError('❌ No se pudo renderizar esta página del PDF.');
+            }
+        }
+
+        function prevPage() { if (!pdfDoc || pageNum <= 1) return; pageNum--; renderPage(pageNum); }
+        function nextPage() { if (!pdfDoc || pageNum >= pdfDoc.numPages) return; pageNum++; renderPage(pageNum); }
+        function zoomIn() { if (!pdfDoc) return; pdfScale += 0.25; renderPage(pageNum); }
+        function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.25; renderPage(pageNum); } }
 
         function togglePdfMinimize() {
             const btn = document.getElementById('btn-show-pdf');
@@ -1741,13 +1825,6 @@
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
             if (data.type === 'stop') { ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return; }
             
-            if (data.type === 'shape') {
-                drawShape(ctx, data.shape, data.x1, data.y1, data.x2, data.y2, data.color, data.size);
-                ctx.shadowBlur = 0;
-                ctx.globalAlpha = 1.0;
-                return;
-            }
-
             if (data.type === 'image') {
                 const img = new Image();
                 img.onload = () => { 
@@ -1830,14 +1907,13 @@
             function elementTouchDrag(e) { pos1 = pos3 - e.touches[0].clientX; pos2 = pos4 - e.touches[0].clientY; pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; }
             function closeDragElement() { document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null; }
         }
-        renderFormulaList();
         makeDraggable(pdfPanel, document.getElementById('pdf-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
 
         document.querySelectorAll('.floating-panel, #toolbar, #stamper').forEach(el => {
             el.addEventListener('pointerdown', e => e.stopPropagation()); el.addEventListener('touchstart', e => e.stopPropagation(), {passive: false});
         });
-    </script>
-<div id="shape-hint" class="shape-hint"></div>
+    
+</script>
 </body>
 </html>
