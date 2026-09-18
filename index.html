@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro - Wacom & Infinite Canvas</title>
+    <title>MathBoard Pro - Chalk Edition</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -11,7 +11,6 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
     <style>
-        /* Base General */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             background-color: #050505; color: #fff;
@@ -19,31 +18,23 @@
             position: fixed; inset: 0; touch-action: none;
         }
         
-        /* ================= EL DESLIZADOR (SCROLLBAR) ================= */
         #canvas-container {
             width: 100vw; height: 100vh;
             position: absolute; top: 0; left: 0;
-            z-index: 1;
-            overflow-y: scroll; /* Activa el deslizador hacia abajo */
-            overflow-x: hidden;
-            scroll-behavior: smooth;
+            z-index: 1; overflow-y: scroll; overflow-x: hidden; scroll-behavior: smooth;
         }
 
-        /* Estilo profesional para el deslizador */
-        #canvas-container::-webkit-scrollbar { width: 14px; }
+        #canvas-container::-webkit-scrollbar { width: 12px; }
         #canvas-container::-webkit-scrollbar-track { background: #121212; border-left: 1px solid #333; }
-        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 3px solid #121212; }
+        #canvas-container::-webkit-scrollbar-thumb { background: #3b82f6; border-radius: 10px; border: 2px solid #121212; }
         #canvas-container::-webkit-scrollbar-thumb:hover { background: #2563eb; }
 
-        /* PIZARRA GIGANTE (1920x4000) */
         canvas#board {
             display: block; touch-action: none;
-            width: 100%; height: auto; /* Mantiene la proporción perfecta */
-            min-height: 300vh; /* Hace que la pizarra sea enorme hacia abajo */
+            width: 100%; height: auto; min-height: 300vh; 
             transition: background 0.3s ease;
         }
 
-        /* TEMAS DE PIZARRA */
         .theme-dark {
             background-color: #121212;
             background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px);
@@ -60,7 +51,6 @@
             background-size: 30px 30px; 
         }
         
-        /* PANTALLA DE ACCESO */
         #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.95); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
         .login-box { background: #1a1a1a; padding: 40px; border-radius: 15px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 400px; }
         .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
@@ -79,17 +69,16 @@
         
         #ui-panel, #toolbar { display: none; }
 
-        /* Paneles Flotantes */
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
-        .panel-header { background: #222; padding: 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-        #ui-panel { top: 15px; left: 15px; padding: 20px; text-align: center; }
+        .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
+        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; }
         
-        #pdf-panel { top: 80px; left: 30px; width: 550px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
-        #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 15px; display: flex; justify-content: center; flex-grow: 1; }
+        #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
+        #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
-        .pdf-controls { padding: 10px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 10px; flex-wrap: wrap; }
-        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 5px; border-radius: 5px; }
+        .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
+        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
@@ -97,33 +86,37 @@
         #stamper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 20; }
         #stamper-content { position: relative; border: 3px dashed #10b981; background: white; box-shadow: 0 15px 40px rgba(0,0,0,0.9); cursor: grab; min-width: 100px; min-height: 50px; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; }
-        .resize-handle { position: absolute; right: -15px; bottom: -15px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
+        .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
-        .stamper-toolbar { position: absolute; bottom: -55px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; background: rgba(30,30,30,0.95); padding: 8px 15px; border-radius: 30px; border: 1px solid #555; white-space: nowrap; }
+        .stamper-toolbar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(30,30,30,0.95); padding: 6px 12px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; }
 
-        button { background: #2563eb; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        /* ESTILOS DE BARRA COMPACTA */
+        button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
-        .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 5px; }
+        .tool-btn { background: #444; display: flex; align-items: center; justify-content: center; gap: 4px; }
         .tool-btn.active { background: #10b981; }
         .danger-btn { background: #dc2626; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         #toolbar {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
-            background: rgba(30, 30, 30, 0.95); padding: 10px 15px;
-            border-radius: 30px; display: flex; gap: 8px; align-items: center; justify-content: center;
-            border: 1px solid #444; box-shadow: 0 4px 15px rgba(0,0,0,0.5); z-index: 50; flex-wrap: wrap;
+            position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%);
+            background: rgba(20, 20, 20, 0.9); padding: 6px 12px;
+            border-radius: 20px; display: flex; gap: 6px; align-items: center; justify-content: center;
+            border: 1px solid #333; box-shadow: 0 4px 15px rgba(0,0,0,0.6); z-index: 50; flex-wrap: wrap;
+            backdrop-filter: blur(5px);
         }
         
-        .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 60px; }
-        .slider-label { font-size: 0.65rem; color: #aaa; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
+        .slider-container { display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 50px; }
+        .slider-label { font-size: 0.55rem; color: #aaa; margin-bottom: -2px; font-weight: bold; text-transform: uppercase; }
+        input[type="color"] { width: 24px; height: 24px; border: none; border-radius: 50%; padding: 0; cursor: pointer; }
+        input[type="range"] { width: 55px; height: 4px; accent-color: #3b82f6; }
         
         .hidden-file { display: none; }
 
         @media (max-width: 900px) {
-            #toolbar { width: 95%; bottom: 10px; padding: 8px; gap: 4px; border-radius: 15px; }
-            button { padding: 6px 8px; font-size: 0.85rem; }
+            #toolbar { width: 95%; bottom: 5px; padding: 6px; gap: 4px; border-radius: 12px; }
+            button { padding: 5px 8px; font-size: 0.8rem; }
             .hide-mobile { display: none; }
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
         }
@@ -131,23 +124,19 @@
 </head>
 <body>
 
-    <!-- PANTALLA DE ACCESO -->
     <div id="login-overlay">
         <div class="login-box">
             <div class="login-title">📐 MathBoard</div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
-            
             <div id="role-selection">
                 <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
                 <button class="role-btn btn-teacher" onclick="showTeacherForm()">👨‍🏫 Soy Profesor</button>
             </div>
-
             <div id="form-student" class="auth-form">
                 <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO DE CLASE" maxlength="4">
                 <button class="role-btn btn-student" onclick="joinRoom()">Entrar a la Clase</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
-
             <div id="form-teacher" class="auth-form">
                 <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN">
                 <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
@@ -156,91 +145,85 @@
         </div>
     </div>
 
-    <!-- Info del sistema -->
     <div id="ui-panel" class="floating-panel">
-        <div id="status-text" style="font-size: 1.2em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
-        <div id="room-code-display" style="font-size: 2rem; letter-spacing: 5px; margin: 10px 0; font-weight:bold; color:white; display:none;"></div>
-        <div style="font-size: 0.8em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
+        <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
+        <div id="room-code-display" style="font-size: 1.5rem; letter-spacing: 4px; margin: 8px 0; font-weight:bold; color:white; display:none;"></div>
+        <div style="font-size: 0.7em; color: #aaa;">Alumnos en celular: Usar horizontal</div>
     </div>
 
-    <!-- Visor de PDF (Con botón azul Wacom) -->
     <div id="pdf-panel" class="floating-panel">
         <div class="panel-header" id="pdf-header">
-            <span>📄 Lector PDF</span>
-            <button class="tool-btn" onclick="togglePdfMinimize()" style="padding: 2px 8px;">_</button>
+            <span>📄 PDF</span>
+            <button class="tool-btn" onclick="togglePdfMinimize()" style="padding: 2px 6px;">_</button>
         </div>
         <div class="pdf-controls">
             <div class="pdf-controls-group">
                 <button onclick="prevPage()">◀</button>
-                <span>Pág <b id="page-num">1</b></span>
+                <span style="font-size: 0.8rem;">Pág <b id="page-num">1</b></span>
                 <button onclick="nextPage()">▶</button>
             </div>
             <div class="pdf-controls-group">
                 <button onclick="zoomOut()">➖</button>
                 <button onclick="zoomIn()">➕</button>
             </div>
-            <button id="btn-crop" class="tool-btn" onclick="toggleCropMode()" style="background:#8b5cf6;">✂️ Recortar Ejercicio</button>
+            <button id="btn-crop" class="tool-btn" onclick="toggleCropMode()" style="background:#8b5cf6;">✂️ Recortar</button>
         </div>
         <div id="pdf-render-container">
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
         </div>
-        <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para achicar o agrandar la ventana"></div>
+        <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-content">
             <img id="stamp-img" src="">
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
-            <button onclick="applyStamp()" style="background: #10b981;">✅ Pegar Ejercicio</button>
+            <button onclick="applyStamp()" style="background: #10b981;">✅ Pegar</button>
             <button onclick="cancelStamp()" class="danger-btn">❌</button>
         </div>
     </div>
 
-    <!-- Toolbar Principal -->
     <div id="toolbar">
         <button id="btn-mic" class="tool-btn" onclick="toggleMic()" style="background:#10b981;">🎙️ Mic</button>
         <button onclick="toggleFullScreen()" class="tool-btn hide-mobile" title="Pantalla Completa">🔲</button>
         
-        <div class="hide-mobile" style="width: 2px; height: 30px; background: #555; margin: 0 2px;"></div>
+        <div class="hide-mobile" style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
         
-        <div id="admin-tools" style="display:none; align-items:center; gap:6px;">
-            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz">✏️</button>
-            <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Goma Borrar">🧼</button>
+        <div id="admin-tools" style="display:none; align-items:center; gap:5px;">
+            <button id="btn-pen" class="tool-btn active" onclick="setTool('pen')" title="Lápiz / Tiza">✏️</button>
+            <button id="btn-eraser" class="tool-btn" onclick="setTool('eraser')" title="Borrador">🧼</button>
             
-            <input type="color" id="colorPicker" value="#ffffff" style="border-radius:50%;cursor:pointer; width:30px; height:30px;">
+            <input type="color" id="colorPicker" value="#ffffff" title="Color">
             
             <div class="slider-container">
                 <span id="slider-label" class="slider-label">Lápiz</span>
-                <input type="range" id="toolSize" min="1" max="20" value="4" style="width: 70px;">
+                <input type="range" id="toolSize" min="1" max="20" value="4">
             </div>
             
-            <div style="width: 2px; height: 30px; background: #555; margin: 0 2px;"></div>
+            <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
             
-            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 100px;">
-                <span id="theme-icon">🌙</span> <span id="theme-name">Oscura</span>
+            <button id="btn-theme" class="tool-btn" onclick="cycleTheme()" title="Cambiar Pizarra" style="min-width: 80px;">
+                <span id="theme-icon">🌙</span> <span id="theme-name" class="hide-mobile">Oscura</span>
             </button>
             
             <button class="tool-btn" onclick="saveAsPDF()" title="Guardar Pizarra en PDF">💾 <span class="hide-mobile">PDF</span></button>
-            <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar en MP4">⏺️ <span class="hide-mobile">Grabar MP4</span></button>
+            <button id="btn-record" class="tool-btn" onclick="toggleRecording()" title="Grabar en MP4">⏺️ <span class="hide-mobile">MP4</span></button>
             
-            <div style="width: 2px; height: 30px; background: #555; margin: 0 2px;"></div>
+            <div style="width: 1px; height: 20px; background: #555; margin: 0 2px;"></div>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
             <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 Abrir PDF</button>
             <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
-            <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 Ver PDF</button>
+            <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
             
             <button class="danger-btn" onclick="clearCanvas()" title="Borrar Todo">🗑️</button>
         </div>
     </div>
 
-    <!-- CONTENEDOR CON SCROLL (Pizarra Infinita) -->
     <div id="canvas-container">
-        <!-- El canvas es fijo en ancho (1920) y enorme en alto (4000) -->
         <canvas id="board" width="1920" height="4000" class="theme-dark"></canvas>
     </div>
 
@@ -248,7 +231,6 @@
         const peerNetworkOptions = { config: { 'iceServers': [ { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' } ] } };
         let isAdmin = false; 
         
-        /* ================= 0. LOGIN ================= */
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
         function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
         function goBack() { document.getElementById('form-student').style.display = 'none'; document.getElementById('form-teacher').style.display = 'none'; document.getElementById('role-selection').style.display = 'block'; document.getElementById('login-msg').innerText = "Selecciona tu perfil"; document.getElementById('adminPin').value = ""; document.getElementById('roomIdInput').value = ""; }
@@ -263,7 +245,6 @@
             } else { alert("PIN Incorrecto."); }
         }
 
-        /* ================= 1. MOTOR GRÁFICO (PIZARRA GIGANTE CON DESLIZADOR) ================= */
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d');
         const container = document.getElementById('canvas-container');
@@ -299,7 +280,6 @@
 
         document.getElementById('colorPicker').addEventListener('change', (e) => { myColor = e.target.value; setTool('pen'); });
 
-        /* ================= TEMAS ================= */
         const themes = [
             { id: 'dark', class: 'theme-dark', icon: '🌙', name: 'Oscura', bg: '#121212', pen: '#ffffff', grid: true },
             { id: 'chalk', class: 'theme-chalk', icon: '🏫', name: 'Tiza', bg: '#1e382b', pen: '#f4f4f4', grid: false },
@@ -334,16 +314,11 @@
             else if (document.exitFullscreen) document.exitFullscreen();
         }
 
-        // LECTURA DE COORDENADAS PERFECTAS CON SCROLL Y WACOM
         function getCanvasPos(e) {
             const rect = canvas.getBoundingClientRect();
-            // Esto neutraliza automáticamente cualquier posición del deslizador (scroll)
             const scaleX = canvas.width / rect.width;
             const scaleY = canvas.height / rect.height;
-            return {
-                x: (e.clientX - rect.left) * scaleX,
-                y: (e.clientY - rect.top) * scaleY
-            };
+            return { x: (e.clientX - rect.left) * scaleX, y: (e.clientY - rect.top) * scaleY };
         }
 
         canvas.addEventListener('pointerdown', startDrawing);
@@ -351,10 +326,8 @@
         window.addEventListener('pointerup', stopDrawing);
 
         function startDrawing(e) { 
-            // Previene que se dibuje si apoyas el dedo o la palma accidentalmente (Wacom Palm Rejection)
             if(e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return; 
             isDrawing = true; 
-            
             const pos = getCanvasPos(e);
             ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
             broadcastData({ type: 'start', x: pos.x, y: pos.y }); 
@@ -367,9 +340,20 @@
             const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 1; 
             const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
 
-            ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
             ctx.lineWidth = finalSize; 
-            if(currentTool !== 'eraser') ctx.strokeStyle = myColor;
+
+            // EFECTO TIZA / FIBRÓN PROFESIONAL
+            if (currentTool !== 'eraser') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = myColor;
+                ctx.shadowBlur = finalSize * 0.4; // Difuminado en los bordes para simular polvo/tinta
+                ctx.shadowColor = myColor;
+                ctx.globalAlpha = 0.85; // Leve transparencia de marcador/tiza
+            } else {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.shadowBlur = 0; // La goma debe ser un corte limpio
+                ctx.globalAlpha = 1.0;
+            }
             
             ctx.lineTo(pos.x, pos.y); ctx.stroke();
             ctx.beginPath(); ctx.moveTo(pos.x, pos.y);
@@ -377,10 +361,16 @@
             broadcastData({ type: 'draw', x: pos.x, y: pos.y, color: myColor, size: finalSize, tool: currentTool });
         }
         
-        function stopDrawing(e) { if(!isDrawing || e.pointerType === 'touch') return; isDrawing = false; ctx.beginPath(); broadcastData({ type: 'stop' }); }
+        function stopDrawing(e) { 
+            if(!isDrawing || e.pointerType === 'touch') return; 
+            isDrawing = false; 
+            ctx.beginPath(); 
+            // Resetear efectos para que no interfieran con otras cosas (como pegar imagenes)
+            ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
+            broadcastData({ type: 'stop' }); 
+        }
         function clearCanvas() { if(isAdmin) { ctx.clearRect(0, 0, canvas.width, canvas.height); broadcastData({ type: 'clear' }); } }
 
-        /* ================= 2. EXPORTAR PDF (Calcula los 4000px reales) ================= */
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
@@ -402,16 +392,12 @@
             
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
-            // PDF formato "Rollo" para acomodar los 4000px de la pizarra sin aplastar la imagen
             const pdf = new jsPDF({ orientation: "portrait", unit: "px", format: [1920, 4000] });
             pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, 1920, 4000);
             pdf.save(filename + ".pdf");
         }
 
-        /* ================= 3. GRABADOR DE VIDEO MP4 LIGERO ================= */
-        let mediaRecorder;
-        let recordedChunks = [];
-        let isRecording = false;
+        let mediaRecorder; let recordedChunks = []; let isRecording = false;
 
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
 
@@ -448,10 +434,9 @@
         function stopRecording() {
             mediaRecorder.stop(); isRecording = false;
             const btn = document.getElementById('btn-record');
-            btn.innerHTML = '⏺️ <span class="hide-mobile">Grabar MP4</span>'; btn.classList.remove('record-active');
+            btn.innerHTML = '⏺️ <span class="hide-mobile">MP4</span>'; btn.classList.remove('record-active');
         }
 
-        /* ================= 4. AUDIO ================= */
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
             try { 
@@ -459,7 +444,6 @@
                     audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }, 
                     video: false 
                 }); 
-                
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 audioDestination = audioContext.createMediaStreamDestination();
                 const localAudioSource = audioContext.createMediaStreamSource(localStream);
@@ -501,7 +485,6 @@
             }
         }
 
-        /* ================= 5. PDF, RECORTE EXACTO Y REDIMENSIÓN ================= */
         let pdfDoc = null, pageNum = 1, pdfScale = 1.5; 
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -572,23 +555,20 @@
             cropOverlay.style.display = isCroppingMode ? 'block' : 'none'; if(!isCroppingMode) cropBox.style.display = 'none';
         }
 
-        // LÓGICA DE RECORTE QUIRÚRGICO A PRUEBA DE FALLOS SCROLL
         function getCropPos(e) {
             const rect = cropOverlay.getBoundingClientRect();
             return { x: e.clientX - rect.left, y: e.clientY - rect.top };
         }
 
         cropOverlay.addEventListener('pointerdown', (e) => {
-            isDraggingCrop = true; 
-            const pos = getCropPos(e);
+            isDraggingCrop = true; const pos = getCropPos(e);
             startCropX = pos.x; startCropY = pos.y;
             cropBox.style.left = startCropX + 'px'; cropBox.style.top = startCropY + 'px';
             cropBox.style.width = '0px'; cropBox.style.height = '0px'; cropBox.style.display = 'block'; e.preventDefault();
         });
 
         window.addEventListener('pointermove', (e) => {
-            if (!isDraggingCrop) return; 
-            const pos = getCropPos(e);
+            if (!isDraggingCrop) return; const pos = getCropPos(e);
             cropBox.style.width = Math.abs(pos.x - startCropX) + 'px'; cropBox.style.height = Math.abs(pos.y - startCropY) + 'px';
             cropBox.style.left = Math.min(pos.x, startCropX) + 'px'; cropBox.style.top = Math.min(pos.y, startCropY) + 'px';
         });
@@ -611,7 +591,6 @@
                 stamperContent.style.width = cssW + 'px'; stamperContent.style.height = cssH + 'px';
                 
                 const stamper = document.getElementById('stamper');
-                // Pegar el estampador justo en el centro de la pantalla visible actual
                 stamper.style.top = (container.scrollTop + window.innerHeight/2) + 'px'; 
                 stamper.style.left = (window.innerWidth/2) + 'px'; 
                 stamper.style.display = 'block';
@@ -645,11 +624,13 @@
             const scaleX = canvas.width / canvasRect.width; 
             const scaleY = canvas.height / canvasRect.height;
             
-            // Calculo absoluto considerando el scroll y la resolucion 1920x4000
             const realX = (rect.left - canvasRect.left) * scaleX; 
             const realY = (rect.top - canvasRect.top) * scaleY;
             const realW = rect.width * scaleX; 
             const realH = rect.height * scaleY;
+            
+            // Quitar efectos temporales para pegar la imagen limpia
+            ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
             
             ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, realX, realY, realW, realH);
             ctx.globalCompositeOperation = currentTool === 'eraser' ? 'destination-out' : 'source-over';
@@ -660,10 +641,7 @@
         function cancelStamp() { stamper.style.display = 'none'; }
 
         /* ================= 6. CONEXIÓN (PEERJS) ================= */
-        // Sincronizar el scroll del alumno con el profesor
-        container.addEventListener('scroll', () => {
-            if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop });
-        });
+        container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
         function drawRemote(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
@@ -671,18 +649,34 @@
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             
             if (data.type === 'start') { ctx.beginPath(); ctx.moveTo(data.x, data.y); return; }
-            if (data.type === 'stop') return ctx.beginPath();
+            if (data.type === 'stop') {
+                ctx.beginPath(); ctx.shadowBlur = 0; ctx.globalAlpha = 1.0; return;
+            }
             
             if (data.type === 'image') {
                 const img = new Image();
-                img.onload = () => { ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, data.x, data.y, data.w, data.h); };
+                img.onload = () => { 
+                    ctx.shadowBlur = 0; ctx.globalAlpha = 1.0;
+                    ctx.globalCompositeOperation = 'source-over'; ctx.drawImage(img, data.x, data.y, data.w, data.h); 
+                };
                 img.src = data.src; return;
             }
             
-            ctx.globalCompositeOperation = data.tool === 'eraser' ? 'destination-out' : 'source-over';
-            ctx.strokeStyle = data.color; ctx.lineWidth = data.size;
+            ctx.lineWidth = data.size;
+
+            if (data.tool !== 'eraser') {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.strokeStyle = data.color;
+                ctx.shadowBlur = data.size * 0.4;
+                ctx.shadowColor = data.color;
+                ctx.globalAlpha = 0.85;
+            } else {
+                ctx.globalCompositeOperation = 'destination-out';
+                ctx.shadowBlur = 0;
+                ctx.globalAlpha = 1.0;
+            }
+
             ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
-            ctx.globalCompositeOperation = 'source-over';
         }
 
         async function createRoom() {
