@@ -35,6 +35,33 @@
             transition: background 0.3s ease;
         }
 
+        /* Banner Creador */
+        #creator-banner {
+            position: fixed;
+            top: 15px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(59, 130, 246, 0.3);
+            color: #e2e8f0;
+            padding: 8px 18px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            backdrop-filter: blur(8px);
+            z-index: 9998;
+            transition: opacity 0.4s ease, transform 0.4s ease;
+            pointer-events: none;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .banner-hidden { 
+            opacity: 0 !important; 
+            transform: translateY(-10px);
+        }
+
         .theme-dark { background-color: #121212; background-image: linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px); background-size: 30px 30px; }
         .theme-chalk { background-color: #1e382b; background-image: radial-gradient(circle, transparent 20%, #152b20 120%), url('data:image/svg+xml;utf8,<svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg"><filter id="noiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="3" stitchTiles="stitch"/></filter><rect width="100%" height="100%" filter="url(%23noiseFilter)" opacity="0.08"/></svg>'); background-size: cover, 150px 150px; }
         .theme-white { background-color: #ffffff; background-image: linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px); background-size: 30px 30px; }
@@ -375,6 +402,10 @@
 </head>
 <body>
 
+    <div id="creator-banner">
+        <span>✨</span> Creado por Oscar Alberto Perez
+    </div>
+
     <div id="login-overlay">
         <div class="login-box">
             <div class="login-title">📐 MathBoard</div>
@@ -571,6 +602,20 @@
     </div>
 
     <script>
+        // Lógica Global del Banner de Autor
+        const banner = document.getElementById('creator-banner');
+        let bannerTimer = null;
+        
+        function hideBanner() {
+            clearTimeout(bannerTimer);
+            if(banner) banner.classList.add('banner-hidden');
+        }
+        function showBanner() {
+            clearTimeout(bannerTimer);
+            bannerTimer = setTimeout(() => {
+                if(banner) banner.classList.remove('banner-hidden');
+            }, 1500);
+        }
 
         const peerNetworkOptions = { config: { 'iceServers': [ { urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' } ] } };
         let isAdmin = false; 
@@ -594,7 +639,8 @@
         }
 
         const canvas = document.getElementById('board');
-        const ctx = canvas.getContext('2d');
+        // Aceleración por hardware para reducir latencia drásticamente (vital para Wacom/Stylus)
+        const ctx = canvas.getContext('2d', { desynchronized: true });
         const container = document.getElementById('canvas-container');
         
         ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -604,6 +650,10 @@
         let connections = [], peer, localStream = null;
         let audioContext, audioDestination;
         let chalkPattern = null;
+
+        // Puntos para curva de Bezier hiper-suave (Profesor)
+        let pLastPos = null;
+        let pLastMid = null;
 
         // Genera un patrón de ruido (granos de tiza) dinámico según el color seleccionado
         function generateChalkPattern(colorHex) {
@@ -748,18 +798,6 @@
             }
         }
 
-        function prepareStroke(color = myColor, size = penSize) {
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.strokeStyle = color;
-            ctx.fillStyle = color;
-            ctx.lineWidth = size;
-            ctx.shadowBlur = Math.min(size * 0.4, 8);
-            ctx.shadowColor = color;
-            ctx.globalAlpha = 0.88;
-        }
-
         function drawArrowHead(x1, y1, x2, y2, size) {
             const angle = Math.atan2(y2-y1, x2-x1);
             const head = Math.max(10, size * 4);
@@ -821,7 +859,9 @@
         function startDrawing(e) {
             if (e.pointerType === 'touch' || e.target !== canvas || !isAdmin) return;
             isDrawing = true;
+            hideBanner(); // Ocultar banner al dibujar
             canvas.setPointerCapture?.(e.pointerId);
+            
             const pos = getCanvasPos(e);
 
             if (['line','arrow','rect','circle','ellipse','triangle','grid'].includes(currentTool)) {
@@ -833,13 +873,16 @@
                 return;
             }
 
+            pLastPos = pos;
+            pLastMid = pos;
+            
             ctx.beginPath();
             ctx.moveTo(pos.x, pos.y);
             broadcastData({ type:'start', x:pos.x, y:pos.y });
             draw(e);
         }
 
-        // ====== VERSIÓN OPTIMIZADA DEL LÁPIZ PROFESOR ======
+        // ====== VERSIÓN ULTRA-OPTIMIZADA CON CURVAS BÉZIER (PROFESOR PC/WACOM) ======
         function draw(e) {
             if (!isDrawing || !isAdmin || e.pointerType === 'touch') return;
             
@@ -857,13 +900,18 @@
                     return; 
                 }
 
-                const pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 1;
-                const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * (pressure * 1.5);
+                // Curva de Presión Exponencial para Wacom (Sentimiento natural)
+                const pressure = ev.pressure && ev.pointerType === 'pen' ? ev.pressure : 0.5;
+                const pFactor = ev.pointerType === 'pen' ? (0.3 + Math.pow(pressure, 1.5) * 1.2) : 1;
+                const finalSize = (currentTool === 'eraser' ? eraserSize : penSize) * pFactor;
+                
+                // Cálculo de punto medio para interpolación Quadratic Bezier
+                const mid = { x: (pLastPos.x + pos.x) / 2, y: (pLastPos.y + pos.y) / 2 };
+
                 ctx.lineWidth = finalSize;
 
                 if (currentTool !== 'eraser') {
                     ctx.globalCompositeOperation = 'source-over';
-                    
                     if (isChalkTheme && chalkPattern && currentTool === 'pen') {
                         ctx.strokeStyle = chalkPattern;
                         ctx.shadowBlur = 0;
@@ -880,17 +928,23 @@
                     ctx.globalAlpha = 1.0;
                 }
 
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
+                // Trazar curva perfecta
                 ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
+                ctx.moveTo(pLastMid.x, pLastMid.y);
+                ctx.quadraticCurveTo(pLastPos.x, pLastPos.y, mid.x, mid.y);
+                ctx.stroke();
+
+                pLastPos = pos;
+                pLastMid = mid;
                 
-                broadcastData({ type:'draw', x:pos.x, y:pos.y, color:myColor, size:finalSize, tool:currentTool });
+                broadcastData({ type:'drawBezier', lastMidX: pLastMid.x, lastMidY: pLastMid.y, lastPosX: pLastPos.x, lastPosY: pLastPos.y, midX: mid.x, midY: mid.y, color: myColor, size: finalSize, tool: currentTool });
             }
         }
 
         function stopDrawing(e) {
             if (!isDrawing || (e && e.pointerType === 'touch')) return;
+            
+            showBanner(); // Mostrar banner
 
             if (shapeStart) {
                 const pos = getCanvasPos(e);
@@ -928,7 +982,6 @@
 
         /* ================= BASE DE DATOS DE FÓRMULAS ÉPICA ================= */
         const mathFormulas = {
-
             arithmetic: [
                 { name: "Regla de tres", eq: "x = (b·c) / a" },
                 { name: "Porcentaje", eq: "p% de N = (p/100)·N" },
@@ -1063,7 +1116,6 @@
             const panel = document.getElementById('formulas-panel');
             if (panel.style.display === 'none' || panel.style.display === '') {
                 panel.style.display = 'flex';
-                // Cargar primer tab por defecto si está vacío
                 if(document.getElementById('formula-grid-container').innerHTML.trim() === '') {
                     loadFormulas('algebra', document.querySelector('.f-tab'));
                 }
@@ -1081,8 +1133,6 @@
             renderFormulaList();
         }
 
-
-        /* ===== Biblioteca matemática ampliada ===== */
         Object.assign(mathFormulas, {
             algebra: [
                 {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
@@ -1193,8 +1243,6 @@
             ]
         });
 
-
-        /* ===== SUPER STAR: biblioteca de fórmulas y ejemplos ampliada ===== */
         Object.assign(mathFormulas, {
             arithmetic: [
                 ...mathFormulas.arithmetic,
@@ -1441,12 +1489,7 @@
             });
         }
         function closeExamplesPanel(){ const p=document.getElementById('examples-panel'); if(p) p.style.display='none'; }
-        function toggleFormulaCompact(){
-            const p=document.getElementById('formulas-panel');
-            if(p) p.classList.toggle('compact');
-        }
-
-
+        
         async function copyFormulaText(text) {
             try {
                 if (navigator.clipboard && window.isSecureContext) {
@@ -1539,7 +1582,6 @@
                 box.style.cursor='pointer';
             }
         }
-
 
         document.addEventListener('keydown', (e)=>{
             if(e.key==='Escape'){
@@ -2104,7 +2146,7 @@
         /* ================= 6. CONEXIÓN ALUMNOS ================= */
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
-        // Función remota para que los alumnos reciban el efecto de tiza del profesor
+        // Función remota optimizada para los alumnos
         function drawRemote(data) {
             if (data.type === 'scroll') { container.scrollTo({ top: data.top, behavior: 'smooth' }); return; }
             if (data.type === 'theme') { applyTheme(data.index); return; }
@@ -2122,29 +2164,63 @@
                 img.src = data.src; return;
             }
             
-            ctx.lineWidth = data.size;
-            const isChalkTheme = canvas.classList.contains('theme-chalk');
+            // Receptor de curvas perfectas del profesor
+            if (data.type === 'drawBezier') {
+                const isChalkTheme = canvas.classList.contains('theme-chalk');
+                ctx.lineWidth = data.size;
 
-            if (data.tool !== 'eraser') {
-                ctx.globalCompositeOperation = 'source-over';
-                if (isChalkTheme && data.tool === 'pen') {
-                    if (!chalkPattern) chalkPattern = generateChalkPattern(data.color);
-                    ctx.strokeStyle = chalkPattern;
-                    ctx.shadowBlur = 0;
-                    ctx.globalAlpha = 0.9;
+                if (data.tool !== 'eraser') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    if (isChalkTheme && data.tool === 'pen') {
+                        if (!chalkPattern) chalkPattern = generateChalkPattern(data.color);
+                        ctx.strokeStyle = chalkPattern;
+                        ctx.shadowBlur = 0;
+                        ctx.globalAlpha = 0.9;
+                    } else {
+                        ctx.strokeStyle = data.color;
+                        ctx.shadowBlur = data.size * 0.4;
+                        ctx.shadowColor = data.color;
+                        ctx.globalAlpha = 0.85;
+                    }
                 } else {
-                    ctx.strokeStyle = data.color;
-                    ctx.shadowBlur = data.size * 0.4;
-                    ctx.shadowColor = data.color;
-                    ctx.globalAlpha = 0.85;
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1.0;
                 }
-            } else {
-                ctx.globalCompositeOperation = 'destination-out';
-                ctx.shadowBlur = 0;
-                ctx.globalAlpha = 1.0;
+
+                ctx.beginPath();
+                ctx.moveTo(data.lastMidX, data.lastMidY);
+                ctx.quadraticCurveTo(data.lastPosX, data.lastPosY, data.midX, data.midY);
+                ctx.stroke();
+                return;
             }
 
-            ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
+            // Fallback (por si alguna vez se manda línea simple)
+            if (data.type === 'draw') {
+                ctx.lineWidth = data.size;
+                const isChalkTheme = canvas.classList.contains('theme-chalk');
+
+                if (data.tool !== 'eraser') {
+                    ctx.globalCompositeOperation = 'source-over';
+                    if (isChalkTheme && data.tool === 'pen') {
+                        if (!chalkPattern) chalkPattern = generateChalkPattern(data.color);
+                        ctx.strokeStyle = chalkPattern;
+                        ctx.shadowBlur = 0;
+                        ctx.globalAlpha = 0.9;
+                    } else {
+                        ctx.strokeStyle = data.color;
+                        ctx.shadowBlur = data.size * 0.4;
+                        ctx.shadowColor = data.color;
+                        ctx.globalAlpha = 0.85;
+                    }
+                } else {
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.shadowBlur = 0;
+                    ctx.globalAlpha = 1.0;
+                }
+
+                ctx.lineTo(data.x, data.y); ctx.stroke(); ctx.beginPath(); ctx.moveTo(data.x, data.y);
+            }
         }
 
 
@@ -2224,7 +2300,11 @@
   let mwColor = '#ffffff';
   let mwSize = 5;
   let mwDrawing = false;
-  let mwLast = null;
+  
+  // Puntos para curva de Bezier ultra-suave
+  let mwLastPos = null;
+  let mwLastMid = null;
+  
   const mwUndo = [];
 
   function pos(ev){
@@ -2266,22 +2346,28 @@
     if(ev.target !== board) return;
     ev.preventDefault();
     saveState();
+    
+    // Si la función global existe (profesor), la llamamos; si es alumno puro, no pasa nada
+    if(typeof hideBanner === 'function') hideBanner();
+    
     mwDrawing = true;
-    mwLast = pos(ev);
+    mwLastPos = pos(ev);
+    mwLastMid = pos(ev);
+
     try{ board.setPointerCapture(ev.pointerId); }catch(e){}
     const c=board.getContext('2d');
     c.beginPath();
-    c.moveTo(mwLast.x,mwLast.y);
+    c.moveTo(mwLastPos.x, mwLastPos.y);
   }
 
-  // ====== VERSIÓN OPTIMIZADA DEL LÁPIZ ALUMNO MÓVIL ======
+  // ====== VERSIÓN MÓVIL CON INTERPOLACIÓN BÉZIER ======
   function move(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
     
     // Detectar si el tema actual es tiza
     const isChalkTheme = board.classList.contains('theme-chalk');
-    if (isChalkTheme && !chalkPattern) {
+    if (isChalkTheme && typeof chalkPattern === 'undefined' && typeof generateChalkPattern !== 'undefined') {
         chalkPattern = generateChalkPattern(mwColor);
     }
 
@@ -2289,38 +2375,49 @@
     c.lineCap = 'round';
     c.lineJoin = 'round';
 
-    // Aprovechamos los micro-eventos del celular si están disponibles
     const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
 
     for (let e of events) {
         const p = pos(e);
+        
+        // Curva de presión para stylus móviles (Apple Pencil, S-Pen)
+        const pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 0.5;
+        const pFactor = e.pointerType === 'pen' ? (0.3 + Math.pow(pressure, 1.5) * 1.2) : 1;
+        const baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
+        const finalSize = mwMode === 'eraser' ? Math.max(18, mwSize * 3.5) : baseSize * pFactor;
+
+        // Punto medio para la curva Bezier
+        const mid = { x: (mwLastPos.x + p.x)/2, y: (mwLastPos.y + p.y)/2 };
 
         if(mwMode === 'eraser'){
             c.globalCompositeOperation = 'destination-out';
-            c.lineWidth = Math.max(18, mwSize * 3.5);
+            c.lineWidth = finalSize;
             c.shadowBlur = 0;
             c.globalAlpha = 1;
         } else {
             c.globalCompositeOperation = 'source-over';
-            c.lineWidth = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
+            c.lineWidth = finalSize;
             
-            if (isChalkTheme && mwMode === 'pen') {
+            if (isChalkTheme && mwMode === 'pen' && typeof chalkPattern !== 'undefined') {
                 c.strokeStyle = chalkPattern || mwColor;
                 c.shadowBlur = 0;
                 c.globalAlpha = 0.9;
             } else {
                 c.strokeStyle = mwColor;
-                c.shadowBlur = c.lineWidth * 0.3;
+                c.shadowBlur = c.lineWidth * 0.4;
                 c.shadowColor = mwColor;
                 c.globalAlpha = mwMode === 'marker' ? 0.42 : 0.85;
             }
         }
 
+        // Trazado curvo
         c.beginPath();
-        c.moveTo(mwLast.x, mwLast.y);
-        c.lineTo(p.x, p.y);
+        c.moveTo(mwLastMid.x, mwLastMid.y);
+        c.quadraticCurveTo(mwLastPos.x, mwLastPos.y, mid.x, mid.y);
         c.stroke();
-        mwLast = p;
+
+        mwLastPos = p;
+        mwLastMid = mid;
     }
   }
 
@@ -2328,7 +2425,11 @@
     if(!mwDrawing) return;
     ev.preventDefault();
     mwDrawing=false;
-    mwLast=null;
+    mwLastPos=null;
+    mwLastMid=null;
+    
+    if(typeof showBanner === 'function') showBanner();
+
     const c=board.getContext('2d');
     c.globalAlpha=1;
     c.globalCompositeOperation='source-over';
@@ -2353,10 +2454,9 @@
   marker && marker.addEventListener('click',()=>setMode('marker'));
   eraser && eraser.addEventListener('click',()=>setMode('eraser'));
   
-  // Refrescar patrón de tiza si el alumno cambia color
   color && color.addEventListener('input', e => { 
       mwColor = e.target.value; 
-      chalkPattern = generateChalkPattern(mwColor);
+      if(typeof generateChalkPattern !== 'undefined') chalkPattern = generateChalkPattern(mwColor);
       setMode('pen');
   });
   
