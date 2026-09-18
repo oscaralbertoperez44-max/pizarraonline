@@ -87,12 +87,17 @@
         /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
-        #stamper { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 20; }
+        #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; }
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.9); cursor: grab; min-width: 100px; min-height: 50px; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; }
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
-        .stamper-toolbar { position: absolute; bottom: -45px; left: 50%; transform: translateX(-50%); display: flex; gap: 8px; background: rgba(30,30,30,0.95); padding: 6px 12px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; }
+        .stamper-toolbar { position: absolute; bottom: -48px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
+        .stamper-toolbar button { touch-action: manipulation; }
+        @media (max-width: 700px) {
+            .stamper-toolbar { max-width: 96vw; overflow-x: auto; }
+            #stamper-content { max-width: 92vw; max-height: 65vh; }
+        }
 
         /* Toolbar */
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
@@ -390,6 +395,7 @@
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
+            <button onclick="startStampCrop()" style="background:#8b5cf6;">✂️ Recortar</button>
             <button onclick="applyStamp()" style="background: #10b981;">✅ Pegar en Pizarra</button>
             <button onclick="cancelStamp()" class="danger-btn">❌</button>
         </div>
@@ -441,6 +447,12 @@
             <button class="tool-btn hide-mobile" onclick="document.getElementById('pdfInput').click()">📂 Abrir PDF</button>
             <button class="tool-btn" style="display:none; background:#3b82f6;" onclick="document.getElementById('pdfInput').click()" id="btn-open-pdf-mobile">📂</button>
             <button id="btn-show-pdf" class="tool-btn" style="display:none; background:#3b82f6;" onclick="togglePdfMinimize()">📖 PDF</button>
+
+            <!-- Imágenes: archivo en PC/tablet y cámara en celular -->
+            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
+            <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
+            <button class="tool-btn" onclick="document.getElementById('imageInput').click()" title="Subir una foto o imagen">🖼️ <span class="hide-mobile">Foto</span></button>
+            <button class="tool-btn" onclick="document.getElementById('cameraInput').click()" title="Tomar una foto con la cámara">📷 <span class="hide-mobile">Cámara</span></button>
             
             <button class="danger-btn" onclick="clearCanvas()" title="Borrar Todo">🗑️</button>
         </div>
@@ -1410,103 +1422,59 @@
         });
 
         // MOTOR DE ESTAMPADO DE TEXTO MATEMÁTICO
-        let activeStamp = null;
-        let stampDrag = null;
-
+        // Las fórmulas ahora se convierten en una imagen real y usan EXACTAMENTE
+        // el mismo estampador que los recortes de PDF: mover, redimensionar,
+        // recortar y finalmente pegar como objeto definido en la pizarra.
         function renderFormulaToStamp(formulaText) {
-            if (!isAdmin) { alert("Solo el profesor puede pegar fórmulas en la pizarra."); return; }
+            if (!isAdmin) {
+                alert("Solo el profesor puede pegar fórmulas en la pizarra.");
+                return;
+            }
 
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
+
             tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
             const metrics = tCtx.measureText(formulaText);
-            const width = Math.min(Math.max(metrics.width + 80, 260), 1100);
+            const width = Math.min(Math.max(Math.ceil(metrics.width + 80), 260), 1100);
             const height = 130;
+
             tempCanvas.width = width;
             tempCanvas.height = height;
 
             tCtx.font = 'bold 45px "Cambria Math", "Times New Roman", serif';
             tCtx.textBaseline = 'middle';
             tCtx.textAlign = 'center';
-            tCtx.fillStyle = myColor;
+            tCtx.fillStyle = myColor || '#ffffff';
             tCtx.shadowBlur = 5;
-            tCtx.shadowColor = myColor;
-            tCtx.fillText(formulaText, width/2, height/2);
+            tCtx.shadowColor = myColor || '#ffffff';
+            tCtx.globalAlpha = 1;
+            tCtx.fillText(formulaText, width / 2, height / 2);
 
-            const dataUrl = tempCanvas.toDataURL('image/png');
+            const img = document.getElementById('stamp-img');
+            img.src = tempCanvas.toDataURL('image/png');
 
-            // Movable floating stamp: it is visible before committing to the board.
-            if (activeStamp) activeStamp.remove();
-            const el = document.createElement('div');
-            el.id = 'math-stamp-preview';
-            el.className = 'math-stamp-preview';
-            el.innerHTML = `
-                <div class="stamp-toolbar">
-                    <span>✏️ Fórmula</span>
-                    <button type="button" data-act="smaller">−</button>
-                    <button type="button" data-act="bigger">+</button>
-                    <button type="button" data-act="rotateL">↶</button>
-                    <button type="button" data-act="rotateR">↷</button>
-                    <button type="button" data-act="cancel">✕</button>
-                    <button type="button" data-act="commit">✓ Pegar</button>
-                </div>
-                <img draggable="false" src="${dataUrl}" alt="Vista previa de fórmula">
-            `;
-            document.body.appendChild(el);
-            activeStamp = el;
+            const stamperContent = document.getElementById('stamper-content');
+            stamperContent.style.width = Math.min(width, 900) + 'px';
+            stamperContent.style.height = Math.min(height, 220) + 'px';
 
-            let scale=1, rotation=0;
-            const img=el.querySelector('img');
+            const stamper = document.getElementById('stamper');
+            const boardRect = canvas.getBoundingClientRect();
 
-            const applyTransform=()=>{ img.style.transform=`scale(${scale}) rotate(${rotation}deg)`; };
+            // Centrar inicialmente sobre la zona visible de la pizarra.
+            const centerX = boardRect.left + boardRect.width / 2;
+            const centerY = Math.max(120, boardRect.top + Math.min(boardRect.height / 2, window.innerHeight / 2));
+            stamper.style.position = 'fixed';
+            stamper.style.left = centerX + 'px';
+            stamper.style.top = centerY + 'px';
+            stamper.style.transform = 'translate(-50%, -50%)';
+            stamper.style.display = 'block';
 
-            el.querySelector('[data-act="smaller"]').onclick=()=>{scale=Math.max(.5,scale-.1);applyTransform();};
-            el.querySelector('[data-act="bigger"]').onclick=()=>{scale=Math.min(2.5,scale+.1);applyTransform();};
-            el.querySelector('[data-act="rotateL"]').onclick=()=>{rotation-=5;applyTransform();};
-            el.querySelector('[data-act="rotateR"]').onclick=()=>{rotation+=5;applyTransform();};
-            el.querySelector('[data-act="cancel"]').onclick=()=>{el.remove();activeStamp=null;};
-            el.querySelector('[data-act="commit"]').onclick=()=>{
-                const r=el.getBoundingClientRect();
-                const board=canvas.getBoundingClientRect();
-                const x=(r.left + r.width/2 - board.left) * (canvas.width/board.width);
-                const y=(r.top + r.height/2 - board.top) * (canvas.height/board.height);
-                const w=Math.min(tempCanvas.width*scale, canvas.width);
-                const h=Math.min(tempCanvas.height*scale, canvas.height);
-
-                ctx.save();
-                ctx.globalCompositeOperation='source-over';
-                ctx.drawImage(tempCanvas, x-w/2, y-h/2, w, h);
-                ctx.restore();
-
-                broadcastData({type:'image',src:dataUrl,x:x-w/2,y:y-h/2,w,h});
-                el.remove(); activeStamp=null;
-            };
-
-            // Drag by toolbar or image. Keep pointer coordinates stable.
-            const beginDrag=(e)=>{
-                if(e.button!==undefined && e.button!==0) return;
-                if(e.target.closest('button')) return;
-                e.preventDefault();
-                const rr=el.getBoundingClientRect();
-                stampDrag={ox:e.clientX-rr.left,oy:e.clientY-rr.top};
-                el.setPointerCapture?.(e.pointerId);
-            };
-            const moveDrag=(e)=>{
-                if(!stampDrag) return;
-                el.style.left=`${e.clientX-stampDrag.ox}px`;
-                el.style.top=`${e.clientY-stampDrag.oy}px`;
-                el.style.right='auto';
-            };
-            const endDrag=()=>{stampDrag=null;};
-            el.addEventListener('pointerdown',beginDrag);
-            el.addEventListener('pointermove',moveDrag);
-            el.addEventListener('pointerup',endDrag);
-            el.addEventListener('pointercancel',endDrag);
-
-            const board=canvas.getBoundingClientRect();
-            el.style.left=`${Math.max(10,board.left+board.width/2-150)}px`;
-            el.style.top=`${Math.max(75,board.top+board.height/2-80)}px`;
-            el.style.position='fixed';
+            // Cerrar paneles que puedan tapar el objeto.
+            const fp = document.getElementById('formulas-panel');
+            if (fp) fp.style.display = 'none';
+            const ep = document.getElementById('examples-panel');
+            if (ep) ep.style.display = 'none';
         }
 
         function saveAsPDF() {
@@ -1622,6 +1590,158 @@
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
+        // ================= IMÁGENES / CÁMARA =================
+        // Cualquier foto se convierte en un objeto estampable: mover, cambiar
+        // tamaño, recortar y pegar en la pizarra.
+        function loadImageIntoStamp(file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) return;
+
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('stamp-img');
+                const source = new Image();
+
+                source.onload = function() {
+                    const maxW = 900;
+                    const maxH = 650;
+                    let w = source.naturalWidth || source.width;
+                    let h = source.naturalHeight || source.height;
+
+                    const ratio = Math.min(1, maxW / w, maxH / h);
+                    w = Math.max(80, Math.round(w * ratio));
+                    h = Math.max(60, Math.round(h * ratio));
+
+                    img.onload = function() {
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = w + 'px';
+                        sc.style.height = h + 'px';
+
+                        const stamper = document.getElementById('stamper');
+                        const boardRect = canvas.getBoundingClientRect();
+                        stamper.style.position = 'fixed';
+                        stamper.style.left = (boardRect.left + boardRect.width / 2) + 'px';
+                        stamper.style.top = Math.max(120, boardRect.top + Math.min(boardRect.height / 2, window.innerHeight / 2)) + 'px';
+                        stamper.style.transform = 'translate(-50%, -50%)';
+                        stamper.style.display = 'block';
+
+                        const fp = document.getElementById('formulas-panel');
+                        if (fp) fp.style.display = 'none';
+                    };
+                    img.src = ev.target.result;
+                };
+                source.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+
+        ['imageInput', 'cameraInput'].forEach(function(id) {
+            const input = document.getElementById(id);
+            if (input) {
+                input.addEventListener('change', function(e) {
+                    const file = e.target.files && e.target.files[0];
+                    if (file) loadImageIntoStamp(file);
+                    e.target.value = '';
+                });
+            }
+        });
+
+        // Recorte sobre el objeto actual del estampador.
+        let stampCropMode = false;
+        let stampCropStart = null;
+        let stampCropBox = null;
+
+        function startStampCrop() {
+            const img = document.getElementById('stamp-img');
+            const sc = document.getElementById('stamper-content');
+            if (!img || !img.src || !img.naturalWidth) {
+                alert('Primero selecciona una fórmula, PDF o foto.');
+                return;
+            }
+
+            stampCropMode = true;
+            sc.style.cursor = 'crosshair';
+
+            if (!stampCropBox) {
+                stampCropBox = document.createElement('div');
+                stampCropBox.style.cssText =
+                    'position:absolute;left:0;top:0;border:2px dashed #8b5cf6;' +
+                    'background:rgba(139,92,246,.12);z-index:40;pointer-events:none;display:none;';
+                sc.appendChild(stampCropBox);
+            }
+
+            alert('Arrastra sobre la fórmula o imagen para recortar. Luego se aplicará el recorte y podrás moverla antes de pegar.');
+        }
+
+        function finishStampCrop() {
+            stampCropMode = false;
+            const sc = document.getElementById('stamper-content');
+            if (sc) sc.style.cursor = 'grab';
+            if (stampCropBox) stampCropBox.style.display = 'none';
+            stampCropStart = null;
+        }
+
+        document.getElementById('stamper-content').addEventListener('pointerdown', function(e) {
+            if (!stampCropMode || e.target.closest('button')) return;
+            const sc = this.getBoundingClientRect();
+            stampCropStart = {
+                x: Math.max(0, Math.min(sc.width, e.clientX - sc.left)),
+                y: Math.max(0, Math.min(sc.height, e.clientY - sc.top))
+            };
+            if (stampCropBox) {
+                stampCropBox.style.left = stampCropStart.x + 'px';
+                stampCropBox.style.top = stampCropStart.y + 'px';
+                stampCropBox.style.width = '0px';
+                stampCropBox.style.height = '0px';
+                stampCropBox.style.display = 'block';
+            }
+            e.preventDefault();
+            e.stopPropagation();
+        }, true);
+
+        window.addEventListener('pointermove', function(e) {
+            if (!stampCropMode || !stampCropStart || !stampCropBox) return;
+            const sc = document.getElementById('stamper-content').getBoundingClientRect();
+            const x = Math.max(0, Math.min(sc.width, e.clientX - sc.left));
+            const y = Math.max(0, Math.min(sc.height, e.clientY - sc.top));
+            stampCropBox.style.left = Math.min(x, stampCropStart.x) + 'px';
+            stampCropBox.style.top = Math.min(y, stampCropStart.y) + 'px';
+            stampCropBox.style.width = Math.abs(x - stampCropStart.x) + 'px';
+            stampCropBox.style.height = Math.abs(y - stampCropStart.y) + 'px';
+        }, true);
+
+        window.addEventListener('pointerup', function(e) {
+            if (!stampCropMode || !stampCropStart || !stampCropBox) return;
+
+            const sc = document.getElementById('stamper-content').getBoundingClientRect();
+            const left = parseFloat(stampCropBox.style.left) || 0;
+            const top = parseFloat(stampCropBox.style.top) || 0;
+            const cw = parseFloat(stampCropBox.style.width) || 0;
+            const ch = parseFloat(stampCropBox.style.height) || 0;
+
+            if (cw > 15 && ch > 15) {
+                const img = document.getElementById('stamp-img');
+                const sx = (left / sc.width) * img.naturalWidth;
+                const sy = (top / sc.height) * img.naturalHeight;
+                const sw = (cw / sc.width) * img.naturalWidth;
+                const sh = (ch / sc.height) * img.naturalHeight;
+
+                const out = document.createElement('canvas');
+                out.width = Math.max(1, Math.round(sw));
+                out.height = Math.max(1, Math.round(sh));
+                const oc = out.getContext('2d');
+                oc.drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
+
+                img.onload = function() {
+                    const sc2 = document.getElementById('stamper-content');
+                    sc2.style.width = Math.max(60, cw) + 'px';
+                    sc2.style.height = Math.max(45, ch) + 'px';
+                };
+                img.src = out.toDataURL('image/png');
+            }
+
+            finishStampCrop();
+        }, true);
+
         const cropOverlay = document.getElementById('crop-overlay');
 
         function showPdfError(message) {
