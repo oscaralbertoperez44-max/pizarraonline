@@ -89,7 +89,7 @@
 
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); border-radius: 8px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.8); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 8px; border-top-right-radius: 8px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
-        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; }
+        #ui-panel { top: 15px; left: 15px; padding: 15px; text-align: center; background: rgba(20,20,20,0.9); border: 1px solid #333; transition: opacity 0.8s ease; }
         
         #pdf-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; flex-grow: 1; }
@@ -270,7 +270,7 @@
                 <button class="role-btn btn-teacher" onclick="showTeacherForm()">👨‍🏫 Soy Profesor</button>
             </div>
             <div id="form-student" class="auth-form">
-                <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO DE CLASE" maxlength="4">
+                <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO DE CLASE (4 DÍGITOS)" maxlength="4">
                 <button class="role-btn btn-student" onclick="joinRoom()">Entrar a la Clase</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
@@ -284,7 +284,7 @@
 
     <div id="ui-panel" class="floating-panel">
         <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
-        <div id="room-code-display" style="font-size: 1.5rem; letter-spacing: 4px; margin: 8px 0; font-weight:bold; color:white; display:none;"></div>
+        <div id="room-code-display" style="font-size: 2rem; letter-spacing: 6px; margin: 8px 0; font-weight:bold; color:#60a5fa; display:none;"></div>
         <div style="font-size: 0.7em; color: #aaa;">Usa la barra inferior para escribir</div>
     </div>
 
@@ -902,7 +902,6 @@
         }
         function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
 
-        // Red Remota y Conexión
         container.addEventListener('scroll', () => { if(isAdmin) broadcastData({ type: 'scroll', top: container.scrollTop }); });
 
         function processRemoteCommand(data) {
@@ -947,12 +946,26 @@
         async function createRoom() {
             await getMicrophone();
             document.getElementById('toolbar').style.display = 'flex';
-            peer = new Peer(Math.random().toString(36).substring(2, 6).toUpperCase(), peerNetworkOptions);
+            
+            // Generar código aleatorio de 4 dígitos para los alumnos
+            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            peer = new Peer(randomCode, peerNetworkOptions);
+            
             peer.on('open', (id) => {
                 document.getElementById('ui-panel').style.display = 'block';
-                document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO:";
+                document.getElementById('status-text').innerText = "CLASE INICIADA. CÓDIGO DE ACCESO:";
                 const codeDisplay = document.getElementById('room-code-display');
-                codeDisplay.innerText = id; codeDisplay.style.display = 'block';
+                codeDisplay.innerText = id; 
+                codeDisplay.style.display = 'block';
+                
+                // Mostrar código y desaparecer tras 15 segundos
+                setTimeout(() => { 
+                    const uiPanel = document.getElementById('ui-panel');
+                    if(uiPanel) {
+                        uiPanel.style.opacity = '0'; 
+                        setTimeout(() => uiPanel.style.display = 'none', 800); 
+                    }
+                }, 15000);
             });
             peer.on('connection', (conn) => { 
                 connections.push(conn); 
@@ -966,8 +979,9 @@
         }
 
         async function joinRoom() {
-            const roomId = document.getElementById('roomIdInput').value.toUpperCase();
-            if (!roomId) return alert("Ingresa un código");
+            const roomId = document.getElementById('roomIdInput').value.toUpperCase().trim();
+            if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
+            
             await getMicrophone();
             peer = new Peer(peerNetworkOptions);
             peer.on('open', () => {
@@ -975,9 +989,14 @@
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 document.getElementById('toolbar').style.display = 'flex';
                 
-                const conn = peer.connect(roomId); connections.push(conn);
+                const conn = peer.connect(roomId); 
+                connections.push(conn);
                 conn.on('data', drawRemote);
                 if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
+            });
+            peer.on('error', (err) => {
+                alert("No se pudo conectar a la clase. Verifica el código.");
+                window.location.reload();
             });
         }
 </script>
@@ -1094,7 +1113,6 @@
         mwLastPosX = p.x; mwLastPosY = p.y;
         mwLastMidX = midX; mwLastMidY = midY;
         
-        // Si el alumno escribe, transmite su trazo al profesor/resto de la clase si es necesario
         if (!isAdmin && typeof broadcastData === 'function') {
             broadcastData({ type:'drawBezier', lastMidX: midX, lastMidY: midY, lastPosX: p.x, lastPosY: p.y, midX: midX, midY: midY, color: mwColor, size: finalSize, tool: mwMode });
         }
