@@ -295,6 +295,9 @@
         <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
         <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase en MP4" class="hide-mobile">⏺️</button>
 
+        <!-- Botón de Cerrar Sesión del Profesor -->
+        <button onclick="logoutSession()" title="Cerrar Sesión para Todos" class="danger-btn" style="background:#dc2626;">🚪</button>
+
         <div class="toolbar-divider"></div>
 
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
@@ -360,6 +363,19 @@
                 createRoom();
             } else { alert("PIN Incorrecto."); }
         }
+
+        // Función para cerrar sesión y terminar la clase para todos
+        function logoutSession() {
+            if (confirm("¿Estás seguro de cerrar la sesión y finalizar la clase para todos?")) {
+                if (isAdmin && typeof broadcastData === 'function') {
+                    broadcastData({ type: 'logout' });
+                }
+                setTimeout(() => {
+                    window.location.reload();
+                }, 300);
+            }
+        }
+        window.logoutSession = logoutSession;
 
         const canvas = document.getElementById('board');
         const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
@@ -438,7 +454,7 @@
         }
         window.clearCanvas = clearCanvas;
 
-        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA (MÁS DE 60 FÓRMULAS) ================= */
+        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA ================= */
         const mathFormulas = {
             arithmetic: [
                 {name:"Regla de tres simple",eq:"x = (b · c) / a"},
@@ -993,6 +1009,11 @@
             if (data.type === 'clear') { 
                 drawGrid(ctx, canvas.width, canvas.height); 
                 return; 
+            }
+            if (data.type === 'logout') {
+                alert("El profesor ha finalizado y cerrado la sesión.");
+                window.location.reload();
+                return;
             }
             
             if (data.type === 'start') { 
