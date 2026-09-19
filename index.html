@@ -72,18 +72,13 @@
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
-        #ui-panel { 
-            top: 20px; left: 20px; padding: 20px; 
-            text-align: center; background: rgba(15, 23, 42, 0.95); 
-            border: 1px solid #3b82f6; border-radius: 16px;
-            transition: opacity 1s ease; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         #pdf-panel { top: 80px; left: 30px; width: 500px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
+        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
         #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
@@ -103,7 +98,6 @@
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
-        .stamper-toolbar button { touch-action: manipulation; }
 
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
@@ -116,6 +110,9 @@
         #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
         .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
+        #formulas-panel { width: min(430px, 38vw) !important; max-height: min(72vh, 760px) !important; overflow: hidden; z-index: 50; }
+        #formulas-panel .panel-body { max-height: calc(min(72vh, 760px) - 90px); overflow-y: auto; overflow-x: hidden; }
+
         .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
         .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
         .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
@@ -163,7 +160,7 @@
             #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
             #main-toolbar { padding: 6px 12px; bottom: 8px; border-radius: 20px;}
             #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
-            .hide-mobile { display: none; }
+            .hide-mobile { display: none !important; }
         }
     </style>
 </head>
@@ -278,7 +275,7 @@
         </div>
     </div>
 
-    <!-- Barra Única Unificada -->
+    <!-- Barra Única Unificada (Profesor y Alumno juntos) -->
     <div id="main-toolbar">
         
         <!-- Opciones de Profesor (Ocultas para alumnos) -->
@@ -287,26 +284,26 @@
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂</button>
+            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
 
             <input type="file" id="imageInput" class="hidden-file" accept="image/*">
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen">🖼️</button>
+            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC" class="hide-mobile">🖼️</button>
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
-            <button onclick="saveAsPDF()" title="Guardar Clase en PDF">💾</button>
-            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase en MP4">⏺️</button>
+            <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase en MP4" class="hide-mobile">⏺️</button>
             
             <div class="toolbar-divider"></div>
         </div>
 
-        <!-- Herramientas de Dibujo (Todos) -->
+        <!-- Opciones Universales de Dibujo -->
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
-        <button type="button" id="mw-line" title="Línea Recta">╱</button>
-        <button type="button" id="mw-arrow" title="Flecha">➜</button>
-        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo">▭</button>
-        <button type="button" id="mw-circle" title="Círculo">○</button>
+        <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
+        <button type="button" id="mw-arrow" title="Flecha" class="hide-mobile">➜</button>
+        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo" class="hide-mobile">▭</button>
+        <button type="button" id="mw-circle" title="Círculo" class="hide-mobile">○</button>
         <button type="button" id="mw-eraser" title="Borrador">🧼</button>
         
         <div class="toolbar-divider"></div>
@@ -321,11 +318,13 @@
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
+    <!-- Pizarra Blanca (Único Canvas - Tamaño Real) -->
     <div id="canvas-container">
         <canvas id="board"></canvas>
     </div>
 
 <script>
+        // Súper Script unificado, optimizado y sin errores
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -367,6 +366,7 @@
         }
 
         const canvas = document.getElementById('board');
+        // Alpha TRUE: Permite la transparencia para que la Goma revele la cuadrícula CSS blanca
         const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
         
         ctx.lineCap = 'round'; 
@@ -380,6 +380,7 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
+            ctx.clearRect(0,0, canvas.width, canvas.height);
         }
 
         function resizeCanvas() {
@@ -388,6 +389,7 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             
             const img = new Image();
             img.onload = () => {
@@ -424,7 +426,7 @@
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra?')) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            if(typeof saveState === 'function') saveState(); 
+            if(typeof window.saveState === 'function') window.saveState(); 
             broadcastData({ type:'clear' });
         }
         window.clearCanvas = clearCanvas;
@@ -614,6 +616,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
+        // ================= RUTINAS STAMPER Y PDF =================
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -835,15 +838,35 @@
             pdfCropStart = null;
         });
 
-        // ================= GRABACIÓN EN MP4 AVANZADA =================
+        function saveAsPDF() {
+            const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
+            if (!filename) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            const tCtx = tempCanvas.getContext('2d');
+            
+            tCtx.fillStyle = '#ffffff'; 
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            tCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+            tCtx.lineWidth = 1.5;
+            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
+            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
+            
+            tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            const { jsPDF } = window.jspdf;
+            
+            const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
+            const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
+            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
+            pdf.save(filename + ".pdf");
+        }
+
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
         function startRecording() {
             if (!audioDestination) { alert("Audio no inicializado."); return; }
-            
-            // Forzamos 30 FPS constantes para un video fluido
             const canvasStream = canvas.captureStream(30); 
-            
             let combinedStream;
             if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
                 combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
@@ -851,20 +874,18 @@
                 combinedStream = canvasStream;
             }
             
-            // Preferimos codecs H.264 / VP9 para mejor calidad, empacados en un contenedor que forzaremos a MP4
-            const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
+            const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 3000000 }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                options.mimeType = 'video/webm;codecs=vp9';
+                options.mimeType = 'video/webm;codecs=vp8';
                 if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
             }
 
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                // Al forzar Blob type 'video/mp4' con codec H264, los reproductores lo asumen como MP4 válido
-                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+                const blob = new Blob(recordedChunks, { type: options.mimeType });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
+                const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.webm'; a.click();
                 URL.revokeObjectURL(url); recordedChunks = [];
             };
             mediaRecorder.start(); isRecording = true;
@@ -905,7 +926,7 @@
             });
         }
 
-        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR (CURSORES REMOTOS) =================
+        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR (CURSORES Y FORMAS) =================
         function updateRemoteCursor(data) {
             if (!data.peerId) return;
             let cursor = document.getElementById('cursor-' + data.peerId);
@@ -929,7 +950,6 @@
             cursor.timeout = setTimeout(() => { cursor.style.opacity = '0'; }, 600);
         }
 
-        // Función de Formas Geométricas para Remotos
         function drawShapeExact(targetCtx, type, x1, y1, x2, y2, color, size) {
             targetCtx.save();
             targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round';
@@ -1083,7 +1103,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS GEOMÉTRICAS === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
