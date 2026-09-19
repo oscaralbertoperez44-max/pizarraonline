@@ -29,7 +29,10 @@
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            background-color: #ffffff;
+            background-color: transparent;
+            background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
+                              linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
+            background-size: 35px 35px;
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -197,7 +200,7 @@
         <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
 
-    <!-- WIDGET DE FÓRMULAS -->
+    <!-- WIDGET DE FÓRMULAS (Ampliado con Topología, Probabilidad y más) -->
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
@@ -210,13 +213,13 @@
             <button class="f-tab" onclick="loadFormulas('trigonometry', this)">Trigonometría</button>
             <button class="f-tab" onclick="loadFormulas('calculus', this)">Cálculo</button>
             <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
+            <button class="f-tab" onclick="loadFormulas('probability', this)">Probabilidad</button>
             <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
             <button class="f-tab" onclick="loadFormulas('arithmetic', this)">Aritmética</button>
             <button class="f-tab" onclick="loadFormulas('matrices', this)">Matrices</button>
             <button class="f-tab" onclick="loadFormulas('vectors', this)">Vectores</button>
-            <button class="f-tab" onclick="loadFormulas('discrete', this)">Discreta</button>
-            <button class="f-tab" onclick="loadFormulas('numbers', this)">Números</button>
-            <button class="f-tab" onclick="loadFormulas('financial', this)">Financiera</button>
+            <button class="f-tab" onclick="loadFormulas('complex', this)">Complejos</button>
+            <button class="f-tab" onclick="loadFormulas('physics', this)">Física</button>
         </div>
         <div id="formula-category-selector" class="formula-category-selector">
             <button class="f-cat" data-cat="arithmetic" onclick="selectFormulaCategory('arithmetic')">Aritmética</button>
@@ -224,13 +227,11 @@
             <button class="f-cat" data-cat="geometry" onclick="selectFormulaCategory('geometry')">Geometría</button>
             <button class="f-cat" data-cat="trigonometry" onclick="selectFormulaCategory('trigonometry')">Trigonometría</button>
             <button class="f-cat" data-cat="calculus" onclick="selectFormulaCategory('calculus')">Cálculo ∫</button>
-            <button class="f-cat" data-cat="matrices" onclick="selectFormulaCategory('matrices')">Matrices</button>
-            <button class="f-cat" data-cat="vectors" onclick="selectFormulaCategory('vectors')">Vectores</button>
             <button class="f-cat" data-cat="statistics" onclick="selectFormulaCategory('statistics')">Estadística</button>
             <button class="f-cat" data-cat="probability" onclick="selectFormulaCategory('probability')">Probabilidad</button>
-            <button class="f-cat" data-cat="discrete" onclick="selectFormulaCategory('discrete')">Discreta</button>
-            <button class="f-cat" data-cat="numbers" onclick="selectFormulaCategory('numbers')">Números</button>
-            <button class="f-cat" data-cat="financial" onclick="selectFormulaCategory('financial')">Financiera</button>
+            <button class="f-cat" data-cat="topology" onclick="selectFormulaCategory('topology')">Topología</button>
+            <button class="f-cat" data-cat="matrices" onclick="selectFormulaCategory('matrices')">Matrices</button>
+            <button class="f-cat" data-cat="vectors" onclick="selectFormulaCategory('vectors')">Vectores</button>
             <button class="f-cat" data-cat="complex" onclick="selectFormulaCategory('complex')">Complejos</button>
             <button class="f-cat" data-cat="physics" onclick="selectFormulaCategory('physics')">Física</button>
         </div>
@@ -288,7 +289,7 @@
 
         <input type="file" id="imageInput" class="hidden-file" accept="image/*">
         <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen" class="hide-mobile">🖼️</button>
+        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de dispositivo" class="hide-mobile">🖼️</button>
         <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
         
         <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
@@ -361,7 +362,7 @@
         }
 
         const canvas = document.getElementById('board');
-        // Alpha FALSE asegura que el fondo sea sólido (blanco) para que el MP4 no salga negro
+        // Alpha FALSE: Garantiza fondo blanco opaco sólido para que el MP4 nunca salga negro
         const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
         
         ctx.lineCap = 'round'; 
@@ -438,22 +439,78 @@
         }
         window.clearCanvas = clearCanvas;
 
-        /* ================= BIBLIOTECA MATEMÁTICA ================= */
+        /* ================= BIBLIOTECA MATEMÁTICA COMPLETA (Con Topología y más) ================= */
         const mathFormulas = {
             algebra: [
                 {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
                 {name:"Cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
                 {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
-                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"}
+                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
+                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
+                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"}
             ],
             geometry: [
                 {name:"Pitágoras",eq:"a²+b²=c²"},
                 {name:"Área del Círculo",eq:"A = π · r²"},
-                {name:"Perímetro del Círculo",eq:"P = 2πr"}
+                {name:"Perímetro del Círculo",eq:"P = 2πr"},
+                {name:"Volumen Esfera",eq:"V = (4/3)π · r³"}
+            ],
+            analytic_geometry: [
+                {name:"Distancia entre puntos",eq:"d = √((x₂ - x₁)² + (y₂ - y₁)²)"},
+                {name:"Punto Medio",eq:"M = ((x₁+x₂)/2 , (y₁+y₂)/2)"},
+                {name:"Pendiente",eq:"m = (y₂ - y₁) / (x₂ - x₁)"}
+            ],
+            trigonometry: [
+                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
+                {name:"Ley de senos",eq:"a/sin A = b/sin B = c/sin C"},
+                {name:"Ley de cosenos",eq:"c² = a² + b² - 2ab cos C"}
             ],
             calculus: [
                 {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
-                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"}
+                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
+                {name:"Integración por Partes",eq:"∫ u dv = u·v - ∫ v du"},
+                {name:"Teorema Fundamental",eq:"∫_a^b f(x)dx = F(b) - F(a)"}
+            ],
+            stats: [
+                {name:"Media",eq:"x̄ = Σxᵢ / n"},
+                {name:"Varianza poblacional",eq:"σ² = Σ(xᵢ - μ)² / N"},
+                {name:"Desviación estándar",eq:"σ = √σ²"}
+            ],
+            probability: [
+                {name:"Probabilidad Clásica",eq:"P(A) = casos favorables / casos posibles"},
+                {name:"Probabilidad Condicional",eq:"P(A|B) = P(A ∩ B) / P(B)"},
+                {name:"Teorema de Bayes",eq:"P(A|B) = [P(B|A)P(A)] / P(B)"},
+                {name:"Distribución Binomial",eq:"P(X=k) = C(n,k)p^k(1-p)^(n-k)"}
+            ],
+            topology: [
+                {name:"Característica de Euler (Poliedros)",eq:"χ = V - E + F"},
+                {name:"Característica Euler (Superficies)",eq:"χ = 2 - 2g"},
+                {name:"Género de Superficie",eq:"g = 1 - χ/2"},
+                {name:"Números de Betti",eq:"χ = b₀ - b₁ + b₂"},
+                {name:"Teorema Gauss-Bonnet",eq:"∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"},
+                {name:"Grupo Fundamental (Círculo)",eq:"π₁(S¹) ≅ ℤ"}
+            ],
+            arithmetic: [
+                {name:"Regla de tres",eq:"x = (b·c) / a"},
+                {name:"Porcentaje",eq:"p% de N = (p/100)·N"}
+            ],
+            matrices: [
+                {name:"Determinante 2×2",eq:"det(A) = ad - bc"},
+                {name:"Matriz inversa 2×2",eq:"A⁻¹ = 1/(ad-bc) · [[d,-b],[-c,a]]"}
+            ],
+            vectors: [
+                {name:"Módulo de vector",eq:"||v|| = √(v₁² + v₂² + v₃²)"},
+                {name:"Producto escalar",eq:"u·v = u₁v₁ + u₂v₂ + u₃v₃"}
+            ],
+            complex: [
+                {name:"Número complejo",eq:"z = a + bi"},
+                {name:"Módulo complejo",eq:"|z| = √(a² + b²)"},
+                {name:"Identidad de Euler",eq:"e^(iπ) + 1 = 0"}
+            ],
+            physics: [
+                {name:"Fuerza (Newton)",eq:"F = m · a"},
+                {name:"Energía cinética",eq:"E_k = (1/2) m · v²"},
+                {name:"Ley de Ohm",eq:"V = I · R"}
             ]
         };
 
@@ -511,7 +568,6 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER Y PDF =================
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -740,10 +796,7 @@
             tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
             const tCtx = tempCanvas.getContext('2d');
             
-            tCtx.fillStyle = '#ffffff'; 
-            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             drawGrid(tCtx, tempCanvas.width, tempCanvas.height);
-            
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
             
@@ -766,7 +819,6 @@
                 combinedStream = canvasStream;
             }
             
-            // Forzar formato compatible MP4/H264
             const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'video/webm;codecs=vp9';
@@ -820,7 +872,7 @@
             });
         }
 
-        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR (CURSORES REMOTOS) =================
+        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR =================
         function updateRemoteCursor(data) {
             if (!data.peerId) return;
             let cursor = document.getElementById('cursor-' + data.peerId);
@@ -874,9 +926,7 @@
 
         function processRemoteCommand(data) {
             if (data.type === 'clear') { 
-                ctx.fillStyle = '#ffffff';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                drawGrid(ctx, canvas.width, canvas.height);
+                drawGrid(ctx, canvas.width, canvas.height); 
                 return; 
             }
             
@@ -1032,7 +1082,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS GEOMÉTRICAS === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
