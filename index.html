@@ -11,7 +11,6 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
     <style>
-        /* Base General Ultra Optimizada */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             background-color: #ffffff; color: #1e293b;
@@ -29,7 +28,7 @@
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            background-color: #ffffff;
+            background-color: transparent;
             background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
                               linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
             background-size: 35px 35px;
@@ -39,7 +38,6 @@
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>') 12 12, crosshair !important;
         }
 
-        /* Sistema de Cursores Remotos (Multijugador) */
         .remote-cursor {
             position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9997;
             display: flex; flex-direction: column; align-items: center;
@@ -63,7 +61,7 @@
         .btn-teacher:hover { background: #059669; }
         .auth-form { display: none; margin-top: 15px; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; letter-spacing: 2px; }
         .auth-input:focus { outline: 2px solid #3b82f6; }
         .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 10px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
@@ -73,7 +71,6 @@
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
-        /* Panel del Código de la clase */
         #ui-panel { 
             top: 20px; left: 20px; padding: 20px; 
             text-align: center; background: rgba(15, 23, 42, 0.95); 
@@ -86,18 +83,15 @@
         #pdf-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
-        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
         #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        
         .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
         
-        /* Capas Recorte / Estampado */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         
@@ -105,45 +99,32 @@
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); cursor: crosshair; min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px;}
-        .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 24px; height: 24px; background: #3b82f6; border-radius: 50%; border: 2px solid white; cursor: nwse-resize; box-shadow: 0 2px 10px rgba(0,0,0,0.5); z-index: 21; }
-        .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         .stamper-toolbar { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
-        .stamper-toolbar button { touch-action: manipulation; }
 
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .danger-btn { background: #dc2626 !important; color: #fff; }
+        .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
+        @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         .hidden-file { display: none; }
         #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
         #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
         .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
-        #formulas-panel { width: min(430px, 38vw) !important; max-height: min(72vh, 760px) !important; overflow: hidden; z-index: 50; }
-        #formulas-panel .panel-body { max-height: calc(min(72vh, 760px) - 90px); overflow-y: auto; overflow-x: hidden; }
-
-        @media (max-width: 900px) {
-            #formula-search { font-size: .85rem; }
-            #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
-            #formulas-panel { width: 92vw !important; max-height:66vh !important; }
-        }
-    
         .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
         .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
         .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
-        #formula-grid-container{display:grid;grid-template-columns:1fr;gap:8px;padding-bottom:10px;}
         .formula-card{padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);}
         .formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;}
         .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
         .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
         .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
-        .formula-card-actions button:hover{background:rgba(139,92,246,.25);}
+        
+        #formulas-panel{overscroll-behavior:contain;}
+        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
-        #pdf-panel canvas, #pdf-panel .pdf-page canvas, #pdf-viewer canvas { image-rendering: auto !important; image-rendering: -webkit-optimize-contrast !important; }
-        #pdf-panel .pdf-page { background: #fff; box-shadow: 0 8px 30px rgba(0,0,0,.35); margin: 14px auto; overflow: hidden; }
-        #pdf-panel .pdf-page canvas { display: block; width: 100% !important; height: auto !important; }
-
-        /* === BARRA UNIFICADA === */
+        /* === BARRA UNIFICADA CON FORMAS GEOMÉTRICAS === */
         #main-toolbar {
             position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
             z-index: 9999; gap: 8px; padding: 8px 16px;
@@ -153,17 +134,16 @@
             max-width: 95vw; overflow-x: auto; white-space: nowrap;
         }
         #main-toolbar::-webkit-scrollbar { display: none; }
-        
         .toolbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px; flex-shrink: 0; }
         
         #main-toolbar button {
-            min-width: 44px; min-height: 42px; border: 0; border-radius: 12px;
-            padding: 6px 12px; font-size: 16px; color: #fff; background: #334155; cursor: pointer; transition: 0.2s; flex-shrink: 0;
+            min-width: 42px; min-height: 42px; border: 0; border-radius: 12px;
+            padding: 6px 10px; font-size: 17px; color: #fff; background: #334155; cursor: pointer; transition: 0.2s; flex-shrink: 0;
         }
         #main-toolbar button:hover { background: #475569; }
         #main-toolbar button.active { outline: 2px solid #3b82f6; background: #2563eb; }
-        #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
-        #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
+        #main-toolbar input[type="range"] { width: 80px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
+        #main-toolbar input[type="color"] { width: 36px; height: 36px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
         
         .audio-unlock-btn {
             position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
@@ -172,6 +152,14 @@
             animation: pulseAudio 2s infinite;
         }
         @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
+        @media (max-width: 900px) {
+            #formulas-panel { width: 92vw !important; max-height:66vh !important; }
+            #pdf-panel { width: 95%; left: 2.5%; top: 5%; }
+            #main-toolbar { padding: 6px 12px; bottom: 8px; border-radius: 20px;}
+            #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
+            .hide-mobile { display: none; }
+        }
     </style>
 </head>
 <body>
@@ -226,20 +214,7 @@
             <button class="f-tab" onclick="loadFormulas('financial', this)">Financiera</button>
         </div>
         <div id="formula-category-selector" class="formula-category-selector">
-            <button class="f-cat" data-cat="arithmetic" onclick="selectFormulaCategory('arithmetic')">Aritmética</button>
-            <button class="f-cat" data-cat="algebra" onclick="selectFormulaCategory('algebra')">Álgebra</button>
-            <button class="f-cat" data-cat="geometry" onclick="selectFormulaCategory('geometry')">Geometría</button>
-            <button class="f-cat" data-cat="trigonometry" onclick="selectFormulaCategory('trigonometry')">Trigonometría</button>
-            <button class="f-cat" data-cat="calculus" onclick="selectFormulaCategory('calculus')">Cálculo ∫</button>
-            <button class="f-cat" data-cat="matrices" onclick="selectFormulaCategory('matrices')">Matrices</button>
-            <button class="f-cat" data-cat="vectors" onclick="selectFormulaCategory('vectors')">Vectores</button>
-            <button class="f-cat" data-cat="statistics" onclick="selectFormulaCategory('statistics')">Estadística</button>
-            <button class="f-cat" data-cat="probability" onclick="selectFormulaCategory('probability')">Probabilidad</button>
-            <button class="f-cat" data-cat="discrete" onclick="selectFormulaCategory('discrete')">Discreta</button>
-            <button class="f-cat" data-cat="numbers" onclick="selectFormulaCategory('numbers')">Números</button>
-            <button class="f-cat" data-cat="financial" onclick="selectFormulaCategory('financial')">Financiera</button>
-            <button class="f-cat" data-cat="complex" onclick="selectFormulaCategory('complex')">Complejos</button>
-            <button class="f-cat" data-cat="physics" onclick="selectFormulaCategory('physics')">Física</button>
+            <!-- (Botones de categorías generados por JS) -->
         </div>
         <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula..." autocomplete="off">
         <div class="formula-count" id="formula-count"></div>
@@ -285,27 +260,29 @@
         </div>
     </div>
 
-    <!-- Barra Única Unificada (Todo el Mundo) -->
+    <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
         <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
-        <button onclick="saveAsPDF()" title="Guardar Clase en PDF">💾</button>
-        <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase">⏺️</button>
+        <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
+        <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase" class="hide-mobile">⏺️</button>
         
-        <div class="toolbar-divider"></div>
-
         <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-        <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📂</button>
+        <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF">📄</button>
 
         <input type="file" id="imageInput" class="hidden-file" accept="image/*">
         <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de dispositivo">🖼️</button>
-        <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
+        <button onclick="document.getElementById('imageInput').click()" title="Subir imagen">🖼️</button>
+        <button onclick="document.getElementById('cameraInput').click()" title="Cámara">📷</button>
         
         <div class="toolbar-divider"></div>
 
-        <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
+        <button type="button" id="mw-pen" class="active" title="Lápiz Fino">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
+        <button type="button" id="mw-line" title="Línea Recta">╱</button>
+        <button type="button" id="mw-arrow" title="Flecha">➜</button>
+        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo">▭</button>
+        <button type="button" id="mw-circle" title="Círculo">○</button>
         <button type="button" id="mw-eraser" title="Borrador">🧼</button>
         
         <div class="toolbar-divider"></div>
@@ -317,7 +294,7 @@
         
         <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
         <button type="button" id="mw-clear" title="Limpiar Pizarra Blanca" class="danger-btn">🗑️</button>
-        <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa">🔲</button>
+        <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
     <div id="canvas-container">
@@ -370,8 +347,8 @@
         ctx.lineCap = 'round'; 
         ctx.lineJoin = 'round';
 
-        let internalWidth = 1920;
-        let internalHeight = 1080;
+        let internalWidth = window.innerWidth;
+        let internalHeight = window.innerHeight;
 
         function initCanvas() {
             canvas.width = window.innerWidth;
@@ -412,7 +389,7 @@
             data.peerId = peer ? peer.id : 'local';
             data.role = userRole;
 
-            if(data.type === 'drawBezier' || data.type === 'draw') {
+            if(data.type === 'drawBezier' || data.type === 'draw' || data.type === 'shape') {
                 broadcastQueue.push(data);
             } else {
                 connections.forEach(conn => { if (conn.open) conn.send(data); }); 
@@ -420,140 +397,28 @@
         }
 
         function clearCanvas() {
-            if(!confirm('¿Limpiar toda la escritura de la pizarra?')) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(typeof saveState === 'function') saveState(); 
             broadcastData({ type:'clear' });
         }
+        window.clearCanvas = clearCanvas;
 
         /* ================= BIBLIOTECA MATEMÁTICA ================= */
         const mathFormulas = {
             algebra: [
-                {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
-                {name:"Identidad notable: cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
+                {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
+                {name:"Cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
                 {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
-                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
-                {name:"Cubo de una diferencia",eq:"(a-b)³=a³-3a²b+3ab²-b³"},
-                {name:"Suma de cubos",eq:"a³+b³=(a+b)(a²-ab+b²)"},
-                {name:"Diferencia de cubos",eq:"a³-b³=(a-b)(a²+ab+b²)"},
-                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
-                {name:"Discriminante",eq:"Δ=b²-4ac"},
-                {name:"Binomio general",eq:"(a+b)^n=Σₖ C(n,k)a^(n-k)b^k"},
-                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"},
-                {name:"Logaritmo del cociente",eq:"log(a/b)=log a-log b"},
-                {name:"Cambio de base",eq:"log_b(a)=ln(a)/ln(b)"},
-                {name:"Exponencial y logaritmo",eq:"ln(e^x)=x; e^(ln x)=x"}
+                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"}
             ],
             geometry: [
                 {name:"Pitágoras",eq:"a²+b²=c²"},
-                {name:"Distancia entre puntos",eq:"d=√((x₂-x₁)²+(y₂-y₁)²)"},
-                {name:"Punto medio",eq:"M=((x₁+x₂)/2,(y₁+y₂)/2)"},
-                {name:"Pendiente",eq:"m=(y₂-y₁)/(x₂-x₁)"},
-                {name:"Recta",eq:"y-y₁=m(x-x₁)"},
-                {name:"Forma pendiente-intersección",eq:"y=mx+b"},
-                {name:"Área del triángulo",eq:"A=bh/2"},
-                {name:"Área del círculo",eq:"A=πr²"},
-                {name:"Longitud de circunferencia",eq:"C=2πr"},
-                {name:"Área del rectángulo",eq:"A=bh"},
-                {name:"Área del trapecio",eq:"A=(B+b)h/2"},
-                {name:"Área del rombo",eq:"A=Dd/2"},
-                {name:"Volumen del prisma",eq:"V=A_b h"},
-                {name:"Volumen del cilindro",eq:"V=πr²h"},
-                {name:"Volumen de la esfera",eq:"V=4πr³/3"},
-                {name:"Área de esfera",eq:"A=4πr²"}
-            ],
-            trigonometry: [
-                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
-                {name:"Tangente",eq:"tan x=sin x/cos x"},
-                {name:"Secante",eq:"sec x=1/cos x"},
-                {name:"Cosecante",eq:"csc x=1/sin x"},
-                {name:"Ley de senos",eq:"a/sin A=b/sin B=c/sin C"},
-                {name:"Ley de cosenos",eq:"c²=a²+b²-2ab cos C"},
-                {name:"Suma del seno",eq:"sin(a+b)=sin a cos b+cos a sin b"},
-                {name:"Diferencia del seno",eq:"sin(a-b)=sin a cos b-cos a sin b"},
-                {name:"Suma del coseno",eq:"cos(a+b)=cos a cos b-sin a sin b"},
-                {name:"Diferencia del coseno",eq:"cos(a-b)=cos a cos b+sin a sin b"}
+                {name:"Área del Círculo",eq:"A = π · r²"},
+                {name:"Perímetro del Círculo",eq:"P = 2πr"}
             ],
             calculus: [
-                {name:"Derivada de potencia",eq:"d(x^n)/dx=nx^(n-1)"},
-                {name:"Derivada de exponencial",eq:"d(e^x)/dx=e^x"},
-                {name:"Derivada de logaritmo",eq:"d(ln x)/dx=1/x"},
-                {name:"Derivada del seno",eq:"d(sin x)/dx=cos x"},
-                {name:"Derivada del coseno",eq:"d(cos x)/dx=-sin x"},
-                {name:"Regla del producto",eq:"(fg)'=f'g+fg'"},
-                {name:"Regla del cociente",eq:"(f/g)'=(f'g-fg')/g²"},
-                {name:"Regla de la cadena",eq:"(f(g(x)))'=f'(g(x))g'(x)"},
-                {name:"Integral de potencia",eq:"∫x^n dx=x^(n+1)/(n+1)+C, n≠-1"},
-                {name:"Integral de 1/x",eq:"∫dx/x=ln|x|+C"},
-                {name:"Integral exponencial",eq:"∫e^x dx=e^x+C"},
-                {name:"Integral seno",eq:"∫sin x dx=-cos x+C"},
-                {name:"Integral coseno",eq:"∫cos x dx=sin x+C"},
-                {name:"Teorema fundamental",eq:"∫_a^b f(x)dx=F(b)-F(a), F'=f"},
-                {name:"Integración por partes",eq:"∫u dv=uv-∫v du"},
-                {name:"Sustitución",eq:"∫f(g(x))g'(x)dx=∫f(u)du"}
-            ],
-            statistics: [
-                {name:"Media",eq:"x̄=Σxᵢ/n"},
-                {name:"Media ponderada",eq:"x̄=Σwᵢxᵢ/Σwᵢ"},
-                {name:"Varianza poblacional",eq:"σ²=Σ(xᵢ-μ)²/N"},
-                {name:"Desviación estándar",eq:"σ=√σ²"},
-                {name:"Varianza muestral",eq:"s²=Σ(xᵢ-x̄)²/(n-1)"},
-                {name:"Puntaje Z",eq:"z=(x-μ)/σ"},
-                {name:"Regla empírica",eq:"≈68%-95%-99.7%"},
-                {name:"Covarianza",eq:"Cov(X,Y)=E[(X-μx)(Y-μy)]"},
-                {name:"Correlación",eq:"r=Cov(X,Y)/(σxσy)"}
-            ],
-            probability: [
-                {name:"Probabilidad clásica",eq:"P(A)=casos favorables/casos posibles"},
-                {name:"Complemento",eq:"P(Aᶜ)=1-P(A)"},
-                {name:"Unión",eq:"P(A∪B)=P(A)+P(B)-P(A∩B)"},
-                {name:"Condicional",eq:"P(A|B)=P(A∩B)/P(B)"},
-                {name:"Independencia",eq:"P(A∩B)=P(A)P(B)"},
-                {name:"Probabilidad total",eq:"P(B)=ΣᵢP(B|Aᵢ)P(Aᵢ)"},
-                {name:"Binomial: esperanza",eq:"E[X]=np"},
-                {name:"Binomial: varianza",eq:"Var(X)=np(1-p)"},
-                {name:"Geométrica",eq:"P(X=k)=(1-p)^(k-1)p"},
-                {name:"Poisson",eq:"P(X=k)=e^-λ λ^k/k!"},
-                {name:"Uniforme",eq:"f(x)=1/(b-a), a≤x≤b"}
-            ],
-            discrete: [
-                {name:"Factorial",eq:"n!=n(n-1)···2·1"},
-                {name:"Permutaciones",eq:"n!"},
-                {name:"Combinaciones",eq:"C(n,k)=n!/[k!(n-k)!]"},
-                {name:"Principio del palomar",eq:"n+1 objetos en n cajas ⇒ alguna caja tiene ≥2"},
-                {name:"Relación de recurrencia",eq:"aₙ=c₁aₙ₋₁+···+c_kaₙ₋ₖ"},
-                {name:"Euler para grafos planares",eq:"V-E+F=2"}
-            ],
-            numbers: [
-                {name:"MCD y MCM",eq:"mcd(a,b)·mcm(a,b)=|ab|"},
-                {name:"División euclídea",eq:"a=bq+r, 0≤r<b"},
-                {name:"Congruencia",eq:"a≡b (mod n) ⇔ n|(a-b)"},
-                {name:"Fermat",eq:"a^(p-1)≡1 (mod p), p∤a"},
-                {name:"Euler",eq:"a^φ(n)≡1 (mod n), mcd(a,n)=1"}
-            ],
-            financial: [
-                {name:"Interés simple",eq:"I=Prt"},
-                {name:"Monto simple",eq:"A=P(1+rt)"},
-                {name:"Interés compuesto",eq:"A=P(1+r/n)^(nt)"},
-                {name:"Valor presente",eq:"P=A/(1+r/n)^(nt)"},
-                {name:"Tasa efectiva",eq:"i_eff=(1+r/n)^n-1"}
-            ],
-            complex: [
-                {name:"Número complejo",eq:"z=a+bi"},
-                {name:"Módulo",eq:"|z|=√(a²+b²)"},
-                {name:"Conjugado",eq:"z̄=a-bi"},
-                {name:"Forma polar",eq:"z=r(cosθ+i sinθ)"},
-                {name:"Suma compleja",eq:"(a+bi)+(c+di)=(a+c)+(b+d)i"},
-                {name:"Producto complejo",eq:"(a+bi)(c+di)=(ac-bd)+(ad+bc)i"},
-                {name:"División compleja",eq:"z/w=z·w̄/|w|²"}
-            ],
-            physics: [
-                {name:"Velocidad",eq:"v=Δx/Δt"},
-                {name:"Aceleración",eq:"a=Δv/Δt"},
-                {name:"MRUA",eq:"x=x₀+v₀t+at²/2"},
-                {name:"Fuerza",eq:"F=ma"},
-                {name:"Energía cinética",eq:"E_k=mv²/2"},
-                {name:"Energía potencial",eq:"E_p=mgh"}
+                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
+                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"}
             ]
         };
 
@@ -611,7 +476,6 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER Y PDF (Universal) =================
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -860,13 +724,25 @@
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
         function startRecording() {
-            if (!audioDestination) { alert("Audio no inicializado."); return; }
-            const canvasStream = canvas.captureStream(15); 
-            const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
-            mediaRecorder = new MediaRecorder(combinedStream, { mimeType: 'video/webm' });
+            // Alta calidad de grabación web 30fps
+            const canvasStream = canvas.captureStream(30); 
+            let combinedStream;
+            if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
+                combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
+            } else {
+                combinedStream = canvasStream;
+            }
+            
+            const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 3000000 };
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm;codecs=vp8';
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
+            }
+
+            mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const blob = new Blob(recordedChunks, { type: options.mimeType });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.webm'; a.click();
                 URL.revokeObjectURL(url); recordedChunks = [];
@@ -909,7 +785,7 @@
             });
         }
 
-        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR =================
+        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR (CURSORES REMOTOS) =================
         function updateRemoteCursor(data) {
             if (!data.peerId) return;
             let cursor = document.getElementById('cursor-' + data.peerId);
@@ -933,6 +809,35 @@
             cursor.timeout = setTimeout(() => { cursor.style.opacity = '0'; }, 600);
         }
 
+        // Función de Formas Geométricas para Remotos
+        function drawShapeExact(targetCtx, type, x1, y1, x2, y2, color, size) {
+            targetCtx.save();
+            targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round';
+            targetCtx.globalCompositeOperation = 'source-over';
+            targetCtx.strokeStyle = color; targetCtx.lineWidth = size;
+            targetCtx.shadowBlur = size * 0.15; targetCtx.shadowColor = color; targetCtx.globalAlpha = 0.92;
+            const w = x2 - x1; const h = y2 - y1;
+            targetCtx.beginPath();
+            if (type === 'line' || type === 'arrow') {
+                targetCtx.moveTo(x1, y1); targetCtx.lineTo(x2, y2); targetCtx.stroke();
+                if (type === 'arrow') drawArrowHead(targetCtx, x1, y1, x2, y2, size);
+            } else if (type === 'rect') {
+                targetCtx.strokeRect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(w), Math.abs(h));
+            } else if (type === 'circle') {
+                const r = Math.hypot(w, h); targetCtx.arc(x1, y1, r, 0, 2*Math.PI); targetCtx.stroke();
+            }
+            targetCtx.restore();
+        }
+
+        function drawArrowHead(ctxT, x1, y1, x2, y2, size) {
+            const angle = Math.atan2(y2-y1, x2-x1); const head = Math.max(15, size * 3);
+            ctxT.beginPath(); ctxT.moveTo(x2, y2);
+            ctxT.lineTo(x2 - head*Math.cos(angle-Math.PI/6), y2 - head*Math.sin(angle-Math.PI/6));
+            ctxT.moveTo(x2, y2);
+            ctxT.lineTo(x2 - head*Math.cos(angle+Math.PI/6), y2 - head*Math.sin(angle+Math.PI/6));
+            ctxT.stroke();
+        }
+
         function processRemoteCommand(data) {
             if (data.type === 'clear') { ctx.clearRect(0, 0, canvas.width, canvas.height); return; }
             
@@ -946,6 +851,10 @@
                 const img = new Image();
                 img.onload = () => { ctx.globalAlpha=1; ctx.shadowBlur=0; ctx.drawImage(img, data.x * canvas.width, data.y * canvas.width, data.w * canvas.width, data.h * canvas.width); };
                 img.src = data.src; return;
+            }
+            if (data.type === 'shape') {
+                drawShapeExact(ctx, data.shape, data.x1 * canvas.width, data.y1 * canvas.width, data.x2 * canvas.width, data.y2 * canvas.width, data.color, data.size * canvas.width);
+                return;
             }
             if (data.type === 'drawBezier') {
                 updateRemoteCursor(data);
@@ -1002,6 +911,7 @@
                 codeDisplay.innerText = id; 
                 codeDisplay.style.display = 'block';
                 
+                // Desaparecer código en exactamente 40 segundos
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
@@ -1054,7 +964,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS GEOMÉTRICAS === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
@@ -1065,13 +975,14 @@
   
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
-  let mwCtxState = { color: '', size: -1, mode: '' };
+  
+  let shapeStartX = 0, shapeStartY = 0;
+  const shapePreviewCanvas = document.createElement('canvas');
 
+  let mwCtxState = { color: '', size: -1, mode: '' };
   const mwUndo = [];
 
-  window.refreshCtxState = function() {
-      mwCtxState = { color: '', size: -1, mode: '' };
-  }
+  window.refreshCtxState = function() { mwCtxState = { color: '', size: -1, mode: '' }; }
 
   function pos(ev){
     return {
@@ -1100,9 +1011,9 @@
 
   function setMode(mode){
     mwMode = mode;
-    ['mw-pen','mw-marker','mw-eraser'].forEach(id=>{
+    ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser'].forEach(id=>{
       const b=document.getElementById(id);
-      if(b) b.classList.toggle('active', (id==='mw-pen'&&mode==='pen') || (id==='mw-marker'&&mode==='marker') || (id==='mw-eraser'&&mode==='eraser'));
+      if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
   }
   
@@ -1116,14 +1027,18 @@
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
 
-    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
-    const c=board.getContext('2d');
-    c.beginPath();
-    c.moveTo(mwLastPosX, mwLastPosY);
-    
-    if (typeof broadcastData === 'function') {
-        broadcastData({ type:'start', x: p.x / canvas.width, y: p.y / canvas.width });
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        shapeStartX = p.x; shapeStartY = p.y;
+        shapePreviewCanvas.width = canvas.width; shapePreviewCanvas.height = canvas.height;
+        shapePreviewCanvas.getContext('2d').drawImage(canvas, 0, 0);
+    } else {
+        const c=board.getContext('2d');
+        c.beginPath(); c.moveTo(mwLastPosX, mwLastPosY);
+        if (typeof broadcastData === 'function') {
+            broadcastData({ type:'start', x: p.x / canvas.width, y: p.y / canvas.width });
+        }
     }
+    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
   }
 
   function move(ev){
@@ -1131,14 +1046,25 @@
     ev.preventDefault();
     
     const c = board.getContext('2d');
-    c.lineCap = 'round'; c.lineJoin = 'round';
     const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
     const inkColor = document.getElementById('mw-color').value;
 
+    let e, p, pressure, pFactor, baseSize, finalSize, midX, midY;
+
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        p = pos(events[events.length - 1]);
+        c.clearRect(0,0,board.width,board.height);
+        c.drawImage(shapePreviewCanvas, 0, 0);
+        baseSize = mwSize;
+        drawShapeExact(c, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, baseSize);
+        mwLastPosX = p.x; mwLastPosY = p.y;
+        return; 
+    }
+
+    c.lineCap = 'round'; c.lineJoin = 'round';
     c.beginPath();
     c.moveTo(mwLastMidX, mwLastMidY);
 
-    let e, p, pressure, pFactor, baseSize, finalSize, midX, midY;
     for (let i=0; i<events.length; i++) {
         e = events[i];
         p = pos(e);
@@ -1146,7 +1072,7 @@
         pressure = e.pressure && e.pointerType === 'pen' ? e.pressure : 0.5;
         pFactor = e.pointerType === 'pen' ? (0.3 + (pressure * pressure) * 1.2) : 1;
         baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
-        finalSize = mwMode === 'eraser' ? Math.max(18, mwSize * 3.5) : baseSize * pFactor;
+        finalSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
 
         if (mwCtxState.color !== inkColor || mwCtxState.size !== finalSize || mwCtxState.mode !== mwMode) {
             c.lineWidth = finalSize;
@@ -1189,12 +1115,22 @@
     ev.preventDefault();
     mwDrawing=false;
     const c=board.getContext('2d');
+    
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        if (typeof broadcastData === 'function') {
+            broadcastData({ 
+                type: 'shape', shape: mwMode,
+                x1: shapeStartX / canvas.width, y1: shapeStartY / canvas.width,
+                x2: mwLastPosX / canvas.width, y2: mwLastPosY / canvas.width,
+                color: document.getElementById('mw-color').value, size: mwSize / canvas.width 
+            });
+        }
+    } else {
+        if (typeof broadcastData === 'function') broadcastData({ type:'stop' });
+    }
+    
     c.globalAlpha=1; c.globalCompositeOperation='source-over'; c.shadowBlur = 0;
     try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
-    
-    if (typeof broadcastData === 'function') {
-        broadcastData({ type:'stop' });
-    }
   }
 
   board.addEventListener('pointerdown', start, {passive:false});
@@ -1203,25 +1139,18 @@
   board.addEventListener('pointercancel', end, {passive:false});
   board.addEventListener('contextmenu', e=>e.preventDefault());
 
-  const pen=document.getElementById('mw-pen');
-  const marker=document.getElementById('mw-marker');
-  const eraser=document.getElementById('mw-eraser');
-  const clear=document.getElementById('mw-clear');
-  const color=document.getElementById('mw-color');
-  const size=document.getElementById('mw-size');
-  const undo=document.getElementById('mw-undo');
-
-  pen && pen.addEventListener('click',()=>setMode('pen'));
-  marker && marker.addEventListener('click',()=>setMode('marker'));
-  eraser && eraser.addEventListener('click',()=>setMode('eraser'));
-  
-  color && color.addEventListener('input', e => { 
-      setMode('pen');
-      window.refreshCtxState(); 
+  ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser'].forEach(id=>{
+      const btn = document.getElementById(id);
+      if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
   
+  const color = document.getElementById('mw-color');
+  color && color.addEventListener('input', e => { setMode('pen'); window.refreshCtxState(); });
+  
+  const size = document.getElementById('mw-size');
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
   
+  const undo = document.getElementById('mw-undo');
   undo && undo.addEventListener('click',()=>{
     const last=mwUndo.pop();
     if(last) {
@@ -1230,9 +1159,8 @@
     }
   });
 
-  clear && clear.addEventListener('click',()=>{
-    if(typeof clearCanvas === 'function') clearCanvas();
-  });
+  const clear = document.getElementById('mw-clear');
+  clear && clear.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
 })();
 </script>
 
