@@ -29,10 +29,7 @@
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            background-color: transparent;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-            background-size: 35px 35px;
+            background-color: #ffffff;
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -86,14 +83,14 @@
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
-        #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
+        #formulas-panel { top: 80px; right: 30px; width: 480px; display: none; max-height: 85vh; overflow: hidden; }
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
         
-        .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
+        .f-tab { background: transparent; border: none; color: #888; padding: 12px 14px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
-        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
+        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
         #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
@@ -200,7 +197,7 @@
         <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
 
-    <!-- WIDGET DE FÓRMULAS (Ampliado con Topología, Probabilidad y más) -->
+    <!-- WIDGET DE FÓRMULAS (COMPLETO Y AMPLIADO) -->
     <div id="formulas-panel" class="floating-panel">
         <div class="panel-header" id="formulas-header">
             <span>🧮 Gran Biblioteca Matemática</span>
@@ -211,7 +208,8 @@
             <button class="f-tab" onclick="loadFormulas('geometry', this)">Geometría</button>
             <button class="f-tab" onclick="loadFormulas('analytic_geometry', this)">G. Analítica</button>
             <button class="f-tab" onclick="loadFormulas('trigonometry', this)">Trigonometría</button>
-            <button class="f-tab" onclick="loadFormulas('calculus', this)">Cálculo</button>
+            <button class="f-tab" onclick="loadFormulas('calculus', this)">Derivadas</button>
+            <button class="f-tab" onclick="loadFormulas('integrals', this)">Integrales</button>
             <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
             <button class="f-tab" onclick="loadFormulas('probability', this)">Probabilidad</button>
             <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
@@ -225,8 +223,10 @@
             <button class="f-cat" data-cat="arithmetic" onclick="selectFormulaCategory('arithmetic')">Aritmética</button>
             <button class="f-cat" data-cat="algebra" onclick="selectFormulaCategory('algebra')">Álgebra</button>
             <button class="f-cat" data-cat="geometry" onclick="selectFormulaCategory('geometry')">Geometría</button>
+            <button class="f-cat" data-cat="analytic_geometry" onclick="selectFormulaCategory('analytic_geometry')">G. Analítica</button>
             <button class="f-cat" data-cat="trigonometry" onclick="selectFormulaCategory('trigonometry')">Trigonometría</button>
-            <button class="f-cat" data-cat="calculus" onclick="selectFormulaCategory('calculus')">Cálculo ∫</button>
+            <button class="f-cat" data-cat="calculus" onclick="selectFormulaCategory('calculus')">Derivadas</button>
+            <button class="f-cat" data-cat="integrals" onclick="selectFormulaCategory('integrals')">Integrales ∫</button>
             <button class="f-cat" data-cat="statistics" onclick="selectFormulaCategory('statistics')">Estadística</button>
             <button class="f-cat" data-cat="probability" onclick="selectFormulaCategory('probability')">Probabilidad</button>
             <button class="f-cat" data-cat="topology" onclick="selectFormulaCategory('topology')">Topología</button>
@@ -289,7 +289,7 @@
 
         <input type="file" id="imageInput" class="hidden-file" accept="image/*">
         <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de dispositivo" class="hide-mobile">🖼️</button>
+        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC" class="hide-mobile">🖼️</button>
         <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
         
         <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
@@ -362,7 +362,6 @@
         }
 
         const canvas = document.getElementById('board');
-        // Alpha FALSE: Garantiza fondo blanco opaco sólido para que el MP4 nunca salga negro
         const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
         
         ctx.lineCap = 'round'; 
@@ -439,77 +438,142 @@
         }
         window.clearCanvas = clearCanvas;
 
-        /* ================= BIBLIOTECA MATEMÁTICA COMPLETA (Con Topología y más) ================= */
+        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA (MÁS DE 60 FÓRMULAS) ================= */
         const mathFormulas = {
+            arithmetic: [
+                {name:"Regla de tres simple",eq:"x = (b · c) / a"},
+                {name:"Cálculo de porcentaje",eq:"P = (Parte / Total) · 100%"},
+                {name:"Progresión Aritmética (término general)",eq:"aₙ = a₁ + (n - 1)d"},
+                {name:"Suma de Progresión Aritmética",eq:"Sₙ = n · (a₁ + aₙ) / 2"},
+                {name:"Progresión Geométrica (término general)",eq:"aₙ = a₁ · r^(n-1)"},
+                {name:"Suma de Progresión Geométrica infinita",eq:"S = a₁ / (1 - r)  (|r| < 1)"}
+            ],
             algebra: [
                 {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
                 {name:"Cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
-                {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
-                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
-                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
-                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"}
+                {name:"Diferencia de cuadrados",eq:"a² - b² = (a - b)(a + b)"},
+                {name:"Suma de cubos",eq:"a³ + b³ = (a + b)(a² - ab + b²)"},
+                {name:"Diferencia de cubos",eq:"a³ - b³ = (a - b)(a² + ab + b²)"},
+                {name:"Cubo de una suma",eq:"(a + b)³ = a³ + 3a²b + 3ab² + b³"},
+                {name:"Fórmula general cuadrática",eq:"x = (-b ± √(b² - 4ac)) / (2a)"},
+                {name:"Discriminante cuadrático",eq:"Δ = b² - 4ac"},
+                {name:"Logaritmo del producto",eq:"log_b(x · y) = log_b(x) + log_b(y)"},
+                {name:"Logaritmo del cociente",eq:"log_b(x / y) = log_b(x) - log_b(y)"},
+                {name:"Logaritmo de la potencia",eq:"log_b(x^k) = k · log_b(x)"},
+                {name:"Cambio de base en logaritmos",eq:"log_b(x) = ln(x) / ln(b)"}
             ],
             geometry: [
-                {name:"Pitágoras",eq:"a²+b²=c²"},
-                {name:"Área del Círculo",eq:"A = π · r²"},
-                {name:"Perímetro del Círculo",eq:"P = 2πr"},
-                {name:"Volumen Esfera",eq:"V = (4/3)π · r³"}
+                {name:"Teorema de Pitágoras",eq:"a² + b² = c²"},
+                {name:"Área del triángulo",eq:"A = (b · h) / 2"},
+                {name:"Área del círculo",eq:"A = π · r²"},
+                {name:"Perímetro del círculo",eq:"P = 2 · π · r"},
+                {name:"Área del trapecio",eq:"A = ((B + b) · h) / 2"},
+                {name:"Volumen del cilindro",eq:"V = π · r² · h"},
+                {name:"Volumen del cono",eq:"V = (1/3) · π · r² · h"},
+                {name:"Volumen de la esfera",eq:"V = (4/3) · π · r³"},
+                {name:"Área superficial de la esfera",eq:"A = 4 · π · r²"}
             ],
             analytic_geometry: [
-                {name:"Distancia entre puntos",eq:"d = √((x₂ - x₁)² + (y₂ - y₁)²)"},
-                {name:"Punto Medio",eq:"M = ((x₁+x₂)/2 , (y₁+y₂)/2)"},
-                {name:"Pendiente",eq:"m = (y₂ - y₁) / (x₂ - x₁)"}
+                {name:"Distancia entre dos puntos",eq:"d = √((x₂ - x₁)² + (y₂ - y₁)²)"},
+                {name:"Punto medio de un segmento",eq:"M = ((x₁ + x₂)/2 , (y₁ + y₂)/2)"},
+                {name:"Pendiente de una recta",eq:"m = (y₂ - y₁) / (x₂ - x₁)"},
+                {name:"Ecuación punto-pendiente",eq:"y - y₁ = m(x - x₁)"},
+                {name:"Ecuación explícita de la recta",eq:"y = mx + b"},
+                {name:"Ecuación canónica de la circunferencia",eq:"(x - h)² + (y - k)² = r²"},
+                {name:"Ecuación canónica de la elipse",eq:"(x - h)²/a² + (y - k)²/b² = 1"},
+                {name:"Ecuación canónica de la hipérbola",eq:"(x - h)²/a² - (y - k)²/b² = 1"}
             ],
             trigonometry: [
-                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
-                {name:"Ley de senos",eq:"a/sin A = b/sin B = c/sin C"},
-                {name:"Ley de cosenos",eq:"c² = a² + b² - 2ab cos C"}
+                {name:"Identidad pitagórica fundamental",eq:"sin²x + cos²x = 1"},
+                {name:"Identidad secante",eq:"1 + tan²x = sec²x"},
+                {name:"Identidad cosecante",eq:"1 + cot²x = csc²x"},
+                {name:"Seno de la suma",eq:"sin(a ± b) = sin(a)cos(b) ± cos(a)sin(b)"},
+                {name:"Coseno de la suma",eq:"cos(a ± b) = cos(a)cos(b) ∓ sin(a)sin(b)"},
+                {name:"Tangente de la suma",eq:"tan(a ± b) = (tan(a) ± tan(b)) / (1 ∓ tan(a)tan(b))"},
+                {name:"Seno del ángulo doble",eq:"sin(2x) = 2 sin(x)cos(x)"},
+                {name:"Coseno del ángulo doble",eq:"cos(2x) = cos²(x) - sin²(x)"},
+                {name:"Ángulo mitad (seno)",eq:"sin²(x) = (1 - cos(2x)) / 2"},
+                {name:"Ángulo mitad (coseno)",eq:"cos²(x) = (1 + cos(2x)) / 2"},
+                {name:"Ley de los senos",eq:"a / sin(A) = b / sin(B) = c / sin(C)"},
+                {name:"Ley de los cosenos",eq:"c² = a² + b² - 2ab cos(C)"}
             ],
             calculus: [
                 {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
-                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
-                {name:"Integración por Partes",eq:"∫ u dv = u·v - ∫ v du"},
-                {name:"Teorema Fundamental",eq:"∫_a^b f(x)dx = F(b) - F(a)"}
+                {name:"Derivada de la potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
+                {name:"Derivada exponencial",eq:"d/dx [e^x] = e^x"},
+                {name:"Derivada logaritmo natural",eq:"d/dx [ln(x)] = 1/x"},
+                {name:"Derivada del seno",eq:"d/dx [sin(x)] = cos(x)"},
+                {name:"Derivada del coseno",eq:"d/dx [cos(x)] = -sin(x)"},
+                {name:"Derivada de la tangente",eq:"d/dx [tan(x)] = sec²(x)"},
+                {name:"Regla del producto",eq:"(f · g)' = f' · g + f · g'"},
+                {name:"Regla del cociente",eq:"(f / g)' = (f' · g - f · g') / g²"},
+                {name:"Regla de la cadena",eq:"[f(g(x))]' = f'(g(x)) · g'(x)"},
+                {name:"Regla de L'Hôpital",eq:"lim [f(x)/g(x)] = lim [f'(x)/g'(x)]"}
+            ],
+            integrals: [
+                {name:"Integral de una constante",eq:"∫ k dx = kx + C"},
+                {name:"Integral de la potencia",eq:"∫ x^n dx = x^(n+1) / (n+1) + C  (n ≠ -1)"},
+                {name:"Integral del inverso",eq:"∫ (1/x) dx = ln|x| + C"},
+                {name:"Integral exponencial",eq:"∫ e^x dx = e^x + C"},
+                {name:"Integral exponencial general",eq:"∫ a^x dx = a^x / ln(a) + C"},
+                {name:"Integral del seno",eq:"∫ sin(x) dx = -cos(x) + C"},
+                {name:"Integral del coseno",eq:"∫ cos(x) dx = sin(x) + C"},
+                {name:"Integral secante cuadrada",eq:"∫ sec²(x) dx = tan(x) + C"},
+                {name:"Integral de la tangente",eq:"∫ tan(x) dx = -ln|cos(x)| + C"},
+                {name:"Integral arco tangente",eq:"∫ 1/(1 + x²) dx = arctan(x) + C"},
+                {name:"Integral arcoseno",eq:"∫ 1/√(1 - x²) dx = arcsin(x) + C"},
+                {name:"Regla de Barrow (Definida)",eq:"∫_a^b f(x)dx = F(b) - F(a)"},
+                {name:"Integración por partes",eq:"∫ u dv = u·v - ∫ v du"},
+                {name:"Área bajo la curva",eq:"A = ∫_a^b f(x) dx"},
+                {name:"Volumen de revolución (Discos)",eq:"V = π ∫_a^b [f(x)]² dx"}
             ],
             stats: [
-                {name:"Media",eq:"x̄ = Σxᵢ / n"},
+                {name:"Media aritmética",eq:"x̄ = Σxᵢ / n"},
                 {name:"Varianza poblacional",eq:"σ² = Σ(xᵢ - μ)² / N"},
-                {name:"Desviación estándar",eq:"σ = √σ²"}
+                {name:"Desviación estándar",eq:"σ = √σ²"},
+                {name:"Varianza muestral",eq:"s² = Σ(xᵢ - x̄)² / (n - 1)"},
+                {name:"Coeficiente de variación",eq:"CV = (σ / x̄) · 100%"}
             ],
             probability: [
-                {name:"Probabilidad Clásica",eq:"P(A) = casos favorables / casos posibles"},
-                {name:"Probabilidad Condicional",eq:"P(A|B) = P(A ∩ B) / P(B)"},
-                {name:"Teorema de Bayes",eq:"P(A|B) = [P(B|A)P(A)] / P(B)"},
-                {name:"Distribución Binomial",eq:"P(X=k) = C(n,k)p^k(1-p)^(n-k)"}
+                {name:"Probabilidad clásica",eq:"P(A) = Casos favorables / Casos posibles"},
+                {name:"Regla de la suma",eq:"P(A ∪ B) = P(A) + P(B) - P(A ∩ B)"},
+                {name:"Probabilidad condicional",eq:"P(A|B) = P(A ∩ B) / P(B)"},
+                {name:"Teorema de Bayes",eq:"P(Aᵢ|B) = [P(B|Aᵢ)P(Aᵢ)] / Σ[P(B|Aⱼ)P(Aⱼ)]"},
+                {name:"Valor esperado (Esperanza)",eq:"E[X] = Σ [xᵢ · P(X = xᵢ)]"},
+                {name:"Distribución binomial",eq:"P(X = k) = C(n,k) · p^k · (1-p)^(n-k)"}
             ],
             topology: [
-                {name:"Característica de Euler (Poliedros)",eq:"χ = V - E + F"},
-                {name:"Característica Euler (Superficies)",eq:"χ = 2 - 2g"},
-                {name:"Género de Superficie",eq:"g = 1 - χ/2"},
-                {name:"Números de Betti",eq:"χ = b₀ - b₁ + b₂"},
+                {name:"Característica de Euler (Poliedros)",eq:"χ = V - E + F = 2"},
+                {name:"Característica de Euler (Superficies)",eq:"χ = 2 - 2g"},
+                {name:"Teorema del punto fijo de Brouwer",eq:"f: Dⁿ → Dⁿ tiene al menos un punto fijo"},
                 {name:"Teorema Gauss-Bonnet",eq:"∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"},
-                {name:"Grupo Fundamental (Círculo)",eq:"π₁(S¹) ≅ ℤ"}
-            ],
-            arithmetic: [
-                {name:"Regla de tres",eq:"x = (b·c) / a"},
-                {name:"Porcentaje",eq:"p% de N = (p/100)·N"}
+                {name:"Grupo Fundamental del Círculo",eq:"π₁(S¹) ≅ ℤ"}
             ],
             matrices: [
                 {name:"Determinante 2×2",eq:"det(A) = ad - bc"},
-                {name:"Matriz inversa 2×2",eq:"A⁻¹ = 1/(ad-bc) · [[d,-b],[-c,a]]"}
+                {name:"Determinante 3×3 (Sarrus)",eq:"det(A) = aei + bfg + cdh - gec - hfa - idb"},
+                {name:"Matriz inversa 2×2",eq:"A⁻¹ = (1 / det(A)) · [[d, -b], [-c, a]]"}
             ],
             vectors: [
-                {name:"Módulo de vector",eq:"||v|| = √(v₁² + v₂² + v₃²)"},
-                {name:"Producto escalar",eq:"u·v = u₁v₁ + u₂v₂ + u₃v₃"}
+                {name:"Módulo de un vector",eq:"||v|| = √(v₁² + v₂² + v₃²)"},
+                {name:"Producto escalar (punto)",eq:"u · v = ||u|| ||v|| cos(θ) = u₁v₁ + u₂v₂ + u₃v₃"},
+                {name:"Producto vectorial (cruz)",eq:"u × v = (u₂v₃ - u₃v₂, u₃v₁ - u₁v₃, u₁v₂ - u₂v₁)"},
+                {name:"Condición de perpendicularidad",eq:"u · v = 0"}
             ],
             complex: [
-                {name:"Número complejo",eq:"z = a + bi"},
+                {name:"Número complejo binómico",eq:"z = a + bi"},
                 {name:"Módulo complejo",eq:"|z| = √(a² + b²)"},
+                {name:"Conjugado complejo",eq:"z̄ = a - bi"},
+                {name:"Forma polar",eq:"z = r(cos(θ) + i sin(θ))"},
+                {name:"Fórmula de De Moivre",eq:"[r(cos(θ) + i sin(θ))]ⁿ = rⁿ(cos(nθ) + i sin(nθ))"},
                 {name:"Identidad de Euler",eq:"e^(iπ) + 1 = 0"}
             ],
             physics: [
-                {name:"Fuerza (Newton)",eq:"F = m · a"},
-                {name:"Energía cinética",eq:"E_k = (1/2) m · v²"},
+                {name:"Segunda Ley de Newton",eq:"F = m · a"},
+                {name:"Peso",eq:"P = m · g"},
+                {name:"MRUA (Posición)",eq:"x = x₀ + v₀t + (1/2)at²"},
+                {name:"Energía Cinética",eq:"E_k = (1/2)m · v²"},
+                {name:"Energía Potencial",eq:"E_p = m · g · h"},
                 {name:"Ley de Ohm",eq:"V = I · R"}
             ]
         };
@@ -568,6 +632,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
+        // ================= RUTINAS STAMPER Y PDF =================
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -1082,7 +1147,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS === */
+/* === MOTOR UNIVERSAL DE ESCRITURA FLUIDA Y FORMAS GEOMÉTRICAS === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
