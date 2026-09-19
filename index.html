@@ -29,10 +29,7 @@
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            background-color: transparent;
-            background-image: linear-gradient(rgba(0, 0, 0, 0.05) 1px, transparent 1px), 
-                              linear-gradient(90deg, rgba(0, 0, 0, 0.05) 1px, transparent 1px);
-            background-size: 35px 35px;
+            background-color: #ffffff;
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -72,17 +69,25 @@
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
-        #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        #ui-panel { 
+            top: 20px; left: 20px; padding: 20px; 
+            text-align: center; background: rgba(15, 23, 42, 0.95); 
+            border: 1px solid #3b82f6; border-radius: 16px;
+            transition: opacity 1s ease; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
         
         #pdf-panel { top: 80px; left: 30px; width: 500px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
         #pdf-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
+        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
         #formulas-panel { top: 80px; right: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; }
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        
         .f-tab { background: transparent; border: none; color: #888; padding: 12px 15px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 65vh; background: #1a1a1a; }
@@ -97,6 +102,7 @@
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
         .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
         .stamper-toolbar { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
+        .stamper-toolbar button { touch-action: manipulation; }
 
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
@@ -118,7 +124,7 @@
         .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
         .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
         .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
-
+        
         #formulas-panel{overscroll-behavior:contain;}
         #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
@@ -255,6 +261,7 @@
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
         </div>
+        <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Estampador General -->
@@ -271,29 +278,24 @@
         </div>
     </div>
 
-    <!-- Barra Única Unificada (Profesor y Alumno juntos) -->
+    <!-- Barra Única Unificada -->
     <div id="main-toolbar">
+        <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
+        <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
         
-        <!-- Opciones de Profesor (Ocultas para alumnos) -->
-        <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
-            <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
-            <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
-            
-            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
+        <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
+        <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
 
-            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
-            <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC" class="hide-mobile">🖼️</button>
-            <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
-            
-            <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
-            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase en MP4" class="hide-mobile">⏺️</button>
-            
-            <div class="toolbar-divider"></div>
-        </div>
+        <input type="file" id="imageInput" class="hidden-file" accept="image/*">
+        <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
+        <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen" class="hide-mobile">🖼️</button>
+        <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
+        
+        <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
+        <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase en MP4" class="hide-mobile">⏺️</button>
 
-        <!-- Opciones Universales de Dibujo (Todos) -->
+        <div class="toolbar-divider"></div>
+
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
         <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
@@ -310,11 +312,10 @@
         <div class="toolbar-divider"></div>
         
         <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
-        <button type="button" id="mw-clear" title="Limpiar Pizarra Blanca" class="danger-btn">🗑️</button>
+        <button type="button" id="mw-clear" title="Limpiar Pizarra" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
-    <!-- Pizarra Blanca (Único Canvas - Tamaño Real) -->
     <div id="canvas-container">
         <canvas id="board"></canvas>
     </div>
@@ -353,7 +354,6 @@
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
                 userRole = 'Profesor';
-                document.getElementById('admin-tools').style.display = 'flex';
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 createRoom();
@@ -361,8 +361,8 @@
         }
 
         const canvas = document.getElementById('board');
-        // Alpha TRUE: Permite la transparencia para que la Goma revele la cuadrícula CSS blanca
-        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
+        // Alpha FALSE asegura que el fondo sea sólido (blanco) para que el MP4 no salga negro
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
         
         ctx.lineCap = 'round'; 
         ctx.lineJoin = 'round';
@@ -370,11 +370,23 @@
         let internalWidth = window.innerWidth;
         let internalHeight = window.innerHeight;
 
+        function drawGrid(targetCtx, w, h) {
+            targetCtx.fillStyle = '#ffffff';
+            targetCtx.fillRect(0, 0, w, h);
+            targetCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+            targetCtx.lineWidth = 1.5;
+            targetCtx.beginPath();
+            for(let x=0; x<w; x+=35) { targetCtx.moveTo(x,0); targetCtx.lineTo(x,h); }
+            for(let y=0; y<h; y+=35) { targetCtx.moveTo(0,y); targetCtx.lineTo(w,y); }
+            targetCtx.stroke();
+        }
+
         function initCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
+            drawGrid(ctx, canvas.width, canvas.height);
         }
 
         function resizeCanvas() {
@@ -383,6 +395,8 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
+            
+            drawGrid(ctx, canvas.width, canvas.height);
             
             const img = new Image();
             img.onload = () => {
@@ -418,7 +432,7 @@
 
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra?')) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid(ctx, canvas.width, canvas.height);
             if(typeof window.saveState === 'function') window.saveState(); 
             broadcastData({ type:'clear' });
         }
@@ -427,131 +441,19 @@
         /* ================= BIBLIOTECA MATEMÁTICA ================= */
         const mathFormulas = {
             algebra: [
-                {name:"Identidad notable: cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
-                {name:"Identidad notable: cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
+                {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
+                {name:"Cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
                 {name:"Diferencia de cuadrados",eq:"a²-b²=(a-b)(a+b)"},
-                {name:"Cubo de una suma",eq:"(a+b)³=a³+3a²b+3ab²+b³"},
-                {name:"Cubo de una diferencia",eq:"(a-b)³=a³-3a²b+3ab²-b³"},
-                {name:"Suma de cubos",eq:"a³+b³=(a+b)(a²-ab+b²)"},
-                {name:"Diferencia de cubos",eq:"a³-b³=(a-b)(a²+ab+b²)"},
-                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"},
-                {name:"Discriminante",eq:"Δ=b²-4ac"},
-                {name:"Binomio general",eq:"(a+b)^n=Σₖ C(n,k)a^(n-k)b^k"},
-                {name:"Logaritmo del producto",eq:"log(ab)=log a+log b"},
-                {name:"Logaritmo del cociente",eq:"log(a/b)=log a-log b"},
-                {name:"Cambio de base",eq:"log_b(a)=ln(a)/ln(b)"},
-                {name:"Exponencial y logaritmo",eq:"ln(e^x)=x; e^(ln x)=x"}
+                {name:"Fórmula cuadrática",eq:"x=(-b±√(b²-4ac))/(2a)"}
             ],
             geometry: [
                 {name:"Pitágoras",eq:"a²+b²=c²"},
-                {name:"Distancia entre puntos",eq:"d=√((x₂-x₁)²+(y₂-y₁)²)"},
-                {name:"Punto medio",eq:"M=((x₁+x₂)/2,(y₁+y₂)/2)"},
-                {name:"Pendiente",eq:"m=(y₂-y₁)/(x₂-x₁)"},
-                {name:"Recta",eq:"y-y₁=m(x-x₁)"},
-                {name:"Forma pendiente-intersección",eq:"y=mx+b"},
-                {name:"Área del triángulo",eq:"A=bh/2"},
-                {name:"Área del círculo",eq:"A=πr²"},
-                {name:"Longitud de circunferencia",eq:"C=2πr"},
-                {name:"Área del rectángulo",eq:"A=bh"},
-                {name:"Área del trapecio",eq:"A=(B+b)h/2"},
-                {name:"Área del rombo",eq:"A=Dd/2"},
-                {name:"Volumen del prisma",eq:"V=A_b h"},
-                {name:"Volumen del cilindro",eq:"V=πr²h"},
-                {name:"Volumen de la esfera",eq:"V=4πr³/3"},
-                {name:"Área de esfera",eq:"A=4πr²"}
-            ],
-            trigonometry: [
-                {name:"Identidad fundamental",eq:"sin²x+cos²x=1"},
-                {name:"Tangente",eq:"tan x=sin x/cos x"},
-                {name:"Secante",eq:"sec x=1/cos x"},
-                {name:"Cosecante",eq:"csc x=1/sin x"},
-                {name:"Ley de senos",eq:"a/sin A=b/sin B=c/sin C"},
-                {name:"Ley de cosenos",eq:"c²=a²+b²-2ab cos C"},
-                {name:"Suma del seno",eq:"sin(a+b)=sin a cos b+cos a sin b"},
-                {name:"Diferencia del seno",eq:"sin(a-b)=sin a cos b-cos a sin b"},
-                {name:"Suma del coseno",eq:"cos(a+b)=cos a cos b-sin a sin b"},
-                {name:"Diferencia del coseno",eq:"cos(a-b)=cos a cos b+sin a sin b"}
+                {name:"Área del Círculo",eq:"A = π · r²"},
+                {name:"Perímetro del Círculo",eq:"P = 2πr"}
             ],
             calculus: [
-                {name:"Derivada de potencia",eq:"d(x^n)/dx=nx^(n-1)"},
-                {name:"Derivada de exponencial",eq:"d(e^x)/dx=e^x"},
-                {name:"Derivada de logaritmo",eq:"d(ln x)/dx=1/x"},
-                {name:"Derivada del seno",eq:"d(sin x)/dx=cos x"},
-                {name:"Derivada del coseno",eq:"d(cos x)/dx=-sin x"},
-                {name:"Regla del producto",eq:"(fg)'=f'g+fg'"},
-                {name:"Regla del cociente",eq:"(f/g)'=(f'g-fg')/g²"},
-                {name:"Regla de la cadena",eq:"(f(g(x)))'=f'(g(x))g'(x)"},
-                {name:"Integral de potencia",eq:"∫x^n dx=x^(n+1)/(n+1)+C, n≠-1"},
-                {name:"Integral de 1/x",eq:"∫dx/x=ln|x|+C"},
-                {name:"Integral exponencial",eq:"∫e^x dx=e^x+C"},
-                {name:"Integral seno",eq:"∫sin x dx=-cos x+C"},
-                {name:"Integral coseno",eq:"∫cos x dx=sin x+C"},
-                {name:"Teorema fundamental",eq:"∫_a^b f(x)dx=F(b)-F(a), F'=f"},
-                {name:"Integración por partes",eq:"∫u dv=uv-∫v du"},
-                {name:"Sustitución",eq:"∫f(g(x))g'(x)dx=∫f(u)du"}
-            ],
-            statistics: [
-                {name:"Media",eq:"x̄=Σxᵢ/n"},
-                {name:"Media ponderada",eq:"x̄=Σwᵢxᵢ/Σwᵢ"},
-                {name:"Varianza poblacional",eq:"σ²=Σ(xᵢ-μ)²/N"},
-                {name:"Desviación estándar",eq:"σ=√σ²"},
-                {name:"Varianza muestral",eq:"s²=Σ(xᵢ-x̄)²/(n-1)"},
-                {name:"Puntaje Z",eq:"z=(x-μ)/σ"},
-                {name:"Regla empírica",eq:"≈68%-95%-99.7%"},
-                {name:"Covarianza",eq:"Cov(X,Y)=E[(X-μx)(Y-μy)]"},
-                {name:"Correlación",eq:"r=Cov(X,Y)/(σxσy)"}
-            ],
-            probability: [
-                {name:"Probabilidad clásica",eq:"P(A)=casos favorables/casos posibles"},
-                {name:"Complemento",eq:"P(Aᶜ)=1-P(A)"},
-                {name:"Unión",eq:"P(A∪B)=P(A)+P(B)-P(A∩B)"},
-                {name:"Condicional",eq:"P(A|B)=P(A∩B)/P(B)"},
-                {name:"Independencia",eq:"P(A∩B)=P(A)P(B)"},
-                {name:"Probabilidad total",eq:"P(B)=ΣᵢP(B|Aᵢ)P(Aᵢ)"},
-                {name:"Binomial: esperanza",eq:"E[X]=np"},
-                {name:"Binomial: varianza",eq:"Var(X)=np(1-p)"},
-                {name:"Geométrica",eq:"P(X=k)=(1-p)^(k-1)p"},
-                {name:"Poisson",eq:"P(X=k)=e^-λ λ^k/k!"},
-                {name:"Uniforme",eq:"f(x)=1/(b-a), a≤x≤b"}
-            ],
-            discrete: [
-                {name:"Factorial",eq:"n!=n(n-1)···2·1"},
-                {name:"Permutaciones",eq:"n!"},
-                {name:"Combinaciones",eq:"C(n,k)=n!/[k!(n-k)!]"},
-                {name:"Principio del palomar",eq:"n+1 objetos en n cajas ⇒ alguna caja tiene ≥2"},
-                {name:"Relación de recurrencia",eq:"aₙ=c₁aₙ₋₁+···+c_kaₙ₋ₖ"},
-                {name:"Euler para grafos planares",eq:"V-E+F=2"}
-            ],
-            numbers: [
-                {name:"MCD y MCM",eq:"mcd(a,b)·mcm(a,b)=|ab|"},
-                {name:"División euclídea",eq:"a=bq+r, 0≤r<b"},
-                {name:"Congruencia",eq:"a≡b (mod n) ⇔ n|(a-b)"},
-                {name:"Fermat",eq:"a^(p-1)≡1 (mod p), p∤a"},
-                {name:"Euler",eq:"a^φ(n)≡1 (mod n), mcd(a,n)=1"}
-            ],
-            financial: [
-                {name:"Interés simple",eq:"I=Prt"},
-                {name:"Monto simple",eq:"A=P(1+rt)"},
-                {name:"Interés compuesto",eq:"A=P(1+r/n)^(nt)"},
-                {name:"Valor presente",eq:"P=A/(1+r/n)^(nt)"},
-                {name:"Tasa efectiva",eq:"i_eff=(1+r/n)^n-1"}
-            ],
-            complex: [
-                {name:"Número complejo",eq:"z=a+bi"},
-                {name:"Módulo",eq:"|z|=√(a²+b²)"},
-                {name:"Conjugado",eq:"z̄=a-bi"},
-                {name:"Forma polar",eq:"z=r(cosθ+i sinθ)"},
-                {name:"Suma compleja",eq:"(a+bi)+(c+di)=(a+c)+(b+d)i"},
-                {name:"Producto complejo",eq:"(a+bi)(c+di)=(ac-bd)+(ad+bc)i"},
-                {name:"División compleja",eq:"z/w=z·w̄/|w|²"}
-            ],
-            physics: [
-                {name:"Velocidad",eq:"v=Δx/Δt"},
-                {name:"Aceleración",eq:"a=Δv/Δt"},
-                {name:"MRUA",eq:"x=x₀+v₀t+at²/2"},
-                {name:"Fuerza",eq:"F=ma"},
-                {name:"Energía cinética",eq:"E_k=mv²/2"},
-                {name:"Energía potencial",eq:"E_p=mgh"}
+                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
+                {name:"Regla de la Potencia",eq:"d/dx [x^n] = n · x^(n-1)"}
             ]
         };
 
@@ -840,11 +742,7 @@
             
             tCtx.fillStyle = '#ffffff'; 
             tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            
-            tCtx.strokeStyle = 'rgba(0,0,0,0.05)';
-            tCtx.lineWidth = 1.5;
-            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.beginPath(); tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); tCtx.stroke(); }
-            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.beginPath(); tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); tCtx.stroke(); }
+            drawGrid(tCtx, tempCanvas.width, tempCanvas.height);
             
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
@@ -868,6 +766,7 @@
                 combinedStream = canvasStream;
             }
             
+            // Forzar formato compatible MP4/H264
             const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'video/webm;codecs=vp9';
@@ -975,7 +874,9 @@
 
         function processRemoteCommand(data) {
             if (data.type === 'clear') { 
-                ctx.clearRect(0, 0, canvas.width, canvas.height); 
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawGrid(ctx, canvas.width, canvas.height);
                 return; 
             }
             
@@ -1000,7 +901,8 @@
                 const finalSize = data.size * canvas.width;
                 if(data.tool === 'eraser'){
                     ctx.lineWidth = finalSize;
-                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = '#ffffff';
                     ctx.globalAlpha = 1;
                     ctx.shadowBlur = 0;
                 } else {
@@ -1099,7 +1001,7 @@
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
 
-        // ======= LÓGICA DE REDIMENSIÓN (ZOOM) PARA EL ESTAMPADOR =======
+        // Redimensión de estampas (Zoom proporcional)
         const resizeHandle = document.getElementById('resize-handle');
         const stamperContent = document.getElementById('stamper-content');
         let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
@@ -1126,9 +1028,7 @@
             }
         });
         
-        window.addEventListener('pointerup', () => {
-            isResizingStamp = false;
-        });
+        window.addEventListener('pointerup', () => { isResizingStamp = false; });
 </script>
 
 <script>
@@ -1171,7 +1071,9 @@
     const img = new Image();
     img.onload = function(){
       const c = board.getContext('2d');
-      c.clearRect(0,0,board.width,board.height);
+      c.fillStyle = '#ffffff';
+      c.fillRect(0,0,board.width,board.height);
+      drawGrid(c, board.width, board.height);
       c.drawImage(img,0,0);
     };
     img.src = url;
@@ -1221,7 +1123,9 @@
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         p = pos(events[events.length - 1]);
-        c.clearRect(0,0,board.width,board.height);
+        c.fillStyle = '#ffffff';
+        c.fillRect(0, 0, canvas.width, canvas.height);
+        drawGrid(c, canvas.width, canvas.height);
         c.drawImage(shapePreviewCanvas, 0, 0);
         baseSize = mwSize;
         drawShapeExact(c, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, baseSize);
@@ -1245,7 +1149,8 @@
         if (mwCtxState.color !== inkColor || mwCtxState.size !== finalSize || mwCtxState.mode !== mwMode) {
             c.lineWidth = finalSize;
             if(mwMode === 'eraser'){
-                c.globalCompositeOperation = 'destination-out';
+                c.globalCompositeOperation = 'source-over';
+                c.strokeStyle = '#ffffff';
                 c.globalAlpha = 1;
                 c.shadowBlur = 0;
             } else {
