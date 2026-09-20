@@ -1,450 +1,1670 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#0b1020">
-<title>MathBoard Pro — Super Star</title>
-<style>
-:root{--bg:#080c18;--panel:#10172aee;--panel2:#151e35;--line:#2b395b;--text:#eef3ff;--muted:#9eabc8;--accent:#6ea8ff;--good:#45d483;--warn:#ffca58;--danger:#ff6878;--shadow:0 14px 45px #0007}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:#18223b;color:var(--text);border-radius:10px;padding:9px 11px;cursor:pointer;transition:.15s}button:hover{background:#223052;transform:translateY(-1px)}button:active{transform:translateY(0)}button.primary{background:#2868d7;border-color:#4380eb}button.good{background:#167747;border-color:#2eaa70}button.danger{background:#8e2638;border-color:#c44b5d}
-#app{position:fixed;inset:0;background:#f8f9fb}
-#boardWrap{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#fff}
-canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
-#bgCanvas{z-index:0}#board{z-index:1;touch-action:none}#preview{z-index:2;pointer-events:none}
-#cursorLayer{position:absolute;inset:0;z-index:3;pointer-events:none}
-.remoteCursor{position:absolute;pointer-events:none;transform:translate(-3px,-3px);filter:drop-shadow(0 1px 2px #0005)}
-.remoteCursor .dot{width:10px;height:10px;border-radius:50%;background:#6ea8ff;border:2px solid #fff;box-shadow:0 1px 4px #0006}
-.remoteCursor .name{margin:3px 0 0 7px;background:#111a2d;color:#fff;padding:2px 6px;border-radius:5px;font-size:11px;white-space:nowrap}
-#topbar{position:absolute;left:14px;right:14px;top:12px;z-index:20;display:flex;align-items:center;justify-content:space-between;pointer-events:none}
-.brand{background:#0c1324e8;border:1px solid #344366;border-radius:14px;padding:8px 13px;box-shadow:var(--shadow);pointer-events:auto;backdrop-filter:blur(12px)}
-.brand b{letter-spacing:.2px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
-.status{display:flex;gap:7px;align-items:center;background:#0c1324e8;border:1px solid #344366;border-radius:14px;padding:8px 11px;box-shadow:var(--shadow);pointer-events:auto;backdrop-filter:blur(12px);font-size:12px}
-.dotStatus{width:9px;height:9px;border-radius:50%;background:var(--warn)}.dotStatus.ok{background:var(--good)}.dotStatus.bad{background:var(--danger)}
-#toolbar{position:absolute;z-index:30;left:50%;bottom:15px;transform:translateX(-50%);display:flex;gap:5px;align-items:center;padding:7px;background:#0c1324eF;border:1px solid #344366;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(14px);max-width:calc(100vw - 18px);overflow-x:auto;white-space:nowrap}
-.tool{min-width:39px;height:39px;padding:7px}.tool.active{background:#2b6dde;border-color:#69a0ff}.sep{width:1px;height:28px;background:#33415f;margin:0 3px}
-#teacherTools{display:none;gap:5px;align-items:center}.teacherOnly{display:none}
-#login{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 20%,#213d76 0,#0c1324 45%,#050811 100%);display:grid;place-items:center;padding:20px}
-.loginCard{width:min(440px,94vw);background:#10172aee;border:1px solid #3a4a70;border-radius:22px;padding:28px;box-shadow:0 25px 90px #0009;backdrop-filter:blur(18px)}
-.logo{font-size:28px;font-weight:800}.sub{color:var(--muted);margin:6px 0 24px}.roleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.roleGrid button{padding:15px}.loginForm{margin-top:16px;display:none}.loginForm input{width:100%;padding:13px;border-radius:11px;border:1px solid var(--line);background:#0b1120;color:#fff;outline:none}.loginForm input:focus{border-color:#5790f7}.hint{font-size:12px;color:var(--muted);margin-top:10px}.error{color:#ff8793;font-size:12px;margin-top:8px;min-height:16px}
-.panel{position:absolute;z-index:60;background:var(--panel);border:1px solid #3a4a70;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden}
-.panelHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #2d3955;cursor:move;background:#121b31}
-.panelHead b{font-size:13px}.panelBody{padding:11px;overflow:auto}.close{background:transparent;border:0;font-size:18px;padding:2px 7px}
-#chatPanel{right:15px;bottom:75px;width:min(360px,calc(100vw - 30px));height:430px;display:none}
-#chatMessages{height:330px;overflow:auto;padding:4px}.msg{margin:7px 0}.msg .who{font-size:10px;color:#88a8e9}.msg .bubble{display:inline-block;background:#1b2743;border-radius:10px;padding:7px 9px;max-width:90%;font-size:13px}.msg.me{text-align:right}.msg.me .bubble{background:#2868d7}
-.chatSend{display:flex;gap:6px;margin-top:8px}.chatSend input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px;background:#0a1020;color:#fff}
-#mediaPanel{left:15px;top:70px;width:min(510px,calc(100vw - 30px));height:360px;display:none}
-#videoGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;height:285px;overflow:auto}.videoTile{position:relative;min-height:125px;background:#050912;border:1px solid #263451;border-radius:10px;overflow:hidden}.videoTile video{width:100%;height:100%;object-fit:cover}.videoTile span{position:absolute;left:6px;bottom:5px;background:#0009;padding:3px 6px;border-radius:5px;font-size:10px}
-#roomPanel{left:15px;top:70px;width:290px;display:none}.roomCode{font-size:34px;letter-spacing:8px;text-align:center;padding:12px;color:#fff}
-#calcPanel{right:15px;top:70px;width:min(600px,calc(100vw - 30px));height:min(600px,calc(100vh - 150px));display:none}
-#pdfPanel{left:15px;top:70px;width:min(760px,calc(100vw - 30px));height:min(720px,calc(100vh - 150px));display:none}
-#pdfCanvas{max-width:100%;display:block;margin:auto;background:#fff;box-shadow:0 2px 12px #0005}
-#galleryPanel{right:15px;top:70px;width:min(420px,calc(100vw - 30px));max-height:500px;display:none}
-.galleryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.galleryGrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid #31405f;cursor:pointer}
-#formulaPanel{right:15px;top:70px;width:min(520px,calc(100vw - 30px));max-height:560px;display:none}.formula{padding:10px;border-bottom:1px solid #27344f}.formula b{display:block;color:#91b5ff}.formula code{color:#fff;font-size:15px}
-#toast{position:fixed;z-index:200;left:50%;top:18px;transform:translate(-50%,-20px);opacity:0;background:#111b31ee;border:1px solid #41547c;padding:9px 14px;border-radius:10px;transition:.2s;pointer-events:none;box-shadow:var(--shadow);font-size:13px}
-#toast.show{opacity:1;transform:translate(-50%,0)}
-#dolaPanel{resize:both;min-width:280px;min-height:220px}#dolaPanel textarea{font-size:13px}#fullscreenHint{display:none;position:fixed;z-index:150;right:14px;top:14px;background:#10182bea;border:1px solid #3b4b70;border-radius:10px;padding:8px 10px;font-size:11px}
-body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}body.fs #topbar{opacity:0;pointer-events:none}body.fs #fullscreenHint{display:block}
-body.fs #boardWrap{cursor:crosshair}
-@media(max-width:700px){#toolbar{bottom:8px}.brand{font-size:12px}.status{font-size:10px}.tool{min-width:37px}#mediaPanel{left:8px;top:58px}#chatPanel{right:8px;bottom:65px}.panel{border-radius:13px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MathBoard Pro — Pizarra Matemática Profesional</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
+    </script>
+    <style>
+        /* Base General Ultra Optimizada - Bloqueo de Gestos de SO */
+        body, html {
+            margin: 0; padding: 0; width: 100vw; height: 100vh;
+            background-color: #ffffff; color: #1e293b;
+            font-family: 'Segoe UI', sans-serif; overflow: hidden;
+            position: fixed; inset: 0; 
+            touch-action: none; -ms-touch-action: none;
+            user-select: none; -webkit-user-select: none;
+            overscroll-behavior: none;
+        }
+        
+        #canvas-container {
+            width: 100vw; height: 100vh;
+            position: absolute; top: 0; left: 0; z-index: 1;
+            overflow: hidden; 
+            background-color: #ffffff;
+        }
+
+        canvas#board {
+            display: block; touch-action: none;
+            width: 100vw; height: 100vh; 
+            background-color: #ffffff;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: contents;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>') 12 12, crosshair !important;
+        }
+
+        .remote-cursor {
+            position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9997;
+            display: flex; flex-direction: column; align-items: center;
+            transition: opacity 0.1s linear; opacity: 0; transform-origin: top left;
+            margin-left: -5px; margin-top: -5px; will-change: transform;
+        }
+        .remote-cursor .cursor-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .remote-cursor .cursor-label {
+            margin-top: 4px; color: white; font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: bold;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 0.5px;
+        }
+
+        #login-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 10, 10, 0.92); z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(10px); transition: opacity 0.5s; }
+        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; }
+        .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
+        .login-subtitle { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
+        .role-btn { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
+        .btn-student { background: #2563eb; color: white; }
+        .btn-student:hover { background: #1d4ed8; }
+        .btn-teacher { background: #10b981; color: white; }
+        .btn-teacher:hover { background: #059669; }
+        .auth-form { display: none; margin-top: 15px; animation: fadeIn 0.3s; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .auth-input { width: 100%; padding: 12px; margin-bottom: 15px; border-radius: 8px; border: 1px solid #444; background: #000; color: white; font-size: 1.2rem; text-align: center; box-sizing: border-box; text-transform: uppercase; letter-spacing: 2px; }
+        .auth-input:focus { outline: 2px solid #3b82f6; }
+        .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 10px; padding: 5px; border: none; cursor: pointer; }
+        .back-btn:hover { color: white; }
+        
+        #ui-panel, #main-toolbar { display: none; }
+
+        .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; transition: width 0.2s, height 0.2s, top 0.2s, left 0.2s; }
+        .floating-panel.dragging { transition: none; }
+        .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; user-select: none;}
+        .panel-controls-header button { padding: 2px 8px; font-size: 1rem; background: transparent; color: #888; border: none; cursor: pointer; transition: 0.2s; }
+        .panel-controls-header button:hover { color: #fff; }
+        
+        #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        
+        #pdf-panel, #dola-panel, #calc-panel, #gallery-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: relative; }
+        #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
+        #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
+        
+        #dola-panel { width: 750px; height: 550px; }
+        #calc-panel { width: 600px; height: 500px; }
+        
+        .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
+        .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
+        
+        #formulas-panel { top: 80px; right: 30px; width: 480px; display: none; max-height: 85vh; overflow: hidden; }
+        .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
+        .formula-tab-btns::-webkit-scrollbar { height: 4px; }
+        .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        
+        .f-tab { background: transparent; border: none; color: #888; padding: 12px 14px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
+        .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
+        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
+        
+        /* Motor de Recorte Seguro Libre de Bugs */
+        #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
+        #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
+        
+        #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; }
+        #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
+        #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
+        
+        #stamp-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 10; background: rgba(0,0,0,0.3); border-radius: 0 0 9px 9px;}
+        #stamp-crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.3); pointer-events: none; display: none; }
+
+        #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px; -webkit-user-drag: none;}
+        .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
+        .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
+        .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
+        
+        .stamper-toolbar { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 12px; display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
+        
+        button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
+        button:hover { background: #1d4ed8; }
+        .danger-btn { background: #dc2626 !important; color: #fff; }
+        .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
+        @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        
+        .hidden-file { display: none; }
+        #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
+        #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+        .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
+        
+        .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
+        .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
+        .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
+        #formula-grid-container{display:grid;grid-template-columns:1fr;gap:8px;padding-bottom:10px;}
+        .formula-card{padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);}
+        .formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;}
+        .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
+        .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+        .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
+        
+        #formulas-panel{overscroll-behavior:contain;}
+        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
+
+        /* Estilo de la Galería de Ejercicios Guardados PERMANENTE */
+        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
+        .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
+        .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none;}
+
+        /* === BARRA UNIFICADA - Zona Segura Inferior === */
+        #main-toolbar {
+            position: fixed; bottom: 25px; 
+            left: 50%; transform: translateX(-50%);
+            z-index: 9999; gap: 8px; padding: 8px 16px;
+            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            align-items: center; backdrop-filter: blur(12px);
+            max-width: 95vw; overflow-x: auto; white-space: nowrap;
+        }
+        #main-toolbar::-webkit-scrollbar { display: none; }
+        .toolbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px; flex-shrink: 0; }
+        #main-toolbar button { min-width: 44px; min-height: 42px; border: 0; border-radius: 12px; padding: 6px 12px; font-size: 16px; color: #fff; background: #334155; cursor: pointer; transition: 0.2s; flex-shrink: 0; }
+        #main-toolbar button:hover { background: #475569; }
+        #main-toolbar button.active { outline: 2px solid #3b82f6; background: #2563eb; }
+        #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
+        #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
+        
+        .audio-unlock-btn {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
+            padding: 20px 30px; font-size: 1.2rem; font-weight: bold; background: #2563eb; color: #fff;
+            border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer;
+            animation: pulseAudio 2s infinite;
+        }
+        @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
+
+        @media (max-width: 900px) {
+            #formulas-panel { width: 92vw !important; max-height:66vh !important; }
+            #pdf-panel, #dola-panel, #calc-panel, #gallery-panel { width: 95%; left: 2.5%; top: 5%; }
+            #main-toolbar { padding: 6px 12px; bottom: 15px; border-radius: 20px;}
+            #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
+            .hide-mobile { display: none !important; }
+        }
+    </style>
 </head>
 <body>
-<div id="app">
-  <div id="boardWrap">
-    <canvas id="bgCanvas"></canvas><canvas id="board"></canvas><canvas id="preview"></canvas>
-    <div id="cursorLayer"></div>
-  </div>
 
-  <div id="topbar">
-    <div class="brand"><b>∑ MathBoard Pro</b><small id="roleText">Pizarra Matemática • Super Star</small></div>
-    <div class="status"><i id="statusDot" class="dotStatus"></i><span id="statusText">Sin conexión</span><span id="zoomText">100%</span></div>
-  </div>
-
-  <div id="toolbar">
-    <div id="teacherTools">
-      <button class="tool teacherOnly" id="micBtn" title="Micrófono">🎙️</button>
-      <button class="tool teacherOnly" id="videoBtn" title="Video en vivo">📹</button>
-      <button class="tool teacherOnly" id="chatBtn" title="Chat">💬</button>
-      <button class="tool teacherOnly" id="roomBtn" title="Aula / código">🔢</button>
-      <button class="tool teacherOnly" id="calcBtn" title="Calculadora">🧮</button>
-      <button class="tool teacherOnly" id="pdfBtn" title="PDF">📄</button>
-      <button class="tool teacherOnly" id="photoBtn" title="Tomar foto">📷</button>
-      <button class="tool teacherOnly" id="dolaBtn" title="Dola">🪟</button>
-      <button class="tool teacherOnly" id="galleryBtn" title="Galería">🖼️</button>
-      <button class="tool teacherOnly" id="formulaBtn" title="Fórmulas">∑</button>
-      <button class="tool teacherOnly" id="saveBtn" title="Guardar PDF">💾</button>
-      <button class="tool teacherOnly" id="recordBtn" title="Grabar">⏺️</button>
-      <span class="sep teacherOnly"></span>
+    <div id="login-overlay">
+        <div class="login-box">
+            <div class="login-title">📐 MathBoard Pro</div>
+            <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
+            <div id="role-selection">
+                <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
+                <button class="role-btn btn-teacher" onclick="showTeacherForm()">👨‍🏫 Soy Profesor</button>
+            </div>
+            <div id="form-student" class="auth-form">
+                <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO (4 DÍGITOS)" maxlength="4">
+                <button class="role-btn btn-student" onclick="joinRoom()">Entrar a la Clase</button>
+                <button class="back-btn" onclick="goBack()">Volver atrás</button>
+            </div>
+            <div id="form-teacher" class="auth-form">
+                <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN">
+                <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
+                <button class="back-btn" onclick="goBack()">Volver atrás</button>
+            </div>
+        </div>
     </div>
-    <button class="tool active" id="penBtn" title="Lápiz">✎</button>
-    <button class="tool" id="markerBtn" title="Marcador">🖍</button>
-    <button class="tool" id="lineBtn" title="Línea">╱</button>
-    <button class="tool" id="arrowBtn" title="Flecha">➜</button>
-    <button class="tool" id="rectBtn" title="Rectángulo">□</button>
-    <button class="tool" id="circleBtn" title="Círculo">○</button>
-    <button class="tool" id="eraserBtn" title="Borrador">⌫</button>
-    <input id="color" type="color" value="#111827" title="Color" style="width:38px;height:38px;border:0;background:transparent">
-    <select id="size" title="Grosor"><option value="2">2</option><option value="4" selected>4</option><option value="7">7</option><option value="12">12</option><option value="20">20</option></select>
-    <span class="sep"></span>
-    <button class="tool" id="undoBtn" title="Deshacer">↶</button>
-    <button class="tool" id="redoBtn" title="Rehacer">↷</button>
-    <button class="tool" id="clearBtn" title="Limpiar">🗑</button>
-    <button class="tool" id="zoomOut" title="Alejar">−</button>
-    <button class="tool" id="zoomReset" title="100%">100%</button>
-    <button class="tool" id="zoomIn" title="Acercar">+</button>
-    <button class="tool" id="fullscreenBtn" title="Pantalla completa">⛶</button>
-    <button class="tool" id="logoutBtn" title="Salir">⏻</button>
-  </div>
 
-  <div class="panel" id="roomPanel">
-    <div class="panelHead"><b>🏫 Aula en vivo</b><button class="close">×</button></div>
-    <div class="panelBody">
-      <div style="color:#9eabc8;font-size:12px">Código para compartir</div>
-      <div class="roomCode" id="roomCode">----</div>
-      <div style="display:flex;gap:6px"><button class="primary" id="copyRoom" style="flex:1">Copiar código</button><button id="permBtn" style="flex:1">✍️ Todos escriben</button></div>
-      <div id="peerCount" style="text-align:center;color:#9eabc8;font-size:12px;margin-top:10px">0 participantes</div>
+    <!-- Panel de Código Flotante -->
+    <div id="ui-panel" class="floating-panel">
+        <div id="status-text" style="font-size: 1.1em; color: #4ade80; font-weight:bold;">Iniciando sistema...</div>
+        <div id="room-code-display" style="font-size: 2.5rem; letter-spacing: 6px; margin: 10px 0; font-weight:bold; color:#60a5fa; display:none;"></div>
+        <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
-  </div>
 
-  <div class="panel" id="chatPanel">
-    <div class="panelHead"><b>💬 Chat del aula</b><button class="close">×</button></div>
-    <div class="panelBody">
-      <div id="chatMessages"></div>
-      <div class="chatSend"><input id="chatInput" placeholder="Escribí un mensaje…"><button class="primary" id="sendChat">Enviar</button></div>
+    <!-- Calculadora Científica/Gráfica (Desmos / Estilo ClassWiz) -->
+    <div id="calc-panel" class="floating-panel">
+        <div class="panel-header" id="calc-header">
+            <span>🖩 Calculadora Gráfica Avanzada</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('calc-panel')" title="Pantalla Completa">🗖</button>
+                <button onclick="toggleCalcMinimize()" title="Minimizar">_</button>
+            </div>
+        </div>
+        <div class="pdf-controls">
+            <button onclick="window.open('https://www.desmos.com/calculator?lang=es', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
+            <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
+        </div>
+        <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
+            <iframe id="calc-frame" src="https://www.desmos.com/calculator?lang=es" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+        </div>
+        <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
-  </div>
 
-  <div class="panel" id="mediaPanel">
-    <div class="panelHead"><b>📹 Video en vivo</b><button class="close">×</button></div>
-    <div class="panelBody">
-      <div id="videoGrid"></div>
-      <div style="display:flex;gap:6px;margin-top:8px"><button id="toggleCam">📹 Cámara</button><button id="toggleMic">🎙️ Micrófono</button></div>
+    <!-- Visor PDF -->
+    <div id="pdf-panel" class="floating-panel">
+        <div class="panel-header" id="pdf-header">
+            <span>📄 Lector de PDF</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('pdf-panel')">🗖</button>
+                <button onclick="togglePdfMinimize()">_</button>
+            </div>
+        </div>
+        <div class="pdf-controls">
+            <div class="pdf-controls-group">
+                <button onclick="prevPage()" style="min-width:30px;">◀</button>
+                <span style="font-size: 0.8rem;">Pág <b id="page-num">1</b></span>
+                <button onclick="nextPage()" style="min-width:30px;">▶</button>
+            </div>
+            <div class="pdf-controls-group">
+                <button onclick="zoomOut()" style="min-width:30px;">➖</button>
+                <button onclick="zoomIn()" style="min-width:30px;">➕</button>
+            </div>
+            <button id="btn-crop-pdf" onclick="togglePdfCropMode()" style="background:#8b5cf6; padding: 6px 12px; border-radius: 8px;">✂️ Recortar</button>
+        </div>
+        <div id="pdf-render-container">
+            <canvas id="pdf-canvas"></canvas>
+            <div id="crop-overlay"><div id="crop-box"></div></div>
+        </div>
+        <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
-  </div>
 
-  <div class="panel" id="calcPanel">
-    <div class="panelHead"><b>🧮 Calculadora gráfica</b><button class="close">×</button></div>
-    <div class="panelBody" style="height:calc(100% - 45px);padding:0"><iframe src="https://www.desmos.com/calculator?lang=es" style="width:100%;height:100%;border:0;border-radius:0 0 15px 15px"></iframe></div>
-  </div>
-
-  <div class="panel" id="pdfPanel">
-    <div class="panelHead"><b>📄 Visor PDF</b><button class="close">×</button></div>
-    <div class="panelBody" style="height:calc(100% - 45px)">
-      <input id="pdfInput" type="file" accept="application/pdf">
-      <div style="display:flex;gap:6px;margin:8px 0;align-items:center"><button id="pdfPrev">‹</button><span id="pdfPage">0 / 0</span><button id="pdfNext">›</button><button id="pdfZoomOut">−</button><button id="pdfZoomIn">+</button></div>
-      <div style="height:calc(100% - 85px);overflow:auto;background:#29334a;padding:12px"><canvas id="pdfCanvas"></canvas></div>
+    <!-- Visor Dola AI (Exclusivo Profesor) -->
+    <div id="dola-panel" class="floating-panel">
+        <div class="panel-header" id="dola-header">
+            <span>🤖 Dola AI (Asistente Inteligente)</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('dola-panel')">🗖</button>
+                <button onclick="toggleDolaMinimize()">_</button>
+            </div>
+        </div>
+        <div class="pdf-controls">
+            <button onclick="window.open('https://www.cici.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
+            <button onclick="captureDolaScreen()" style="background:#10b981;" title="Haz clic y selecciona la pestaña de Dola para recortar">📸 Capturar Pantalla</button>
+        </div>
+        <div id="dola-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
+            <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+        </div>
+        <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
-  </div>
 
-  <div class="panel" id="galleryPanel">
-    <div class="panelHead"><b>🖼️ Galería local</b><button class="close">×</button></div>
-    <div class="panelBody"><input id="imageInput" type="file" accept="image/*" multiple><div class="galleryGrid" id="galleryGrid"></div></div>
-  </div>
+    <!-- Panel de Galería PERSISTENTE -->
+    <div id="gallery-panel" class="floating-panel" style="width: 400px;">
+        <div class="panel-header" id="gallery-header">
+            <span>📁 Mis Ejercicios Guardados</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('gallery-panel')">🗖</button>
+                <button onclick="toggleGalleryMinimize()">_</button>
+            </div>
+        </div>
+        <div class="gallery-grid" id="gallery-grid-container">
+            <!-- Contenido dinámico -->
+        </div>
+        <div class="resize-handle resize-handle-panel" id="gallery-resize-handle" title="Arrastra para redimensionar"></div>
+    </div>
 
-  <div class="panel" id="formulaPanel">
-    <div class="panelHead"><b>∑ Biblioteca de fórmulas</b><button class="close">×</button></div>
-    <div class="panelBody">
-      <select id="formulaCat" style="width:100%;margin-bottom:8px;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:9px;padding:9px"></select>
-      <div id="formulaList"></div>
+    <!-- WIDGET DE FÓRMULAS -->
+    <div id="formulas-panel" class="floating-panel">
+        <div class="panel-header" id="formulas-header">
+            <span>🧮 Gran Biblioteca Matemática</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('formulas-panel')">🗖</button>
+                <button onclick="toggleFormulasPanel()">_</button>
+            </div>
+        </div>
+        <div class="formula-tab-btns">
+            <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
+            <button class="f-tab" onclick="loadFormulas('geometry', this)">Geometría</button>
+            <button class="f-tab" onclick="loadFormulas('analytic_geometry', this)">G. Analítica</button>
+            <button class="f-tab" onclick="loadFormulas('trigonometry', this)">Trigonometría</button>
+            <button class="f-tab" onclick="loadFormulas('calculus', this)">Derivadas</button>
+            <button class="f-tab" onclick="loadFormulas('integrals', this)">Integrales</button>
+            <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
+            <button class="f-tab" onclick="loadFormulas('probability', this)">Probabilidad</button>
+            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
+            <button class="f-tab" onclick="loadFormulas('physics', this)">Física</button>
+        </div>
+        <div id="formula-category-selector" class="formula-category-selector">
+            <button class="f-cat" data-cat="arithmetic" onclick="selectFormulaCategory('arithmetic')">Aritmética</button>
+            <button class="f-cat" data-cat="algebra" onclick="selectFormulaCategory('algebra')">Álgebra</button>
+            <button class="f-cat" data-cat="geometry" onclick="selectFormulaCategory('geometry')">Geometría</button>
+            <button class="f-cat" data-cat="analytic_geometry" onclick="selectFormulaCategory('analytic_geometry')">G. Analítica</button>
+            <button class="f-cat" data-cat="trigonometry" onclick="selectFormulaCategory('trigonometry')">Trigonometría</button>
+            <button class="f-cat" data-cat="calculus" onclick="selectFormulaCategory('calculus')">Derivadas</button>
+            <button class="f-cat" data-cat="integrals" onclick="selectFormulaCategory('integrals')">Integrales ∫</button>
+            <button class="f-cat" data-cat="statistics" onclick="selectFormulaCategory('statistics')">Estadística</button>
+            <button class="f-cat" data-cat="probability" onclick="selectFormulaCategory('probability')">Probabilidad</button>
+            <button class="f-cat" data-cat="topology" onclick="selectFormulaCategory('topology')">Topología</button>
+            <button class="f-cat" data-cat="matrices" onclick="selectFormulaCategory('matrices')">Matrices</button>
+            <button class="f-cat" data-cat="vectors" onclick="selectFormulaCategory('vectors')">Vectores</button>
+            <button class="f-cat" data-cat="complex" onclick="selectFormulaCategory('complex')">Complejos</button>
+            <button class="f-cat" data-cat="physics" onclick="selectFormulaCategory('physics')">Física</button>
+        </div>
+        <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula..." autocomplete="off">
+        <div class="formula-count" id="formula-count"></div>
+        <div class="formula-grid" id="formula-grid-container"></div>
+        <div class="resize-handle resize-handle-panel" id="formulas-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
-  </div>
 
-  <div id="fullscreenHint">Pantalla completa · Esc para salir · doble clic para volver</div>
-  <div id="toast"></div>
-  <div class="panel" id="dolaPanel" style="left:25%;top:18%;width:420px;height:300px;display:none">
-    <div class="panelHead"><b>🪟 Dola — solo profesor</b><button class="close">×</button></div>
-    <div class="panelBody" style="height:calc(100% - 45px)">
-      <textarea id="dolaText" placeholder="Escribí o pegá aquí el contenido de Dola..." style="width:100%;height:145px;resize:both;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:8px;padding:8px"></textarea>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-        <button id="dolaPaste">Pegar en pizarra</button>
-        <button id="dolaSave">Guardar con nombre</button>
-        <button id="dolaCrop">Recortar selección</button>
-      </div>
-      <input id="dolaName" placeholder="Nombre para guardar" style="width:100%;margin-top:8px;padding:8px;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:8px">
-      <div id="dolaLibrary" style="margin-top:8px;max-height:65px;overflow:auto;font-size:12px"></div>
+    <!-- Estampador General (Capa segura de recorte sin bugs) -->
+    <div id="stamper" class="floating-panel">
+        <div id="stamper-header">🖐️ Arrastrar para Mover</div>
+        <div id="stamper-content">
+            <img id="stamp-img" src="">
+            <div id="stamp-crop-overlay">
+                <div id="stamp-crop-box"></div>
+            </div>
+            <div class="resize-handle" id="resize-handle"></div>
+        </div>
+        <div class="stamper-toolbar">
+            <button onclick="startStampCrop()" style="background:#8b5cf6; min-width:80px;">✂️ Recortar</button>
+            <button onclick="saveCurrentStampToGallery()" style="background:#f59e0b; min-width:80px;" title="Guardar permanentemente en la galería">💾 Guardar</button>
+            <button onclick="applyStamp()" style="background: #10b981; min-width:80px;">✅ Pegar</button>
+            <button onclick="cancelStamp()" class="danger-btn" style="min-width:40px;">❌</button>
+        </div>
     </div>
-  </div>
-</div>
 
-<div id="login">
-  <div class="loginCard">
-    <div class="logo">∑ MathBoard Pro</div>
-    <div class="sub">Pizarra matemática profesional · Super Star</div>
-    <div class="roleGrid">
-      <button id="studentRole">👨‍🎓 Soy estudiante</button>
-      <button id="teacherRole">👨‍🏫 Soy profesor</button>
-    </div>
-    <div class="loginForm" id="studentForm">
-      <input id="studentName" placeholder="Tu nombre">
-      <input id="roomInput" inputmode="numeric" maxlength="4" placeholder="Código de 4 dígitos" style="margin-top:8px">
-      <button class="primary" id="joinBtn" style="width:100%;margin-top:10px">Entrar al aula</button>
-      <div class="hint">Pedile al profesor el código del aula.</div><div class="error" id="studentError"></div>
-    </div>
-    <div class="loginForm" id="teacherForm">
-      <input id="teacherName" placeholder="Nombre del profesor">
-      <input id="teacherPin" type="password" placeholder="PIN" style="margin-top:8px">
-      <button class="primary" id="createBtn" style="width:100%;margin-top:10px">Crear aula</button>
-      <div class="hint">El aula funciona directamente entre navegadores mediante PeerJS.</div><div class="error" id="teacherError"></div>
-    </div>
-  </div>
-</div>
+    <!-- Barra Única Unificada -->
+    <div id="main-toolbar">
+        
+        <!-- Opciones exclusivas de Profesor -->
+        <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
+            <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
+            <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
+            <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
+            <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
+            <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
+            
+            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
+            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
 
-<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
+            <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
+            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC" class="hide-mobile">🖼️</button>
+            <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
+            
+            <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4" class="hide-mobile">⏺️</button>
+            <button onclick="logoutSession()" title="Cerrar Sesión para Todos" class="danger-btn" style="background:#dc2626;">🚪</button>
+            
+            <div class="toolbar-divider"></div>
+        </div>
+
+        <!-- Opciones Universales de Dibujo (Todos) -->
+        <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
+        <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
+        <button type="button" id="mw-arrow" title="Flecha" class="hide-mobile">➜</button>
+        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo" class="hide-mobile">▭</button>
+        <button type="button" id="mw-circle" title="Círculo" class="hide-mobile">○</button>
+        <button type="button" id="mw-eraser" title="Borrador Perfecto">🧼</button>
+        
+        <div class="toolbar-divider"></div>
+        
+        <input id="mw-color" type="color" value="#0f172a" title="Color de Tinta">
+        <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor del Trazo">
+        
+        <div class="toolbar-divider"></div>
+        
+        <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
+        <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto" class="danger-btn">🗑️</button>
+        <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
+    </div>
+
+    <div id="canvas-container">
+        <canvas id="board"></canvas>
+    </div>
+
 <script>
-'use strict';
-const $=id=>document.getElementById(id);
-const board=$('board'), bg=$('bgCanvas'), preview=$('preview'), wrap=$('boardWrap');
-const ctx=board.getContext('2d',{alpha:true}), bctx=bg.getContext('2d'), pctx=preview.getContext('2d');
-const state={
- role:null,name:'',room:'',peer:null,connections:new Map(),stream:null,video:true,mic:true,
- canDraw:true,tool:'pen',color:'#111827',size:4,dpr:1,
- scale:1,ox:0,oy:0,drawing:false,start:null,last:null,points:[],
- history:[],future:[],remoteCursors:new Map(),saveTimer:null,
- pdf:null,pdfPage:1,pdfScale:1,recording:false,recorder:null,chunks:[],dolaLibrary:[],recordLoop:null
-};
-const formulas={"Aritmética":[["Porcentaje","parte = total · p/100"],["Regla de tres","a/b = c/x ⇒ x = bc/a"],["Promedio","promedio = suma / cantidad"],["MCD y MCM","mcd(a,b)·mcm(a,b)=a·b"],["Fracciones","a/b ± c/d=(ad±bc)/bd"],["Proporción","a/b=c/d ⇒ ad=bc"],["Potencias","aᵐ·aⁿ=aᵐ⁺ⁿ"],["División de potencias","aᵐ/aⁿ=aᵐ⁻ⁿ"],["Raíz de producto","√(ab)=√a·√b"],["Notación científica","a·10ⁿ"]],"Álgebra":[["Cuadrática","x=(-b±√(b²-4ac))/(2a)"],["Binomio al cuadrado","(a±b)²=a²±2ab+b²"],["Diferencia de cuadrados","a²-b²=(a-b)(a+b)"],["Cubo de suma","(a+b)³=a³+3a²b+3ab²+b³"],["Cubo de diferencia","(a-b)³=a³-3a²b+3ab²-b³"],["Factor común","ax+ay=a(x+y)"],["Trinomio cuadrado perfecto","a²±2ab+b²=(a±b)²"],["Pendiente","m=(y₂-y₁)/(x₂-x₁)"],["Recta","y=mx+b"],["Distancia","d=√((x₂-x₁)²+(y₂-y₁)²)"]],"Geometría":[["Pitágoras","a²+b²=c²"],["Área triángulo","A=b·h/2"],["Área rectángulo","A=b·h"],["Área cuadrado","A=l²"],["Área círculo","A=πr²"],["Circunferencia","L=2πr"],["Área trapecio","A=(B+b)h/2"],["Área rombo","A=Dd/2"],["Volumen prisma","V=A_base·h"],["Volumen cilindro","V=πr²h"]],"Trigonometría":[["Seno","sen θ=op/hip"],["Coseno","cos θ=ady/hip"],["Tangente","tan θ=op/ady"],["Identidad","sen²θ+cos²θ=1"],["Ley de senos","a/sen A=b/sen B"],["Ley de cosenos","c²=a²+b²-2ab cos C"],["Seno doble","sen 2θ=2senθ cosθ"],["Coseno doble","cos 2θ=cos²θ-sen²θ"],["Grados a radianes","rad=grados·π/180"],["Suma de ángulos","sen(a+b)=sen a cos b+cos a sen b"]],"Cálculo":[["Derivada definición","f'(x)=lim[h→0](f(x+h)-f(x))/h"],["Producto","(fg)'=f'g+fg'"],["Cadena","(f∘g)'=(f'∘g)·g'"],["Potencia","d(xⁿ)/dx=nxⁿ⁻¹"],["Exponencial","d(eˣ)/dx=eˣ"],["Logaritmo","d(ln x)/dx=1/x"],["Seno","d(sen x)/dx=cos x"],["Coseno","d(cos x)/dx=-sen x"],["Tangente","y-f(a)=f'(a)(x-a)"],["Segunda derivada","f''(x)=d²f/dx²"]],"Integrales":[["Potencia","∫xⁿdx=xⁿ⁺¹/(n+1)+C"],["Constante","∫kdx=kx+C"],["Sustitución","∫f(g(x))g'(x)dx=∫f(u)du"],["Integral 1/x","∫1/x dx=ln|x|+C"],["Exponencial","∫eˣdx=eˣ+C"],["Seno","∫sen x dx=-cos x+C"],["Coseno","∫cos x dx=sen x+C"],["Definida","∫ₐᵇf(x)dx=F(b)-F(a)"],["Por partes","∫u dv=uv-∫v du"],["Área bajo curva","A=∫ₐᵇ|f(x)|dx"]]};
-Object.keys(formulas).forEach(k=>{let o=document.createElement('option');o.value=k;o.textContent=k;$('formulaCat').appendChild(o)});
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),1800)}
-function status(s,ok=true){$('statusText').textContent=s;$('statusDot').className='dotStatus '+(ok?'ok':'bad')}
-function showPanel(id){document.querySelectorAll('.panel').forEach(p=>{if(p.id!==id)p.style.display='none'});let p=$(id);p.style.display=p.style.display==='block'?'none':'block'}
-function closePanels(){document.querySelectorAll('.panel').forEach(p=>p.style.display='none')}
-function resize(){
- state.dpr=Math.min(devicePixelRatio||1,2);
- const r=wrap.getBoundingClientRect(), w=Math.max(1,Math.floor(r.width)),h=Math.max(1,Math.floor(r.height));
- [board,bg,preview].forEach(c=>{c.width=w*state.dpr;c.height=h*state.dpr;c.style.width=w+'px';c.style.height=h+'px'});
- [ctx,bctx,pctx].forEach(c=>c.setTransform(state.dpr,0,0,state.dpr,0,0));
- drawGrid();render();
-}
-function drawGrid(){
- const r=wrap.getBoundingClientRect(),w=r.width,h=r.height;
- bctx.save();bctx.setTransform(state.dpr,0,0,state.dpr,0,0);bctx.clearRect(0,0,w,h);bctx.fillStyle='#fff';bctx.fillRect(0,0,w,h);
- const step=25*state.scale, ox=mod(state.ox,step),oy=mod(state.oy,step);
- bctx.strokeStyle='#e8ebf0';bctx.lineWidth=1;
- for(let x=ox;x<w;x+=step){bctx.beginPath();bctx.moveTo(x,0);bctx.lineTo(x,h);bctx.stroke()}
- for(let y=oy;y<h;y+=step){bctx.beginPath();bctx.moveTo(0,y);bctx.lineTo(w,y);bctx.stroke()}
- bctx.restore();
-}
-function mod(a,b){return ((a%b)+b)%b}
-function screenToWorld(x,y){return{x:(x-state.ox)/state.scale,y:(y-state.oy)/state.scale}}
-function worldToScreen(x,y){return{x:x*state.scale+state.ox,y:y*state.scale+state.oy}}
-function clearPreview(){pctx.clearRect(0,0,preview.width/state.dpr,preview.height/state.dpr)}
-function render(){
- const r=wrap.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
- // The board stores drawing in world coordinates in a temporary offscreen canvas.
- if(state.bitmap){ctx.save();ctx.translate(state.ox,state.oy);ctx.scale(state.scale,state.scale);ctx.drawImage(state.bitmap,0,0);ctx.restore()}
- $('zoomText').textContent=Math.round(state.scale*100)+'%';
-}
-function makeBitmap(){const r=wrap.getBoundingClientRect();const c=document.createElement('canvas');c.width=Math.max(1,Math.round(r.width));c.height=Math.max(1,Math.round(r.height));const x=c.getContext('2d');x.drawImage(board,0,0,board.width/state.dpr,board.height/state.dpr,0,0,c.width,c.height);return c}
-function snapshot(){state.history.push(state.bitmap?state.bitmap.toDataURL('image/png'):'');if(state.history.length>25)state.history.shift();state.future=[];saveLocal()}
-function loadData(url){if(!url){state.bitmap=null;render();return}const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=wrap.clientWidth;c.height=wrap.clientHeight;c.getContext('2d').drawImage(im,0,0,c.width,c.height);state.bitmap=c;render()};im.src=url}
-function saveLocal(){clearTimeout(state.saveTimer);state.saveTimer=setTimeout(()=>{try{localStorage.setItem('mathboard.superstar.board',state.bitmap?state.bitmap.toDataURL('image/jpeg',.72):'');localStorage.setItem('mathboard.superstar.meta',JSON.stringify({name:state.name}))}catch(e){}},250)}
-function restoreLocal(){try{const u=localStorage.getItem('mathboard.superstar.board');if(u)loadData(u)}catch(e){}}
-function drawStroke(points,color,size,erase=false){
- if(!points.length)return;
- const c=state.bitmap||document.createElement('canvas');if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
- const x=c.getContext('2d');x.lineCap='round';x.lineJoin='round';x.lineWidth=size;x.globalCompositeOperation=erase?'destination-out':'source-over';x.strokeStyle=color;
- x.beginPath();x.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)x.lineTo(points[i].x,points[i].y);if(points.length===1)x.lineTo(points[0].x+.01,points[0].y+.01);x.stroke();x.globalCompositeOperation='source-over';render();
-}
-function drawShape(type,a,b,color,size){
- const c=state.bitmap||document.createElement('canvas');if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
- const x=c.getContext('2d');x.strokeStyle=color;x.lineWidth=size;x.lineCap='round';x.lineJoin='round';x.beginPath();
- if(type==='line'||type==='arrow'){x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke();if(type==='arrow'){const ang=Math.atan2(b.y-a.y,b.x-a.x),len=12;x.beginPath();x.moveTo(b.x,b.y);x.lineTo(b.x-len*Math.cos(ang-.5),b.y-len*Math.sin(ang-.5));x.moveTo(b.x,b.y);x.lineTo(b.x-len*Math.cos(ang+.5),b.y-len*Math.sin(ang+.5));x.stroke()}}
- else if(type==='rect')x.strokeRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));
- else{x.ellipse((a.x+b.x)/2,(a.y+b.y)/2,Math.abs(b.x-a.x)/2,Math.abs(b.y-a.y)/2,0,0,Math.PI*2);x.stroke()}
- render()
-}
-function pointerPos(e){const r=wrap.getBoundingClientRect();return screenToWorld(e.clientX-r.left,e.clientY-r.top)}
-board.addEventListener('pointerdown',e=>{
- if(!state.canDraw||e.button===2)return;
- state.drawing=true;board.setPointerCapture(e.pointerId);state.start=state.last=pointerPos(e);state.points=[state.start];
- if(state.tool==='pen'||state.tool==='marker'||state.tool==='eraser'){drawStroke(state.points,state.color,state.size,state.tool==='eraser')}
-});
-board.addEventListener('pointermove',e=>{
- const r=wrap.getBoundingClientRect();const sp={x:e.clientX-r.left,y:e.clientY-r.top};
- send({type:'cursor',x:sp.x/r.width,y:sp.y/r.height,name:state.name});
- if(!state.drawing)return;
- const p=pointerPos(e);
- if(state.tool==='pen'||state.tool==='marker'||state.tool==='eraser'){state.points.push(p);drawStroke([state.last,p],state.color,state.size*(state.tool==='marker'?3:1),state.tool==='eraser')}
- else{clearPreview();previewShape(state.tool,state.start,p)}state.last=p;
-});
-board.addEventListener('pointerup',e=>{
- if(!state.drawing)return;state.drawing=false;
- const end=pointerPos(e),tool=state.tool;
- if(tool==='pen'||tool==='marker'||tool==='eraser'){send({type:'stroke',points:state.points,color:state.color,size:state.size*(tool==='marker'?3:1),erase:tool==='eraser'});}
- else{clearPreview();drawShape(tool,state.start,end,state.color,state.size);send({type:'shape',shape:tool,a:state.start,b:end,color:state.color,size:state.size})}
- snapshot();
-});
-function previewShape(type,a,b){pctx.save();pctx.setTransform(state.dpr,0,0,state.dpr,0,0);pctx.strokeStyle=state.color;pctx.lineWidth=state.size;pctx.setLineDash([6,5]);pctx.beginPath();if(type==='line'||type==='arrow'){pctx.moveTo(a.x*state.scale+state.ox,a.y*state.scale+state.oy);pctx.lineTo(b.x*state.scale+state.ox,b.y*state.scale+state.oy)}else if(type==='rect')pctx.strokeRect(Math.min(a.x,b.x)*state.scale+state.ox,Math.min(a.y,b.y)*state.scale+state.oy,Math.abs(b.x-a.x)*state.scale,Math.abs(b.y-a.y)*state.scale);else pctx.ellipse((a.x+b.x)/2*state.scale+state.ox,(a.y+b.y)/2*state.scale+state.oy,Math.abs(b.x-a.x)/2*state.scale,Math.abs(b.y-a.y)/2*state.scale,0,0,Math.PI*2);pctx.stroke();pctx.restore()}
-wrap.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();const r=wrap.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,old=state.scale,factor=e.deltaY<0?1.1:.9;state.scale=Math.max(.25,Math.min(5,state.scale*factor));state.ox=mx-(mx-state.ox)*state.scale/old;state.oy=my-(my-state.oy)*state.scale/old;drawGrid();render()}},{passive:false});
-let pan=null;
-wrap.addEventListener('pointerdown',e=>{if(e.button===1||(e.altKey&&e.button===0)){pan={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};}});
-wrap.addEventListener('pointermove',e=>{if(pan){state.ox=pan.ox+e.clientX-pan.x;state.oy=pan.oy+e.clientY-pan.y;drawGrid();render()}});
-wrap.addEventListener('pointerup',()=>pan=null);wrap.addEventListener('pointercancel',()=>pan=null);wrap.addEventListener('dblclick',()=>toggleFS());
-function setTool(t){state.tool=t;document.querySelectorAll('#toolbar .tool').forEach(x=>x.classList.remove('active'));({pen:'penBtn',marker:'markerBtn',line:'lineBtn',arrow:'arrowBtn',rect:'rectBtn',circle:'circleBtn',eraser:'eraserBtn'})[t]&&$( ({pen:'penBtn',marker:'markerBtn',line:'lineBtn',arrow:'arrowBtn',rect:'rectBtn',circle:'circleBtn',eraser:'eraserBtn'})[t]).classList.add('active')}
-['pen','marker','line','arrow','rect','circle','eraser'].forEach(t=>$(t+'Btn').onclick=()=>setTool(t));
-$('color').oninput=e=>state.color=e.target.value;$('size').onchange=e=>state.size=+e.target.value;
-$('undoBtn').onclick=()=>{if(!state.history.length)return;state.future.push(state.bitmap?state.bitmap.toDataURL():'');loadData(state.history.pop())};
-$('redoBtn').onclick=()=>{if(!state.future.length)return;state.history.push(state.bitmap?state.bitmap.toDataURL():'');loadData(state.future.pop())};
-$('clearBtn').onclick=()=>{if(!confirm('¿Limpiar toda la pizarra?'))return;snapshot();state.bitmap=null;render();send({type:'clear'})};
-$('zoomIn').onclick=()=>zoom(.1);$('zoomOut').onclick=()=>zoom(-.1);$('zoomReset').onclick=()=>{state.scale=1;state.ox=0;state.oy=0;drawGrid();render()};
-function zoom(d){state.scale=Math.max(.25,Math.min(5,state.scale+d));drawGrid();render()}
-$('fullscreenBtn').onclick=toggleFS;
-async function toggleFS(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){}}
-document.addEventListener('fullscreenchange',()=>document.body.classList.toggle('fs',!!document.fullscreenElement));
-document.querySelectorAll('.close').forEach(b=>b.onclick=()=>b.closest('.panel').style.display='none');
-$('calcBtn').onclick=()=>showPanel('calcPanel');$('chatBtn').onclick=()=>showPanel('chatPanel');$('videoBtn').onclick=()=>showPanel('mediaPanel');$('roomBtn').onclick=()=>showPanel('roomPanel');$('pdfBtn').onclick=()=>showPanel('pdfPanel');$('galleryBtn').onclick=()=>showPanel('galleryPanel');$('formulaBtn').onclick=()=>showPanel('formulaPanel');
-$('formulaCat').onchange=renderFormulas;function renderFormulas(){let a=formulas[$('formulaCat').value]||[];$('formulaList').innerHTML=a.map(x=>`<div class="formula"><b>${esc(x[0])}</b><code>${esc(x[1])}</code></div>`).join('')}renderFormulas();
-function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function send(data){if(!state.peer)return;data.from=state.peer.id;data.name=state.name;state.connections.forEach(c=>{if(c.open)try{c.send(data)}catch(e){}})}
-function addMsg(name,text,me=false){const d=document.createElement('div');d.className='msg'+(me?' me':'');d.innerHTML=`<div class="who">${esc(name)}</div><span class="bubble">${esc(text)}</span>`;$('chatMessages').appendChild(d);$('chatMessages').scrollTop=$('chatMessages').scrollHeight}
-$('sendChat').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});function sendChat(){const v=$('chatInput').value.trim();if(!v)return;addMsg(state.name,v,true);send({type:'chat',text:v});$('chatInput').value=''}
-function setupConn(c){
- c.on('open',()=>{state.connections.set(c.peer,c);status('Conectado');updateCount();c.send({type:'hello',name:state.name,role:state.role,canDraw:state.canDraw,state:state.bitmap?state.bitmap.toDataURL('image/jpeg',.65):''})});
- c.on('data',d=>handleData(d,c));c.on('close',()=>{state.connections.delete(c.peer);removeCursor(c.peer);updateCount()});c.on('error',()=>{state.connections.delete(c.peer);updateCount()})
-}
-function handleData(d,c){
- if(d.type==='hello'){if(state.role==='teacher'&&state.bitmap)c.send({type:'state',state:state.bitmap.toDataURL('image/jpeg',.7)});if(state.role==='teacher')c.send({type:'permission',canDraw:state.canDraw})}
- if(d.type==='state'&&d.state)loadData(d.state);
- if(d.type==='permission'){state.canDraw=!!d.canDraw;toast(state.canDraw?'La pizarra está habilitada':'Solo lectura')}
- if(d.type==='cursor')remoteCursor(c.peer,d);
- if(d.type==='stroke'){drawStroke(d.points,d.color,d.size,d.erase)}
- if(d.type==='shape')drawShape(d.shape,d.a,d.b,d.color,d.size);
- if(d.type==='clear'){state.bitmap=null;render()}
- if(d.type==='chat')addMsg(d.name||'Participante',d.text,false);
- if(d.type==='logout'){toast('El profesor cerró el aula');setTimeout(logout,800)}
-}
-function remoteCursor(id,d){let el=state.remoteCursors.get(id);if(!el){el=document.createElement('div');el.className='remoteCursor';el.innerHTML='<div class="dot"></div><div class="name"></div>';$('cursorLayer').appendChild(el);state.remoteCursors.set(id,el)}el.style.left=(d.x*100)+'%';el.style.top=(d.y*100)+'%';el.querySelector('.name').textContent=d.name||'Participante'}
-function removeCursor(id){const e=state.remoteCursors.get(id);if(e)e.remove();state.remoteCursors.delete(id)}
-function updateCount(){$('peerCount').textContent=state.connections.size+' participante'+(state.connections.size===1?'':'s');}
-$('permBtn').onclick=()=>{state.canDraw=!state.canDraw;$('permBtn').textContent=state.canDraw?'✍️ Todos escriben':'🔒 Solo profesor';send({type:'permission',canDraw:state.canDraw})};
-$('copyRoom').onclick=()=>navigator.clipboard?.writeText(state.room).then(()=>toast('Código copiado'));
-async function getMedia(){
- try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});addLocalVideo();return true}catch(e){try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});addLocalVideo();return true}catch(e2){toast('Micrófono/cámara no disponibles');return false}}
-}
-function addLocalVideo(){if(!state.stream)return;let tile=document.createElement('div');tile.className='videoTile';tile.id='localTile';let v=document.createElement('video');v.autoplay=true;v.muted=true;v.playsInline=true;v.srcObject=state.stream;tile.appendChild(v);let s=document.createElement('span');s.textContent=state.name+' (vos)';tile.appendChild(s);$('videoGrid').appendChild(tile)}
-$('toggleCam').onclick=()=>{if(!state.stream)return;state.video=!state.video;state.stream.getVideoTracks().forEach(t=>t.enabled=state.video);$('toggleCam').textContent=state.video?'📹 Cámara':'🚫 Cámara'};
-$('toggleMic').onclick=()=>{if(!state.stream)return;state.mic=!state.mic;state.stream.getAudioTracks().forEach(t=>t.enabled=state.mic);$('toggleMic').textContent=state.mic?'🎙️ Micrófono':'🔇 Micrófono'};
-async function createRoom(){
- const name=$('teacherName').value.trim()||'Profesor';const pin=$('teacherPin').value;
- if(pin!=='1977$'){ $('teacherError').textContent='PIN incorrecto.';return}
- state.role='teacher';state.name=name;state.room=String(Math.floor(1000+Math.random()*9000));
- state.peer=new Peer('MathBoard-'+state.room,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}});
- state.peer.on('open',async()=>{openApp();$('roomCode').textContent=state.room;status('Aula creada');await getMedia()});
- state.peer.on('connection',setupConn);state.peer.on('error',e=>{status('Conexión con error',false);toast(e.type||'Error de conexión')});
-}
-function joinRoom(){
- const name=$('studentName').value.trim()||'Estudiante';const room=$('roomInput').value.trim();
- if(!/^\d{4}$/.test(room)){$('studentError').textContent='Ingresá un código válido de 4 dígitos.';return}
- state.role='student';state.name=name;state.room=room;state.peer=new Peer({debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}});
- state.peer.on('open',()=>{const c=state.peer.connect('MathBoard-'+room,{reliable:true});setupConn(c);openApp();status('Conectando…')});
- state.peer.on('error',()=>{$('studentError').textContent='No se pudo conectar. Verificá el código.';status('Sin conexión',false)});
-}
-function openApp(){
- $('login').style.display='none';$('roleText').textContent=(state.role==='teacher'?'Profesor':'Estudiante')+' · '+state.name;
- document.querySelectorAll('.teacherOnly').forEach(x=>x.style.display=state.role==='teacher'?'inline-flex':'none');
- $('teacherTools').style.display=state.role==='teacher'?'flex':'none';resize();restoreLocal();
-}
-function logout(){if(state.peer){try{send({type:'logout'})}catch(e){}try{state.peer.destroy()}catch(e){}}if(state.stream)state.stream.getTracks().forEach(t=>t.stop());location.reload()}
-$('logoutBtn').onclick=logout;
-$('studentRole').onclick=()=>{ $('studentForm').style.display='block';$('teacherForm').style.display='none'};
-$('teacherRole').onclick=()=>{ $('teacherForm').style.display='block';$('studentForm').style.display='none'};
-$('joinBtn').onclick=joinRoom;$('createBtn').onclick=createRoom;
-window.addEventListener('resize',resize);
-window.addEventListener('beforeunload',()=>{if(state.stream)state.stream.getTracks().forEach(t=>t.stop())});
-$('imageInput').onchange=e=>{[...e.target.files].forEach(f=>{const rd=new FileReader();rd.onload=()=>{let a=JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]');a.unshift(rd.result);a=a.slice(0,24);localStorage.setItem('mathboard.superstar.gallery',JSON.stringify(a));renderGallery()};rd.readAsDataURL(f)})};
-function renderGallery(){let a=[];try{a=JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]')}catch(e){}$('galleryGrid').innerHTML=a.map((u,i)=>`<img src="${u}" data-i="${i}" title="Insertar en pizarra">`).join('');$('galleryGrid').querySelectorAll('img').forEach(im=>im.onclick=()=>stampImage(a[+im.dataset.i]))}
-function stampImage(url){const im=new Image();im.onload=()=>{const c=state.bitmap||document.createElement('canvas');if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}const x=c.getContext('2d'),w=Math.min(im.width,wrap.clientWidth*.55),h=im.height*w/im.width;x.drawImage(im,(wrap.clientWidth-w)/2,(wrap.clientHeight-h)/2,w,h);render();snapshot();toast('Imagen colocada')};im.src=url}
-renderGallery();
-$('saveBtn').onclick=()=>{
- const r=wrap.getBoundingClientRect(),out=document.createElement('canvas');out.width=Math.round(r.width*2);out.height=Math.round(r.height*2);const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,out.width,out.height);x.scale(2,2);x.drawImage(bg,0,0,r.width,r.height);x.drawImage(board,0,0,r.width,r.height);
- const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:r.width>r.height?'landscape':'portrait',unit:'px',format:[r.width,r.height]});pdf.addImage(out.toDataURL('image/jpeg',.92),'JPEG',0,0,r.width,r.height);pdf.save('MathBoard-Pro-Super-Star.pdf');toast('PDF guardado')}
-$('recordBtn').onclick=async()=>{
- if(state.recording){clearInterval(state.recordLoop);state.recorder.stop();return}
- try{const recCanvas=document.createElement('canvas');const rr=wrap.getBoundingClientRect();recCanvas.width=Math.round(rr.width*2);recCanvas.height=Math.round(rr.height*2);const rc=recCanvas.getContext('2d');const drawRecordingFrame=()=>{rc.setTransform(2,0,0,2,0,0);rc.fillStyle='#fff';rc.fillRect(0,0,rr.width,rr.height);rc.drawImage(bg,0,0,rr.width,rr.height);rc.drawImage(board,0,0,rr.width,rr.height)};drawRecordingFrame();const stream=recCanvas.captureStream(30);state.recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});state.chunks=[];state.recorder.ondataavailable=e=>e.data.size&&state.chunks.push(e.data);state.recorder.onstop=()=>{const b=new Blob(state.chunks,{type:'video/webm'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='MathBoard-Pro-Super-Star.webm';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);$('recordBtn').textContent='⏺️';state.recording=false;toast('Grabación guardada en WebM')};state.recorder.start();state.recording=true;state.recordLoop=setInterval(drawRecordingFrame,33);$('recordBtn').textContent='⏹️';toast('Grabando pizarra…')}catch(e){toast('Tu navegador no permite grabación')}
-};
-$('pdfInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const ab=await f.arrayBuffer();state.pdf=await pdfjsLib.getDocument({data:ab}).promise;state.pdfPage=1;renderPDF()};
-async function renderPDF(){if(!state.pdf)return;const p=await state.pdf.getPage(state.pdfPage),v=p.getViewport({scale:state.pdfScale});$('pdfCanvas').width=v.width;$('pdfCanvas').height=v.height;await p.render({canvasContext:$('pdfCanvas').getContext('2d'),viewport:v}).promise;$('pdfPage').textContent=state.pdfPage+' / '+state.pdf.numPages}
-$('pdfPrev').onclick=()=>{if(state.pdf&&state.pdfPage>1){state.pdfPage--;renderPDF()}};$('pdfNext').onclick=()=>{if(state.pdf&&state.pdfPage<state.pdf.numPages){state.pdfPage++;renderPDF()}};$('pdfZoomIn').onclick=()=>{state.pdfScale=Math.min(3,state.pdfScale+.2);renderPDF()};$('pdfZoomOut').onclick=()=>{state.pdfScale=Math.max(.4,state.pdfScale-.2);renderPDF()};
+        // Súper Script Unificado y Seguro (Restaurado Completo)
+        window.toggleFullScreen = function() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+        };
 
-// --- Captura de fotos/JPG y Dola privado del profesor ---
-function addImageToBoard(url){
-  const im=new Image();
-  im.onload=()=>{
-    const c=state.bitmap||document.createElement('canvas');
-    if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
-    const x=c.getContext('2d');
-    const maxW=wrap.clientWidth*.65, w=Math.min(im.width,maxW), h=im.height*w/im.width;
-    x.drawImage(im,(wrap.clientWidth-w)/2,(wrap.clientHeight-h)/2,w,h);
-    render(); snapshot(); send({type:'image',url}); toast('Imagen colocada en la pizarra');
-  };
-  im.src=url;
-}
-$('photoBtn').onclick=()=>$('cameraInput').click();
-$('cameraInput').onchange=e=>{
-  const f=e.target.files[0]; if(!f)return;
-  const rd=new FileReader(); rd.onload=()=>{ 
-    let a=JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]');
-    a.unshift(rd.result); localStorage.setItem('mathboard.superstar.gallery',JSON.stringify(a.slice(0,48)));
-    renderGallery(); addImageToBoard(rd.result);
-  }; rd.readAsDataURL(f);
-};
-$('dolaBtn').onclick=()=>showPanel('dolaPanel');
-function loadDolaLibrary(){
-  try{state.dolaLibrary=JSON.parse(localStorage.getItem('mathboard.superstar.dola')||'[]')}catch(e){state.dolaLibrary=[]}
-  $('dolaLibrary').innerHTML=state.dolaLibrary.map((x,i)=>
-    `<div style="display:flex;justify-content:space-between;gap:5px;margin:3px 0"><span>${esc(x.name)}</span><button data-i="${i}">Abrir</button></div>`).join('');
-  $('dolaLibrary').querySelectorAll('button').forEach(b=>b.onclick=()=>{
-    $('dolaText').value=state.dolaLibrary[+b.dataset.i].text;
-  });
-}
-$('dolaSave').onclick=()=>{
-  const name=$('dolaName').value.trim()||('Dola '+(state.dolaLibrary.length+1));
-  state.dolaLibrary.unshift({name,text:$('dolaText').value});
-  localStorage.setItem('mathboard.superstar.dola',JSON.stringify(state.dolaLibrary));
-  loadDolaLibrary(); toast('Dola guardado permanentemente');
-};
-$('dolaPaste').onclick=()=>{
-  const text=$('dolaText').value.trim(); if(!text)return;
-  const c=state.bitmap||document.createElement('canvas');
-  if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
-  const x=c.getContext('2d'); x.font='18px sans-serif'; x.fillStyle='#111827';
-  const lines=text.split(/\n/); let y=70;
-  lines.forEach(line=>{x.fillText(line,40,y);y+=25});
-  render();snapshot(); toast('Contenido de Dola pegado en la pizarra');
-};
-$('dolaCrop').onclick=()=>{
-  const text=$('dolaText').value.trim(); if(!text)return;
-  const c=document.createElement('canvas');c.width=700;c.height=220;
-  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
-  x.fillStyle='#111827';x.font='18px sans-serif';
-  text.split(/\n/).slice(0,8).forEach((line,i)=>x.fillText(line,15,30+i*25));
-  addImageToBoard(c.toDataURL('image/png'));toast('Recorte creado y pegado');
-};
-loadDolaLibrary();
-// Keep Dola teacher-only and never include it in board recording: it is an HTML overlay.
-const originalOpenApp=openApp;
-openApp=function(){originalOpenApp();$('dolaBtn').style.display=state.role==='teacher'?'inline-flex':'none';$('dolaPanel').style.display='none';};
-const originalHandleData=handleData;
-handleData=function(d,c){if(d.type==='image'&&d.url){addImageToBoard(d.url);return}originalHandleData(d,c);};
+        const peerNetworkOptions = { 
+            config: { 
+                'iceServers': [ 
+                    { urls: 'stun:stun.l.google.com:19302' }, 
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun.cloudflare.com:3478' }
+                ] 
+            } 
+        };
+        let isAdmin = false; 
+        let peer, connections = [], localStream = null;
+        let audioContext, audioDestination;
+        let userRole = 'Alumno'; 
+        
+        // Memoria Persistente de la Galería
+        let savedCaptures = [];
+        try {
+            const stored = localStorage.getItem('mathboard_gallery');
+            if(stored) savedCaptures = JSON.parse(stored);
+        } catch(e) {}
 
+        function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
+        function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
+        function goBack() { document.getElementById('form-student').style.display = 'none'; document.getElementById('form-teacher').style.display = 'none'; document.getElementById('role-selection').style.display = 'block'; document.getElementById('login-msg').innerText = "Selecciona tu perfil"; document.getElementById('adminPin').value = ""; document.getElementById('roomIdInput').value = ""; }
+        
+        document.getElementById('adminPin')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyAdmin(); });
+        document.getElementById('roomIdInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
 
-// Recorte rectangular preciso: solo se copia la pizarra y la cuadrícula, nunca las ventanas HTML.
-let cropMode=false,cropStart=null,cropRect=null;
-function activateCrop(){cropMode=true;cropStart=null;cropRect=null;clearPreview();wrap.style.cursor='crosshair';toast('Arrastrá para seleccionar el recorte');}
-function cropOverlay(a,b){clearPreview();pctx.save();pctx.setTransform(state.dpr,0,0,state.dpr,0,0);pctx.fillStyle='rgba(40,104,215,.15)';pctx.strokeStyle='#2868d7';pctx.setLineDash([6,4]);pctx.lineWidth=2;pctx.fillRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));pctx.strokeRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));pctx.restore();}
-function finishCrop(){if(!cropRect)return;const r=wrap.getBoundingClientRect(),x=Math.max(0,cropRect.x),y=Math.max(0,cropRect.y),w=Math.min(cropRect.w,r.width-x),h=Math.min(cropRect.h,r.height-y);if(w<6||h<6){cropMode=false;return}const c=document.createElement('canvas');c.width=Math.round(w*2);c.height=Math.round(h*2);const q=c.getContext('2d');q.fillStyle='#fff';q.fillRect(0,0,c.width,c.height);q.drawImage(bg,x*state.dpr,y*state.dpr,w*state.dpr,h*state.dpr,0,0,c.width,c.height);q.drawImage(board,x*state.dpr,y*state.dpr,w*state.dpr,h*state.dpr,0,0,c.width,c.height);cropMode=false;wrap.style.cursor='default';clearPreview();addImageToBoard(c.toDataURL('image/png'));toast('Recorte pegado en la pizarra');}
-board.addEventListener('pointerdown',e=>{if(!cropMode)return;const r=wrap.getBoundingClientRect();cropStart={x:e.clientX-r.left,y:e.clientY-r.top};});
-board.addEventListener('pointermove',e=>{if(!cropMode||!cropStart)return;const r=wrap.getBoundingClientRect(),b={x:e.clientX-r.left,y:e.clientY-r.top};cropRect={x:Math.min(cropStart.x,b.x),y:Math.min(cropStart.y,b.y),w:Math.abs(b.x-cropStart.x),h:Math.abs(b.y-cropStart.y)};cropOverlay(cropStart,b);});
-board.addEventListener('pointerup',()=>{if(cropMode&&cropStart)finishCrop();});
-$('dolaCrop').onclick=activateCrop;
+        async function getMicrophone() {
+            if (!navigator.mediaDevices) return false;
+            try { 
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioDestination = audioContext.createMediaStreamDestination();
+                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
+                return true; 
+            } catch(e) { return false; }
+        }
 
-resize();
+        function verifyAdmin() {
+            if (document.getElementById('adminPin').value === "1977$") {
+                isAdmin = true;
+                userRole = 'Profesor';
+                document.getElementById('admin-tools').style.display = 'flex';
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                createRoom();
+                updateGalleryGrid();
+            } else { alert("PIN Incorrecto."); }
+        }
+
+        function logoutSession() {
+            if (confirm("¿Estás seguro de cerrar la sesión y finalizar la clase para todos?")) {
+                if (isAdmin && typeof broadcastData === 'function') {
+                    broadcastData({ type: 'logout' });
+                }
+                setTimeout(() => { window.location.reload(); }, 300);
+            }
+        }
+        window.logoutSession = logoutSession;
+
+        const canvas = document.getElementById('board');
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
+        
+        ctx.lineCap = 'round'; 
+        ctx.lineJoin = 'round';
+
+        let internalWidth = window.innerWidth;
+        let internalHeight = window.innerHeight;
+
+        function drawGrid(targetCtx, w, h) {
+            targetCtx.fillStyle = '#ffffff';
+            targetCtx.fillRect(0, 0, w, h);
+            targetCtx.strokeStyle = 'rgba(0,0,0,0.05)';
+            targetCtx.lineWidth = 1.5;
+            targetCtx.beginPath();
+            for(let x=0; x<w; x+=35) { targetCtx.moveTo(x,0); targetCtx.lineTo(x,h); }
+            for(let y=0; y<h; y+=35) { targetCtx.moveTo(0,y); targetCtx.lineTo(w,y); }
+            targetCtx.stroke();
+        }
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            internalWidth = canvas.width;
+            internalHeight = canvas.height;
+            drawGrid(ctx, canvas.width, canvas.height);
+        }
+
+        function resizeCanvas() {
+            const temp = canvas.toDataURL();
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            internalWidth = canvas.width;
+            internalHeight = canvas.height;
+            
+            drawGrid(ctx, canvas.width, canvas.height);
+            
+            const img = new Image();
+            img.onload = () => {
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 1;
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = temp;
+        }
+
+        initCanvas();
+        window.addEventListener('resize', resizeCanvas, { passive: true });
+
+        // ===== MOTOR DE RED MULTIJUGADOR (Ultra-Baja Latencia vinculada a pantalla) =====
+        let broadcastQueue = [];
+        
+        function broadcastLoop() {
+            if(broadcastQueue.length > 0 && connections.length > 0) {
+                const batch = { type: 'batch', data: broadcastQueue };
+                connections.forEach(conn => { if(conn.open) conn.send(batch); });
+                broadcastQueue = [];
+            }
+            requestAnimationFrame(broadcastLoop);
+        }
+        broadcastLoop();
+
+        function broadcastData(data) { 
+            data.peerId = peer ? peer.id : 'local';
+            data.role = userRole;
+
+            if(data.type === 'stroke' || data.type === 'draw' || data.type === 'shape') {
+                broadcastQueue.push(data);
+            } else {
+                connections.forEach(conn => { if (conn.open) conn.send(data); }); 
+            }
+        }
+
+        // ===== LIMPIEZA ABSOLUTA DE LA PIZARRA =====
+        function clearCanvas() {
+            if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
+            ctx.globalCompositeOperation = 'source-over';
+            ctx.globalAlpha = 1.0;
+            drawGrid(ctx, canvas.width, canvas.height);
+            if(typeof window.saveState === 'function') window.saveState(); 
+            broadcastData({ type:'clear' });
+        }
+        window.clearCanvas = clearCanvas;
+
+        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA ================= */
+        const mathFormulas = {
+            arithmetic: [
+                {name:"Regla de tres simple",eq:"x = (b · c) / a"},
+                {name:"Cálculo de porcentaje",eq:"P = (Parte / Total) · 100%"},
+                {name:"Progresión Aritmética",eq:"aₙ = a₁ + (n - 1)d"},
+                {name:"Suma de Progresión Aritmética",eq:"Sₙ = n · (a₁ + aₙ) / 2"},
+                {name:"Progresión Geométrica",eq:"aₙ = a₁ · r^(n-1)"}
+            ],
+            algebra: [
+                {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
+                {name:"Diferencia de cuadrados",eq:"a² - b² = (a - b)(a + b)"},
+                {name:"Fórmula cuadrática",eq:"x = (-b ± √(b² - 4ac)) / (2a)"},
+                {name:"Logaritmo del producto",eq:"log_b(x · y) = log_b(x) + log_b(y)"},
+                {name:"Cambio de base",eq:"log_b(x) = ln(x) / ln(b)"}
+            ],
+            geometry: [
+                {name:"Pitágoras",eq:"a²+b²=c²"},
+                {name:"Área del círculo",eq:"A = π · r²"},
+                {name:"Volumen de la esfera",eq:"V = (4/3) · π · r³"}
+            ],
+            analytic_geometry: [
+                {name:"Distancia entre dos puntos",eq:"d = √((x₂ - x₁)² + (y₂ - y₁)²)"},
+                {name:"Punto medio",eq:"M = ((x₁ + x₂)/2 , (y₁ + y₂)/2)"},
+                {name:"Pendiente",eq:"m = (y₂ - y₁) / (x₂ - x₁)"}
+            ],
+            trigonometry: [
+                {name:"Identidad pitagórica",eq:"sin²x + cos²x = 1"},
+                {name:"Seno de la suma",eq:"sin(a ± b) = sin(a)cos(b) ± cos(a)sin(b)"},
+                {name:"Ley de los senos",eq:"a / sin(A) = b / sin(B) = c / sin(C)"},
+                {name:"Ley de los cosenos",eq:"c² = a² + b² - 2ab cos(C)"}
+            ],
+            calculus: [
+                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
+                {name:"Derivada de la potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
+                {name:"Regla de la cadena",eq:"[f(g(x))]' = f'(g(x)) · g'(x)"}
+            ],
+            integrals: [
+                {name:"Integral de la potencia",eq:"∫ x^n dx = x^(n+1) / (n+1) + C"},
+                {name:"Regla de Barrow",eq:"∫_a^b f(x)dx = F(b) - F(a)"},
+                {name:"Integración por partes",eq:"∫ u dv = u·v - ∫ v du"}
+            ],
+            stats: [
+                {name:"Media",eq:"x̄ = Σxᵢ / n"},
+                {name:"Varianza",eq:"σ² = Σ(xᵢ - μ)² / N"},
+                {name:"Desviación estándar",eq:"σ = √σ²"}
+            ],
+            probability: [
+                {name:"Probabilidad",eq:"P(A) = Favorables / Posibles"},
+                {name:"Teorema de Bayes",eq:"P(A|B) = [P(B|A)P(A)] / P(B)"}
+            ],
+            topology: [
+                {name:"Característica de Euler",eq:"χ = V - E + F = 2"},
+                {name:"Teorema Gauss-Bonnet",eq:"∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"}
+            ],
+            matrices: [
+                {name:"Determinante 2×2",eq:"det(A) = ad - bc"},
+                {name:"Matriz inversa 2×2",eq:"A⁻¹ = (1 / det(A)) · [[d, -b], [-c, a]]"}
+            ],
+            vectors: [
+                {name:"Producto escalar",eq:"u · v = u₁v₁ + u₂v₂ + u₃v₃"},
+                {name:"Condición de perpendicularidad",eq:"u · v = 0"}
+            ],
+            complex: [
+                {name:"Número complejo",eq:"z = a + bi"},
+                {name:"Identidad de Euler",eq:"e^(iπ) + 1 = 0"}
+            ],
+            physics: [
+                {name:"Segunda Ley de Newton",eq:"F = m · a"},
+                {name:"Energía Cinética",eq:"E_k = (1/2)m · v²"},
+                {name:"Ley de Ohm",eq:"V = I · R"}
+            ]
+        };
+
+        function toggleFormulasPanel() {
+            const panel = document.getElementById('formulas-panel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'flex';
+                if(document.getElementById('formula-grid-container').innerHTML.trim() === '') {
+                    loadFormulas('algebra', document.querySelector('.f-tab'));
+                }
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        window.toggleFormulasPanel = toggleFormulasPanel;
+
+        let activeFormulaCategory = 'algebra';
+        function loadFormulas(category, tabBtn) {
+            activeFormulaCategory = category;
+            document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
+            if (tabBtn) tabBtn.classList.add('active');
+            renderFormulaList();
+        }
+        window.loadFormulas = loadFormulas;
+
+        function renderFormulaList() {
+            const grid = document.getElementById('formula-grid-container');
+            const query = (document.getElementById('formula-search')?.value || '').trim().toLowerCase();
+            const list = mathFormulas[activeFormulaCategory] || [];
+            const filtered = list.filter(f => !query || f.name.toLowerCase().includes(query) || f.eq.toLowerCase().includes(query));
+            grid.innerHTML = '';
+            filtered.forEach((f) => {
+                const wrap=document.createElement('div');
+                wrap.className='formula-card';
+                wrap.innerHTML=`<div class="formula-card-title">${f.name}</div><div class="formula-card-eq">${f.eq}</div>`;
+                const actions=document.createElement('div');
+                actions.className='formula-card-actions';
+                const copy=document.createElement('button');
+                copy.textContent='📋 Copiar';
+                copy.onclick=()=>copyFormulaText(f.eq);
+                const stamp=document.createElement('button');
+                stamp.textContent='✏️ Pegar';
+                stamp.onclick=()=>{ renderFormulaToStamp(f.eq); };
+                actions.append(copy,stamp);
+                wrap.appendChild(actions);
+                grid.appendChild(wrap);
+            });
+        }
+        window.renderFormulaList = renderFormulaList;
+
+        function selectFormulaCategory(category){
+            if(!mathFormulas[category]) return;
+            activeFormulaCategory=category;
+            renderFormulaList();
+        }
+        window.selectFormulaCategory = selectFormulaCategory;
+
+        async function copyFormulaText(text) {
+            try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
+        }
+
+        // ================= RUTINAS GALERÍA COMPRIMIDA PERSISTENTE =================
+        function updateGalleryGrid() {
+            const grid = document.getElementById('gallery-grid-container');
+            if(savedCaptures.length === 0) {
+                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">No hay capturas guardadas aún.<br>Usa el botón "💾 Guardar" para preservar ejercicios permanentemente.</div>';
+                return;
+            }
+            grid.innerHTML = '';
+            savedCaptures.forEach((src, idx) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.innerHTML = `
+                    <img src="${src}">
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="loadFromGallery(${idx})" style="background:#2563eb; flex:1; font-size:0.75rem; padding:4px;">✏️ Usar</button>
+                        <button onclick="deleteFromGallery(${idx})" style="background:#dc2626; font-size:0.75rem; padding:4px;" title="Eliminar definitivamente">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function deleteFromGallery(idx) {
+            if(confirm('¿Eliminar esta captura guardada permanentemente?')) {
+                savedCaptures.splice(idx, 1);
+                try { localStorage.setItem('mathboard_gallery', JSON.stringify(savedCaptures)); } catch(e) {}
+                updateGalleryGrid();
+            }
+        }
+        window.deleteFromGallery = deleteFromGallery;
+
+        function saveCurrentStampToGallery() {
+            const img = document.getElementById('stamp-img');
+            if(!img || !img.src) return;
+            
+            const tempImg = new Image();
+            tempImg.onload = function() {
+                const tcvs = document.createElement('canvas');
+                const maxW = 1000; 
+                const ratio = Math.min(1, maxW / tempImg.width);
+                tcvs.width = tempImg.width * ratio;
+                tcvs.height = tempImg.height * ratio;
+                
+                const tctx = tcvs.getContext('2d');
+                tctx.fillStyle = '#ffffff';
+                tctx.fillRect(0,0, tcvs.width, tcvs.height);
+                tctx.drawImage(tempImg, 0, 0, tcvs.width, tcvs.height);
+                
+                const compressedSrc = tcvs.toDataURL('image/jpeg', 0.65);
+                savedCaptures.unshift(compressedSrc);
+                
+                let saved = false;
+                while(!saved && savedCaptures.length > 0) {
+                    try { 
+                        localStorage.setItem('mathboard_gallery', JSON.stringify(savedCaptures)); 
+                        saved = true;
+                    } catch(e) { 
+                        savedCaptures.pop();
+                    }
+                }
+                if(saved) alert("¡Captura guardada! Estará disponible incluso si cierras la ventana.");
+                updateGalleryGrid();
+            };
+            tempImg.src = img.src;
+        }
+        window.saveCurrentStampToGallery = saveCurrentStampToGallery;
+
+        function loadFromGallery(idx) {
+            const src = savedCaptures[idx];
+            if(!src) return;
+            const img = document.getElementById('stamp-img');
+            const source = new Image();
+            source.onload = function() {
+                let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
+                const ratio = Math.min(1, 900 / w, 650 / h);
+                w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
+                img.onload = function() {
+                    const sc = document.getElementById('stamper-content');
+                    sc.style.width = w + 'px'; sc.style.height = h + 'px';
+                    const stamper = document.getElementById('stamper');
+                    stamper.style.top = (window.innerHeight/2) + 'px';
+                    stamper.style.left = (window.innerWidth/2) + 'px';
+                    stamper.style.display = 'block';
+                };
+                img.src = src;
+            };
+            source.src = src;
+            toggleGalleryMinimize();
+        }
+        window.loadFromGallery = loadFromGallery;
+
+        function toggleGalleryPanel() {
+            const panel = document.getElementById('gallery-panel');
+            panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
+        }
+        window.toggleGalleryPanel = toggleGalleryPanel;
+        function toggleGalleryMinimize() { document.getElementById('gallery-panel').style.display = 'none'; }
+        window.toggleGalleryMinimize = toggleGalleryMinimize;
+
+        // ================= STAMPER Y PEGAR EN PIZARRA =================
+        function renderFormulaToStamp(formulaText) {
+            const tempCanvas = document.createElement('canvas');
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.font = 'bold 40px serif';
+            const metrics = tCtx.measureText(formulaText);
+            const width = Math.ceil(metrics.width + 60);
+            const height = 100;
+            tempCanvas.width = width; tempCanvas.height = height;
+            tCtx.font = 'bold 40px serif';
+            tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
+            tCtx.fillStyle = document.getElementById('mw-color').value || '#0f172a';
+            tCtx.fillText(formulaText, width / 2, height / 2);
+
+            const img = document.getElementById('stamp-img');
+            img.src = tempCanvas.toDataURL('image/png');
+            const stamperContent = document.getElementById('stamper-content');
+            stamperContent.style.width = width + 'px'; stamperContent.style.height = height + 'px';
+            const stamper = document.getElementById('stamper');
+            stamper.style.display = 'block';
+            
+            stamper.style.top = (window.innerHeight/2) + 'px';
+            stamper.style.left = (window.innerWidth/2) + 'px';
+            
+            document.getElementById('formulas-panel').style.display = 'none';
+        }
+
+        function applyStamp() {
+            const img = document.getElementById('stamp-img');
+            const rect = document.getElementById('stamper-content').getBoundingClientRect();
+            
+            const scaleX = canvas.width / window.innerWidth;
+            const scaleY = canvas.height / window.innerHeight;
+            
+            const realX = rect.left * scaleX; 
+            const realY = rect.top * scaleY;
+            const realW = rect.width * scaleX; 
+            const realH = rect.height * scaleY;
+            
+            ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1.0; 
+            ctx.drawImage(img, realX, realY, realW, realH);
+            
+            if(window.refreshCtxState) window.refreshCtxState();
+            
+            broadcastData({ type: 'image', src: img.src, x: realX / canvas.width, y: realY / canvas.width, w: realW / canvas.width, h: realH / canvas.width });
+            
+            document.getElementById('stamper').style.display = 'none';
+            if(typeof window.saveState === 'function') window.saveState(); 
+        }
+        window.applyStamp = applyStamp;
+
+        function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
+        window.cancelStamp = cancelStamp;
+        
+        // == MOTOR DE RECORTE SEGURO (Stamper) ==
+        let stampCropMode = false, sStartX, sStartY;
+        const sOverlay = document.getElementById('stamp-crop-overlay');
+        const sBox = document.getElementById('stamp-crop-box');
+
+        function startStampCrop() {
+            const img = document.getElementById('stamp-img');
+            if (!img || !img.src) return alert('Primero selecciona algo.');
+            stampCropMode = true;
+            sOverlay.style.display = 'block';
+        }
+        window.startStampCrop = startStampCrop;
+
+        sOverlay.addEventListener('pointerdown', e => {
+            if(!stampCropMode) return;
+            const rect = sOverlay.getBoundingClientRect();
+            sStartX = e.clientX - rect.left;
+            sStartY = e.clientY - rect.top;
+            sBox.style.left = sStartX + 'px'; sBox.style.top = sStartY + 'px';
+            sBox.style.width = '0px'; sBox.style.height = '0px';
+            sBox.style.display = 'block';
+            try { sOverlay.setPointerCapture(e.pointerId); } catch(err){}
+            e.preventDefault(); e.stopPropagation();
+        });
+
+        sOverlay.addEventListener('pointermove', e => {
+            if(!stampCropMode || sStartX === undefined) return;
+            const rect = sOverlay.getBoundingClientRect();
+            const currentX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+            const currentY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+            
+            sBox.style.left = Math.min(currentX, sStartX) + 'px';
+            sBox.style.top = Math.min(currentY, sStartY) + 'px';
+            sBox.style.width = Math.abs(currentX - sStartX) + 'px';
+            sBox.style.height = Math.abs(currentY - sStartY) + 'px';
+            e.preventDefault(); e.stopPropagation();
+        });
+
+        sOverlay.addEventListener('pointerup', e => {
+            if(!stampCropMode || sStartX === undefined) return;
+            try { sOverlay.releasePointerCapture(e.pointerId); } catch(err){}
+            
+            const cw = parseFloat(sBox.style.width);
+            const ch = parseFloat(sBox.style.height);
+            
+            if(cw > 10 && ch > 10) {
+                const img = document.getElementById('stamp-img');
+                const rect = sOverlay.getBoundingClientRect();
+                
+                const sx = (parseFloat(sBox.style.left) / rect.width) * img.naturalWidth;
+                const sy = (parseFloat(sBox.style.top) / rect.height) * img.naturalHeight;
+                const sw = (cw / rect.width) * img.naturalWidth;
+                const sh = (ch / rect.height) * img.naturalHeight;
+
+                const out = document.createElement('canvas');
+                out.width = Math.max(1, Math.round(sw)); out.height = Math.max(1, Math.round(sh));
+                out.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
+                
+                img.onload = function() {
+                    document.getElementById('stamper-content').style.width = Math.max(80, cw) + 'px';
+                    document.getElementById('stamper-content').style.height = Math.max(60, ch) + 'px';
+                };
+                img.src = out.toDataURL('image/png');
+            }
+            sOverlay.style.display = 'none';
+            sBox.style.display = 'none';
+            stampCropMode = false; sStartX = undefined;
+        });
+
+        // Visor PDF
+        let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
+        const pdfPanel = document.getElementById('pdf-panel');
+        const pdfAppCanvas = document.getElementById('pdf-canvas');
+        const pdfCtx = pdfAppCanvas.getContext('2d');
+
+        const pdfInput = document.getElementById('pdfInput');
+        if (pdfInput) pdfInput.addEventListener('change', async function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const buffer = await file.arrayBuffer();
+            pdfDoc = await pdfjsLib.getDocument({ data: new Uint8Array(buffer) }).promise;
+            pageNum = 1; pdfScale = 2.0; pdfPanel.style.display = 'flex';
+            renderPage(pageNum);
+        });
+
+        async function renderPage(num) {
+            if (!pdfDoc) return;
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: pdfScale });
+            pdfAppCanvas.width = viewport.width; pdfAppCanvas.height = viewport.height;
+            await page.render({ canvasContext: pdfCtx, viewport }).promise;
+            document.getElementById('page-num').textContent = num;
+        }
+
+        function prevPage() { if (!pdfDoc || pageNum <= 1) return; pageNum--; renderPage(pageNum); }
+        window.prevPage = prevPage;
+        function nextPage() { if (!pdfDoc || pageNum >= pdfDoc.numPages) return; pageNum++; renderPage(pageNum); }
+        window.nextPage = nextPage;
+        function zoomIn() { if (!pdfDoc) return; pdfScale += 0.5; renderPage(pageNum); }
+        window.zoomIn = zoomIn;
+        function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.5; renderPage(pageNum); } }
+        window.zoomOut = zoomOut;
+        function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
+        window.togglePdfMinimize = togglePdfMinimize;
+        
+        // == MOTOR DE RECORTE SEGURO (PDF) ==
+        let cropModePdf = false, pStartX, pStartY;
+        const pOverlay = document.getElementById('crop-overlay');
+        const pBox = document.getElementById('crop-box');
+
+        function togglePdfCropMode() {
+            cropModePdf = !cropModePdf;
+            pOverlay.style.display = cropModePdf ? 'block' : 'none';
+            pOverlay.style.width = pdfAppCanvas.width + 'px';
+            pOverlay.style.height = pdfAppCanvas.height + 'px';
+        }
+        window.togglePdfCropMode = togglePdfCropMode;
+        
+        pOverlay.addEventListener('pointerdown', e => {
+            if(!cropModePdf) return;
+            const rect = pOverlay.getBoundingClientRect();
+            pStartX = e.clientX - rect.left; pStartY = e.clientY - rect.top;
+            pBox.style.left = pStartX + 'px'; pBox.style.top = pStartY + 'px';
+            pBox.style.width = '0px'; pBox.style.height = '0px'; pBox.style.display = 'block';
+            try { pOverlay.setPointerCapture(e.pointerId); } catch(err){}
+            e.preventDefault(); e.stopPropagation();
+        });
+
+        pOverlay.addEventListener('pointermove', e => {
+            if(!cropModePdf || pStartX === undefined) return;
+            const rect = pOverlay.getBoundingClientRect();
+            const currentX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+            const currentY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+            
+            pBox.style.left = Math.min(currentX, pStartX) + 'px';
+            pBox.style.top = Math.min(currentY, pStartY) + 'px';
+            pBox.style.width = Math.abs(currentX - pStartX) + 'px';
+            pBox.style.height = Math.abs(currentY - pStartY) + 'px';
+        });
+
+        pOverlay.addEventListener('pointerup', e => {
+            if(!cropModePdf || pStartX === undefined) return;
+            try { pOverlay.releasePointerCapture(e.pointerId); } catch(err){}
+            
+            const cw = parseFloat(pBox.style.width), ch = parseFloat(pBox.style.height);
+            if(cw > 15 && ch > 15) {
+                const scaleX = pdfAppCanvas.width / pOverlay.clientWidth;
+                const scaleY = pdfAppCanvas.height / pOverlay.clientHeight;
+                const srcX = parseFloat(pBox.style.left) * scaleX;
+                const srcY = parseFloat(pBox.style.top) * scaleY;
+                const srcW = cw * scaleX; const srcH = ch * scaleY;
+                
+                const tempCanvas = document.createElement('canvas');
+                tempCanvas.width = srcW; tempCanvas.height = srcH;
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCtx.fillStyle='#fff'; tempCtx.fillRect(0,0,srcW,srcH);
+                tempCtx.drawImage(pdfAppCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+                
+                document.getElementById('stamp-img').src = tempCanvas.toDataURL();
+                document.getElementById('stamper-content').style.width = Math.min(cw, 900) + 'px';
+                document.getElementById('stamper-content').style.height = Math.min(ch, 600) + 'px';
+                
+                const stamper = document.getElementById('stamper');
+                stamper.style.top = (window.innerHeight/2) + 'px';
+                stamper.style.left = (window.innerWidth/2) + 'px';
+                stamper.style.display = 'block';
+                togglePdfMinimize(); togglePdfCropMode();
+            }
+            pBox.style.display = 'none'; pStartX = undefined;
+        });
+
+        // Visores Dinámicos (Dola AI & Calculadora)
+        const dolaPanel = document.getElementById('dola-panel');
+        function toggleDolaPanel() { dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none'; }
+        window.toggleDolaPanel = toggleDolaPanel;
+        function toggleDolaMinimize() { dolaPanel.style.display = 'none'; }
+        window.toggleDolaMinimize = toggleDolaMinimize;
+        
+        const calcPanel = document.getElementById('calc-panel');
+        function toggleCalcPanel() { calcPanel.style.display = calcPanel.style.display === 'none' || calcPanel.style.display === '' ? 'flex' : 'none'; }
+        window.toggleCalcPanel = toggleCalcPanel;
+        function toggleCalcMinimize() { calcPanel.style.display = 'none'; }
+        window.toggleCalcMinimize = toggleCalcMinimize;
+
+        async function captureScreenSource(panelIdToMinimize) {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'window' } });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    setTimeout(() => {
+                        const canvasCap = document.createElement('canvas');
+                        canvasCap.width = video.videoWidth; canvasCap.height = video.videoHeight;
+                        canvasCap.getContext('2d').drawImage(video, 0, 0);
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        const img = document.getElementById('stamp-img');
+                        img.src = canvasCap.toDataURL('image/png');
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = Math.min(800, canvasCap.width/2) + 'px';
+                        sc.style.height = Math.min(600, canvasCap.height/2) + 'px';
+                        
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.top = (window.innerHeight/2) + 'px';
+                        stamper.style.left = (window.innerWidth/2) + 'px';
+                        stamper.style.display = 'block';
+                        
+                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
+                        if(panelIdToMinimize === 'calc') toggleCalcMinimize();
+                    }, 500);
+                };
+            } catch (err) {
+                alert("La captura fue cancelada o tu navegador no lo permite.");
+            }
+        }
+        
+        window.captureDolaScreen = () => captureScreenSource('dola');
+        window.captureCalcScreen = () => captureScreenSource('calc');
+
+        function loadImageIntoStamp(file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('stamp-img');
+                const source = new Image();
+                source.onload = function() {
+                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
+                    const ratio = Math.min(1, 900 / w, 650 / h);
+                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
+                    img.onload = function() {
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.top = (window.innerHeight/2) + 'px';
+                        stamper.style.left = (window.innerWidth/2) + 'px';
+                        stamper.style.display = 'block';
+                    };
+                    img.src = ev.target.result;
+                };
+                source.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        ['imageInput', 'cameraInput'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.addEventListener('change', function(e) {
+                if (e.target.files[0]) {
+                    loadImageIntoStamp(e.target.files[0]);
+                }
+                e.target.value = '';
+            });
+        });
+
+        function saveAsPDF() {
+            const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
+            if (!filename) return;
+            const tempCanvas = document.createElement('canvas');
+            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
+            const tCtx = tempCanvas.getContext('2d');
+            
+            drawGrid(tCtx, tempCanvas.width, tempCanvas.height);
+            tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
+            const { jsPDF } = window.jspdf;
+            
+            const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
+            const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
+            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
+            pdf.save(filename + ".pdf");
+        }
+        window.saveAsPDF = saveAsPDF;
+
+        // ================= GRABACIÓN AVANZADA MP4 (MOTOR ANTI-DESFASE TOTAL) =================
+        let mediaRecorder; let recordedChunks = []; let isRecording = false;
+        let recordingLoop;
+
+        function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
+        window.toggleRecording = toggleRecording;
+        
+        function startRecording() {
+            if (!audioDestination) { alert("Audio no inicializado."); return; }
+            const canvasStream = canvas.captureStream(60); // 60 FPS garantizados para fluidez nativa
+            let combinedStream;
+            if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
+                combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
+            } else {
+                combinedStream = canvasStream;
+            }
+            
+            const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
+            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+                options.mimeType = 'video/webm;codecs=vp9';
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
+            }
+
+            mediaRecorder = new MediaRecorder(combinedStream, options);
+            mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
+            mediaRecorder.onstop = () => {
+                cancelAnimationFrame(recordingLoop); 
+                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
+                URL.revokeObjectURL(url); recordedChunks = [];
+            };
+            mediaRecorder.start(); isRecording = true;
+            document.getElementById('btn-record').classList.add('record-active');
+
+            // MOTOR ANTI-DESFASE DE AUDIO/VIDEO
+            function keepRecordingAlive() {
+                if (!isRecording) return;
+                const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
+                c.fillStyle = '#ffffff';
+                c.fillRect(0, 0, 1, 1);
+                recordingLoop = requestAnimationFrame(keepRecordingAlive);
+            }
+            keepRecordingAlive();
+        }
+        
+        function stopRecording() { 
+            mediaRecorder.stop(); 
+            isRecording = false; 
+            document.getElementById('btn-record').classList.remove('record-active'); 
+        }
+
+        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR =================
+        function updateRemoteCursor(data) {
+            if (!data.peerId) return;
+            let cursor = document.getElementById('cursor-' + data.peerId);
+            if (!cursor) {
+                cursor = document.createElement('div');
+                cursor.id = 'cursor-' + data.peerId;
+                cursor.className = 'remote-cursor';
+                cursor.innerHTML = `<div class="cursor-dot"></div><div class="cursor-label">${data.role}</div>`;
+                document.getElementById('canvas-container').appendChild(cursor);
+            }
+            
+            const realX = (data.lastPosX || data.x) * canvas.width;
+            const realY = (data.lastPosY || data.y) * canvas.width;
+            
+            cursor.style.transform = `translate(${realX}px, ${realY}px)`;
+            cursor.querySelector('.cursor-dot').style.backgroundColor = data.color || '#3b82f6';
+            cursor.querySelector('.cursor-label').style.backgroundColor = data.role === 'Profesor' ? '#10b981' : '#2563eb';
+            
+            clearTimeout(cursor.timeout);
+            cursor.style.opacity = '1';
+            cursor.timeout = setTimeout(() => { cursor.style.opacity = '0'; }, 600);
+        }
+
+        function drawShapeExact(targetCtx, type, x1, y1, x2, y2, color, size) {
+            targetCtx.save();
+            targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round';
+            targetCtx.globalCompositeOperation = 'source-over';
+            targetCtx.strokeStyle = color; targetCtx.lineWidth = size;
+            const w = x2 - x1; const h = y2 - y1;
+            targetCtx.beginPath();
+            if (type === 'line' || type === 'arrow') {
+                targetCtx.moveTo(x1, y1); targetCtx.lineTo(x2, y2); targetCtx.stroke();
+                if (type === 'arrow') drawArrowHead(targetCtx, x1, y1, x2, y2, size);
+            } else if (type === 'rect') {
+                targetCtx.strokeRect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(w), Math.abs(h));
+            } else if (type === 'circle') {
+                const r = Math.hypot(w, h); targetCtx.arc(x1, y1, r, 0, 2*Math.PI); targetCtx.stroke();
+            }
+            targetCtx.restore();
+        }
+
+        function drawArrowHead(ctxT, x1, y1, x2, y2, size) {
+            const angle = Math.atan2(y2-y1, x2-x1); const head = Math.max(15, size * 3);
+            ctxT.beginPath(); ctxT.moveTo(x2, y2);
+            ctxT.lineTo(x2 - head*Math.cos(angle-Math.PI/6), y2 - head*Math.sin(angle-Math.PI/6));
+            ctxT.moveTo(x2, y2);
+            ctxT.lineTo(x2 - head*Math.cos(angle+Math.PI/6), y2 - head*Math.sin(angle+Math.PI/6));
+            ctxT.stroke();
+        }
+
+        function processRemoteCommand(data) {
+            if (data.type === 'clear') { 
+                ctx.globalCompositeOperation = 'source-over';
+                ctx.globalAlpha = 1.0;
+                drawGrid(ctx, canvas.width, canvas.height); 
+                return; 
+            }
+            if (data.type === 'logout') {
+                alert("El profesor ha finalizado y cerrado la sesión.");
+                window.location.reload();
+                return;
+            }
+            
+            if (data.type === 'start') { 
+                updateRemoteCursor(data);
+                return; 
+            }
+            if (data.type === 'stop') { return; }
+            if (data.type === 'image') {
+                const img = new Image();
+                img.onload = () => { ctx.globalAlpha=1; ctx.drawImage(img, data.x * canvas.width, data.y * canvas.width, data.w * canvas.width, data.h * canvas.width); };
+                img.src = data.src; return;
+            }
+            if (data.type === 'shape') {
+                drawShapeExact(ctx, data.shape, data.x1 * canvas.width, data.y1 * canvas.width, data.x2 * canvas.width, data.y2 * canvas.width, data.color, data.size * canvas.width);
+                return;
+            }
+            if (data.type === 'stroke') {
+                updateRemoteCursor(data);
+                
+                const finalSize = data.size * canvas.width;
+                ctx.beginPath();
+                ctx.moveTo(data.lastMidX * canvas.width, data.lastMidY * canvas.width);
+                ctx.quadraticCurveTo(data.lastPosX * canvas.width, data.lastPosY * canvas.width, data.midX * canvas.width, data.midY * canvas.width);
+
+                ctx.lineWidth = finalSize;
+                if(data.tool === 'eraser'){
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.globalAlpha = 1;
+                } else {
+                    ctx.globalCompositeOperation = 'source-over';
+                    ctx.strokeStyle = data.color;
+                    ctx.globalAlpha = data.tool === 'marker' ? 0.38 : 0.92;
+                }
+                ctx.stroke();
+            }
+        }
+
+        let remoteRenderQueue = [];
+        let isRemoteRendering = false;
+        
+        function drawRemote(data) {
+            if (data.type === 'batch') {
+                for(let i=0; i<data.data.length; i++) processRemoteCommand(data.data[i]);
+            } else {
+                processRemoteCommand(data);
+            }
+        }
+
+        async function createRoom() {
+            await getMicrophone();
+            document.getElementById('main-toolbar').style.display = 'flex';
+            
+            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            peer = new Peer(randomCode, peerNetworkOptions);
+            
+            peer.on('open', (id) => {
+                document.getElementById('ui-panel').style.display = 'block';
+                const codeDisplay = document.getElementById('room-code-display');
+                codeDisplay.innerText = id; 
+                codeDisplay.style.display = 'block';
+                
+                setTimeout(() => { 
+                    const uiPanel = document.getElementById('ui-panel');
+                    if(uiPanel) {
+                        uiPanel.style.opacity = '0'; 
+                        setTimeout(() => uiPanel.style.display = 'none', 1000); 
+                    }
+                }, 40000); 
+            });
+            peer.on('connection', (conn) => { 
+                connections.push(conn); 
+                conn.on('data', drawRemote); 
+            });
+            peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
+        }
+
+        async function joinRoom() {
+            const roomId = document.getElementById('roomIdInput').value.toUpperCase().trim();
+            if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
+            
+            await getMicrophone();
+            peer = new Peer(peerNetworkOptions);
+            peer.on('open', () => {
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                document.getElementById('main-toolbar').style.display = 'flex';
+                
+                const conn = peer.connect(roomId); 
+                connections.push(conn);
+                conn.on('data', drawRemote);
+                if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
+            });
+            peer.on('error', () => {
+                alert("No se pudo conectar a la clase. Verifica el código.");
+                window.location.reload();
+            });
+        }
+
+        // ================= SISTEMA DE VENTANAS FLOTANTES Y REDIMENSIÓN =================
+        function disableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none'); }
+        function enableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'auto'); }
+
+        function makeDraggable(element, handle) {
+            let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            handle.addEventListener('pointerdown', dragMouseDown);
+            function dragMouseDown(e) { 
+                if(e.target.tagName === 'BUTTON') return;
+                e.preventDefault(); 
+                pos3 = e.clientX; pos4 = e.clientY; 
+                disableIframes(); 
+                document.addEventListener('pointerup', closeDragElement); 
+                document.addEventListener('pointermove', elementDrag); 
+            }
+            function elementDrag(e) { 
+                e.preventDefault(); 
+                pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; 
+                pos3 = e.clientX; pos4 = e.clientY; 
+                element.style.top = (element.offsetTop - pos2) + "px"; 
+                element.style.left = (element.offsetLeft - pos1) + "px"; 
+            }
+            function closeDragElement() { 
+                document.removeEventListener('pointerup', closeDragElement); 
+                document.removeEventListener('pointermove', elementDrag); 
+                enableIframes(); 
+            }
+        }
+        
+        function makePanelResizable(panelId, handleId) {
+            const panel = document.getElementById(panelId);
+            const handle = document.getElementById(handleId);
+            if(!panel || !handle) return;
+            let isR = false, sW, sH, sX, sY;
+            handle.addEventListener('pointerdown', e => {
+                e.preventDefault(); e.stopPropagation();
+                isR = true; sW = panel.offsetWidth; sH = panel.offsetHeight;
+                sX = e.clientX; sY = e.clientY;
+                disableIframes();
+            });
+            window.addEventListener('pointermove', e => {
+                if(!isR) return;
+                let newW = sW + e.clientX - sX;
+                let newH = sH + e.clientY - sY;
+                if(newW > 200) panel.style.width = newW + 'px';
+                if(newH > 150) {
+                    panel.style.height = newH + 'px';
+                    panel.style.maxHeight = 'none'; 
+                    const container = panel.querySelector('div[id$="-render-container"]');
+                    if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
+                }
+            });
+            window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
+        }
+
+        function toggleMaximize(panelId) {
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            if (panel.dataset.maximized === 'true') {
+                panel.style.width = panel.dataset.w;
+                panel.style.height = panel.dataset.h;
+                panel.style.top = panel.dataset.t;
+                panel.style.left = panel.dataset.l;
+                panel.dataset.maximized = 'false';
+            } else {
+                panel.dataset.w = panel.style.width || panel.offsetWidth + 'px';
+                panel.dataset.h = panel.style.height || panel.offsetHeight + 'px';
+                panel.dataset.t = panel.style.top || panel.offsetTop + 'px';
+                panel.dataset.l = panel.style.left || panel.offsetLeft + 'px';
+                
+                panel.style.width = '100vw';
+                panel.style.height = '100vh';
+                panel.style.top = '0px';
+                panel.style.left = '0px';
+                panel.style.maxHeight = 'none';
+                const container = panel.querySelector('div[id$="-render-container"]');
+                if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
+                panel.dataset.maximized = 'true';
+            }
+        }
+        window.toggleMaximize = toggleMaximize;
+
+        makeDraggable(document.getElementById('pdf-panel'), document.getElementById('pdf-header'));
+        makeDraggable(document.getElementById('dola-panel'), document.getElementById('dola-header'));
+        makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
+        makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
+        makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
+        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
+
+        makePanelResizable('pdf-panel', 'pdf-resize-handle');
+        makePanelResizable('dola-panel', 'dola-resize-handle');
+        makePanelResizable('calc-panel', 'calc-resize-handle');
+        makePanelResizable('gallery-panel', 'gallery-resize-handle');
+        makePanelResizable('formulas-panel', 'formulas-resize-handle');
+
+        // Redimensión de estampas
+        const resizeHandleStamper = document.getElementById('resize-handle');
+        const stamperContent = document.getElementById('stamper-content');
+        let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
+        
+        resizeHandleStamper.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); e.stopPropagation();
+            isResizingStamp = true;
+            startStampW = stamperContent.offsetWidth;
+            startStampH = stamperContent.offsetHeight;
+            startStampX = e.clientX;
+            startStampY = e.clientY;
+        });
+        
+        window.addEventListener('pointermove', (e) => {
+            if (!isResizingStamp) return;
+            const diffX = e.clientX - startStampX;
+            const ratio = startStampW / startStampH;
+            let newW = startStampW + diffX;
+            let newH = newW / ratio;
+            
+            if (newW > 50) {
+                stamperContent.style.width = newW + 'px';
+                stamperContent.style.height = newH + 'px';
+            }
+        });
+        
+        window.addEventListener('pointerup', () => { isResizingStamp = false; });
 </script>
+
+<script>
+/* === MOTOR UNIVERSAL DE ESCRITURA (RENDERIZADO RAF HIPER-FLUIDO) === */
+(function(){
+  const board = document.getElementById('board');
+  if(!board) return;
+
+  let mwMode = 'pen';
+  let mwSize = 5;
+  let mwDrawing = false;
+  
+  let mwLastPosX = 0, mwLastPosY = 0;
+  let mwLastMidX = 0, mwLastMidY = 0;
+  
+  let shapeStartX = 0, shapeStartY = 0;
+  const shapePreviewCanvas = document.createElement('canvas');
+
+  let renderQueue = [];
+  let isRendering = false;
+
+  function processRenderQueue() {
+      if(renderQueue.length === 0) {
+          isRendering = false;
+          return;
+      }
+      
+      const c = board.getContext('2d', {desynchronized: true, alpha: false});
+      c.lineCap = 'round'; c.lineJoin = 'round';
+      
+      const batch = renderQueue.splice(0, renderQueue.length);
+      for(let i=0; i<batch.length; i++) {
+          let pt = batch[i];
+          c.beginPath();
+          c.moveTo(pt.lastMidX, pt.lastMidY);
+          c.quadraticCurveTo(pt.lastPosX, pt.lastPosY, pt.midX, pt.midY);
+
+          c.lineWidth = pt.size;
+          if(pt.tool === 'eraser'){
+              c.globalCompositeOperation = 'source-over';
+              c.strokeStyle = '#ffffff';
+              c.globalAlpha = 1;
+          } else {
+              c.globalCompositeOperation = 'source-over';
+              c.strokeStyle = pt.color;
+              c.globalAlpha = pt.tool === 'marker' ? 0.38 : 0.92;
+          }
+          c.stroke();
+      }
+      
+      requestAnimationFrame(processRenderQueue);
+  }
+
+  function queueStroke(lastMidX, lastMidY, lastPosX, lastPosY, midX, midY, size, tool, color) {
+      renderQueue.push({ lastMidX, lastMidY, lastPosX, lastPosY, midX, midY, size, tool, color });
+      if(!isRendering) {
+          isRendering = true;
+          requestAnimationFrame(processRenderQueue);
+      }
+  }
+
+  function pos(ev){ return { x: ev.clientX, y: ev.clientY }; }
+
+  function saveState(){
+    try{
+      if(window.mwUndo && window.mwUndo.length > 12) window.mwUndo.shift();
+      if(!window.mwUndo) window.mwUndo = [];
+      window.mwUndo.push(board.toDataURL('image/png'));
+    }catch(e){}
+  }
+  window.saveState = saveState;
+
+  function restoreData(url){
+    const img = new Image();
+    img.onload = function(){
+      const c = board.getContext('2d');
+      c.fillStyle = '#ffffff';
+      c.fillRect(0,0,board.width,board.height);
+      drawGrid(c, board.width, board.height);
+      c.drawImage(img,0,0);
+    };
+    img.src = url;
+  }
+
+  function setMode(mode){
+    mwMode = mode;
+    ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser'].forEach(id=>{
+      const b=document.getElementById(id);
+      if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
+    });
+  }
+  
+  function start(ev){
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    ev.preventDefault();
+    saveState();
+
+    mwDrawing = true;
+    const p = pos(ev);
+    mwLastPosX = p.x; mwLastPosY = p.y;
+    mwLastMidX = p.x; mwLastMidY = p.y;
+
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        shapeStartX = p.x; shapeStartY = p.y;
+        shapePreviewCanvas.width = canvas.width; shapePreviewCanvas.height = canvas.height;
+        shapePreviewCanvas.getContext('2d').drawImage(canvas, 0, 0);
+    } else {
+        if (typeof broadcastData === 'function') {
+            broadcastData({ type:'start' });
+        }
+    }
+    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
+  }
+
+  function move(ev){
+    if(!mwDrawing) return;
+    ev.preventDefault();
+    
+    const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
+    const inkColor = document.getElementById('mw-color').value;
+
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        let p = pos(events[events.length - 1]);
+        const c = board.getContext('2d');
+        c.fillStyle = '#ffffff';
+        c.fillRect(0, 0, canvas.width, canvas.height);
+        drawGrid(c, canvas.width, canvas.height);
+        c.drawImage(shapePreviewCanvas, 0, 0);
+        drawShapeExact(c, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
+        mwLastPosX = p.x; mwLastPosY = p.y;
+        return; 
+    }
+
+    for (let i=0; i<events.length; i++) {
+        let e = events[i];
+        let p = pos(e);
+        
+        let rawPressure = e.pointerType === 'pen' ? e.pressure : 0.5;
+        if (rawPressure === 0) rawPressure = 0.5; 
+
+        let pFactor = e.pointerType === 'pen' ? (0.3 + (rawPressure * rawPressure) * 1.2) : 1;
+        let baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
+        let finalSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
+        
+        let midX = (mwLastPosX + p.x) * 0.5;
+        let midY = (mwLastPosY + p.y) * 0.5;
+
+        queueStroke(mwLastMidX, mwLastMidY, mwLastPosX, mwLastPosY, midX, midY, finalSize, mwMode, inkColor);
+
+        if (typeof broadcastData === 'function') {
+            broadcastData({ 
+                type:'stroke', 
+                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
+                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, 
+                midX: midX / canvas.width, midY: midY / canvas.width, 
+                color: inkColor, size: finalSize / canvas.width, tool: mwMode 
+            });
+        }
+
+        mwLastPosX = p.x;
+        mwLastPosY = p.y;
+        mwLastMidX = midX;
+        mwLastMidY = midY;
+    }
+  }
+
+  function end(ev){
+    if(!mwDrawing) return;
+    ev.preventDefault();
+    mwDrawing=false;
+    
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        if (typeof broadcastData === 'function') {
+            broadcastData({ 
+                type: 'shape', shape: mwMode,
+                x1: shapeStartX / canvas.width, y1: shapeStartY / canvas.width,
+                x2: mwLastPosX / canvas.width, y2: mwLastPosY / canvas.width,
+                color: document.getElementById('mw-color').value, size: mwSize / canvas.width 
+            });
+        }
+    } else {
+        if (typeof broadcastData === 'function') broadcastData({ type:'stop' });
+    }
+    try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
+  }
+
+  board.addEventListener('pointerdown', start, {passive:false});
+  board.addEventListener('pointermove', move, {passive:false});
+  board.addEventListener('pointerup', end, {passive:false});
+  board.addEventListener('pointercancel', end, {passive:false});
+  board.addEventListener('contextmenu', e=>e.preventDefault());
+
+  ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser'].forEach(id=>{
+      const btn = document.getElementById(id);
+      if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
+  });
+  
+  const color = document.getElementById('mw-color');
+  color && color.addEventListener('input', e => { setMode('pen'); });
+  
+  const size = document.getElementById('mw-size');
+  size && size.addEventListener('input',e=>mwSize=+e.target.value);
+  
+  const undoBtn = document.getElementById('mw-undo');
+  undoBtn && undoBtn.addEventListener('click',()=>{
+    if(window.mwUndo && window.mwUndo.length > 0) {
+        const last = window.mwUndo.pop();
+        restoreData(last);
+        if (typeof broadcastData === 'function') broadcastData({ type: 'image', src: last, x: 0, y: 0, w: 1, h: canvas.height/canvas.width });
+    }
+  });
+
+  const clearBtn = document.getElementById('mw-clear');
+  clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
+})();
+</script>
+
 </body>
 </html>
