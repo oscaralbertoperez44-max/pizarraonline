@@ -11,12 +11,15 @@
         pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
     </script>
     <style>
-        /* Base General Ultra Optimizada */
+        /* Base General Ultra Optimizada - Bloqueo de Gestos de SO */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             background-color: #ffffff; color: #1e293b;
             font-family: 'Segoe UI', sans-serif; overflow: hidden;
-            position: fixed; inset: 0; touch-action: none;
+            position: fixed; inset: 0; 
+            touch-action: none; -ms-touch-action: none;
+            user-select: none; -webkit-user-select: none;
+            overscroll-behavior: none;
         }
         
         #canvas-container {
@@ -69,19 +72,12 @@
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem;}
         
-        #ui-panel { 
-            top: 20px; left: 20px; padding: 20px; 
-            text-align: center; background: rgba(15, 23, 42, 0.95); 
-            border: 1px solid #3b82f6; border-radius: 16px;
-            transition: opacity 1s ease; 
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
         #pdf-panel, #dola-panel, #gallery-panel { top: 80px; left: 30px; width: 520px; display: none; max-height: 85vh; position: relative; }
         #pdf-render-container, #dola-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
-        /* Modificación para Dola Panel: tamaño más grande inicial */
         #dola-panel { width: 680px; height: 500px; }
         
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
@@ -91,24 +87,29 @@
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        
         .f-tab { background: transparent; border: none; color: #888; padding: 12px 14px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        /* Capas Recorte / Estampado */
-        #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
-        #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
+        /* Motor de Recorte Solucionado (No dispara taskbar en Windows) */
+        #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
+        #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
         #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; }
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
-        #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); cursor: crosshair; min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
-        #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px;}
+        #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
+        
+        /* Overlays de recorte estricto para el estampador */
+        #stamp-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 10; background: rgba(0,0,0,0.3); border-radius: 0 0 9px 9px;}
+        #stamp-crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.3); pointer-events: none; display: none; }
+
+        #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px; -webkit-user-drag: none;}
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
         .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
-        .stamper-toolbar { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
-        .stamper-toolbar button { touch-action: manipulation; }
-
+        .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
+        
+        .stamper-toolbar { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 12px; display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
+        
         button { background: #2563eb; color: white; border: none; padding: 6px 10px; border-radius: 8px; cursor: pointer; font-weight: bold; transition: 0.2s; font-size: 0.85rem;}
         button:hover { background: #1d4ed8; }
         .danger-btn { background: #dc2626 !important; color: #fff; }
@@ -136,11 +137,12 @@
         /* Estilo de la galería de capturas guardadas */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
-        .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; }
+        .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none;}
 
-        /* === BARRA UNIFICADA === */
+        /* === BARRA UNIFICADA - Zona Segura para Evitar Taskbar === */
         #main-toolbar {
-            position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%);
+            position: fixed; bottom: 25px; /* Más alto para evadir barra de Windows */
+            left: 50%; transform: translateX(-50%);
             z-index: 9999; gap: 8px; padding: 8px 16px;
             background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1);
             border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
@@ -171,7 +173,7 @@
         @media (max-width: 900px) {
             #formulas-panel { width: 92vw !important; max-height:66vh !important; }
             #pdf-panel, #dola-panel, #gallery-panel { width: 95%; left: 2.5%; top: 5%; }
-            #main-toolbar { padding: 6px 12px; bottom: 8px; border-radius: 20px;}
+            #main-toolbar { padding: 6px 12px; bottom: 15px; border-radius: 20px;}
             #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
             .hide-mobile { display: none !important; }
         }
@@ -266,7 +268,7 @@
                 <button onclick="zoomOut()" style="min-width:30px;">➖</button>
                 <button onclick="zoomIn()" style="min-width:30px;">➕</button>
             </div>
-            <button id="btn-crop" onclick="toggleCropMode()" style="background:#8b5cf6; padding: 6px 12px; border-radius: 8px;">✂️ Recortar</button>
+            <button id="btn-crop-pdf" onclick="togglePdfCropMode()" style="background:#8b5cf6; padding: 6px 12px; border-radius: 8px;">✂️ Recortar</button>
         </div>
         <div id="pdf-render-container">
             <canvas id="pdf-canvas"></canvas>
@@ -275,7 +277,7 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI (Exclusivo Profesor) -->
+    <!-- Visor Dola AI -->
     <div id="dola-panel" class="floating-panel">
         <div class="panel-header" id="dola-header">
             <span>🤖 Dola AI (Asistente Inteligente)</span>
@@ -291,7 +293,7 @@
         <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Panel de Galería / Ejercicios Guardados -->
+    <!-- Panel de Galería -->
     <div id="gallery-panel" class="floating-panel" style="width: 400px;">
         <div class="panel-header" id="gallery-header">
             <span>📁 Mis Ejercicios Guardados</span>
@@ -303,11 +305,14 @@
         <div class="resize-handle resize-handle-panel" id="gallery-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General -->
+    <!-- Estampador General (Capa segura de recorte) -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-header">🖐️ Arrastrar para Mover</div>
         <div id="stamper-content">
             <img id="stamp-img" src="">
+            <div id="stamp-crop-overlay">
+                <div id="stamp-crop-box"></div>
+            </div>
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
@@ -321,7 +326,7 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
-        <!-- Opciones exclusivas de Profesor (Dola 🤖 y Galería 📁) -->
+        <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
@@ -343,7 +348,7 @@
             <div class="toolbar-divider"></div>
         </div>
 
-        <!-- Opciones Universales de Dibujo (Todos) -->
+        <!-- Opciones Universales de Dibujo -->
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
         <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
@@ -369,6 +374,7 @@
     </div>
 
 <script>
+        // Súper Script Unificado y Seguro
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -503,137 +509,71 @@
             arithmetic: [
                 {name:"Regla de tres simple",eq:"x = (b · c) / a"},
                 {name:"Cálculo de porcentaje",eq:"P = (Parte / Total) · 100%"},
-                {name:"Progresión Aritmética (término general)",eq:"aₙ = a₁ + (n - 1)d"},
+                {name:"Progresión Aritmética",eq:"aₙ = a₁ + (n - 1)d"},
                 {name:"Suma de Progresión Aritmética",eq:"Sₙ = n · (a₁ + aₙ) / 2"},
-                {name:"Progresión Geométrica (término general)",eq:"aₙ = a₁ · r^(n-1)"},
-                {name:"Suma de Progresión Geométrica infinita",eq:"S = a₁ / (1 - r)  (|r| < 1)"}
+                {name:"Progresión Geométrica",eq:"aₙ = a₁ · r^(n-1)"}
             ],
             algebra: [
                 {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
-                {name:"Cuadrado de diferencia",eq:"(a-b)² = a² - 2ab + b²"},
                 {name:"Diferencia de cuadrados",eq:"a² - b² = (a - b)(a + b)"},
-                {name:"Suma de cubos",eq:"a³ + b³ = (a + b)(a² - ab + b²)"},
-                {name:"Diferencia de cubos",eq:"a³ - b³ = (a - b)(a² + ab + b²)"},
-                {name:"Cubo de una suma",eq:"(a + b)³ = a³ + 3a²b + 3ab² + b³"},
-                {name:"Fórmula general cuadrática",eq:"x = (-b ± √(b² - 4ac)) / (2a)"},
-                {name:"Discriminante cuadrático",eq:"Δ = b² - 4ac"},
+                {name:"Fórmula cuadrática",eq:"x = (-b ± √(b² - 4ac)) / (2a)"},
                 {name:"Logaritmo del producto",eq:"log_b(x · y) = log_b(x) + log_b(y)"},
-                {name:"Logaritmo del cociente",eq:"log_b(x / y) = log_b(x) - log_b(y)"},
-                {name:"Logaritmo de la potencia",eq:"log_b(x^k) = k · log_b(x)"},
-                {name:"Cambio de base en logaritmos",eq:"log_b(x) = ln(x) / ln(b)"}
+                {name:"Cambio de base",eq:"log_b(x) = ln(x) / ln(b)"}
             ],
             geometry: [
-                {name:"Teorema de Pitágoras",eq:"a² + b² = c²"},
-                {name:"Área del triángulo",eq:"A = (b · h) / 2"},
+                {name:"Pitágoras",eq:"a²+b²=c²"},
                 {name:"Área del círculo",eq:"A = π · r²"},
-                {name:"Perímetro del círculo",eq:"P = 2 · π · r"},
-                {name:"Área del trapecio",eq:"A = ((B + b) · h) / 2"},
-                {name:"Volumen del cilindro",eq:"V = π · r² · h"},
-                {name:"Volumen del cono",eq:"V = (1/3) · π · r² · h"},
-                {name:"Volumen de la esfera",eq:"V = (4/3) · π · r³"},
-                {name:"Área superficial de la esfera",eq:"A = 4 · π · r²"}
+                {name:"Volumen de la esfera",eq:"V = (4/3) · π · r³"}
             ],
             analytic_geometry: [
                 {name:"Distancia entre dos puntos",eq:"d = √((x₂ - x₁)² + (y₂ - y₁)²)"},
-                {name:"Punto medio de un segmento",eq:"M = ((x₁ + x₂)/2 , (y₁ + y₂)/2)"},
-                {name:"Pendiente de una recta",eq:"m = (y₂ - y₁) / (x₂ - x₁)"},
-                {name:"Ecuación punto-pendiente",eq:"y - y₁ = m(x - x₁)"},
-                {name:"Ecuación explícita de la recta",eq:"y = mx + b"},
-                {name:"Ecuación canónica de la circunferencia",eq:"(x - h)² + (y - k)² = r²"},
-                {name:"Ecuación canónica de la elipse",eq:"(x - h)²/a² + (y - k)²/b² = 1"},
-                {name:"Ecuación canónica de la hipérbola",eq:"(x - h)²/a² - (y - k)²/b² = 1"}
+                {name:"Punto medio",eq:"M = ((x₁ + x₂)/2 , (y₁ + y₂)/2)"},
+                {name:"Pendiente",eq:"m = (y₂ - y₁) / (x₂ - x₁)"}
             ],
             trigonometry: [
-                {name:"Identidad pitagórica fundamental",eq:"sin²x + cos²x = 1"},
-                {name:"Identidad secante",eq:"1 + tan²x = sec²x"},
-                {name:"Identidad cosecante",eq:"1 + cot²x = csc²x"},
+                {name:"Identidad pitagórica",eq:"sin²x + cos²x = 1"},
                 {name:"Seno de la suma",eq:"sin(a ± b) = sin(a)cos(b) ± cos(a)sin(b)"},
-                {name:"Coseno de la suma",eq:"cos(a ± b) = cos(a)cos(b) ∓ sin(a)sin(b)"},
-                {name:"Tangente de la suma",eq:"tan(a ± b) = (tan(a) ± tan(b)) / (1 ∓ tan(a)tan(b))"},
-                {name:"Seno del ángulo doble",eq:"sin(2x) = 2 sin(x)cos(x)"},
-                {name:"Coseno del ángulo doble",eq:"cos(2x) = cos²(x) - sin²(x)"},
-                {name:"Ángulo mitad (seno)",eq:"sin²(x) = (1 - cos(2x)) / 2"},
-                {name:"Ángulo mitad (coseno)",eq:"cos²(x) = (1 + cos(2x)) / 2"},
                 {name:"Ley de los senos",eq:"a / sin(A) = b / sin(B) = c / sin(C)"},
                 {name:"Ley de los cosenos",eq:"c² = a² + b² - 2ab cos(C)"}
             ],
             calculus: [
                 {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
                 {name:"Derivada de la potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
-                {name:"Derivada exponencial",eq:"d/dx [e^x] = e^x"},
-                {name:"Derivada logaritmo natural",eq:"d/dx [ln(x)] = 1/x"},
-                {name:"Derivada del seno",eq:"d/dx [sin(x)] = cos(x)"},
-                {name:"Derivada del coseno",eq:"d/dx [cos(x)] = -sin(x)"},
-                {name:"Derivada de la tangente",eq:"d/dx [tan(x)] = sec²(x)"},
-                {name:"Regla del producto",eq:"(f · g)' = f' · g + f · g'"},
-                {name:"Regla del cociente",eq:"(f / g)' = (f' · g - f · g') / g²"},
-                {name:"Regla de la cadena",eq:"[f(g(x))]' = f'(g(x)) · g'(x)"},
-                {name:"Regla de L'Hôpital",eq:"lim [f(x)/g(x)] = lim [f'(x)/g'(x)]"}
+                {name:"Regla de la cadena",eq:"[f(g(x))]' = f'(g(x)) · g'(x)"}
             ],
             integrals: [
-                {name:"Integral de una constante",eq:"∫ k dx = kx + C"},
-                {name:"Integral de la potencia",eq:"∫ x^n dx = x^(n+1) / (n+1) + C  (n ≠ -1)"},
-                {name:"Integral del inverso",eq:"∫ (1/x) dx = ln|x| + C"},
-                {name:"Integral exponencial",eq:"∫ e^x dx = e^x + C"},
-                {name:"Integral exponencial general",eq:"∫ a^x dx = a^x / ln(a) + C"},
-                {name:"Integral del seno",eq:"∫ sin(x) dx = -cos(x) + C"},
-                {name:"Integral del coseno",eq:"∫ cos(x) dx = sin(x) + C"},
-                {name:"Integral secante cuadrada",eq:"∫ sec²(x) dx = tan(x) + C"},
-                {name:"Integral de la tangente",eq:"∫ tan(x) dx = -ln|cos(x)| + C"},
-                {name:"Integral arco tangente",eq:"∫ 1/(1 + x²) dx = arctan(x) + C"},
-                {name:"Integral arcoseno",eq:"∫ 1/√(1 - x²) dx = arcsin(x) + C"},
-                {name:"Regla de Barrow (Definida)",eq:"∫_a^b f(x)dx = F(b) - F(a)"},
-                {name:"Integración por partes",eq:"∫ u dv = u·v - ∫ v du"},
-                {name:"Área bajo la curva",eq:"A = ∫_a^b f(x) dx"},
-                {name:"Volumen de revolución (Discos)",eq:"V = π ∫_a^b [f(x)]² dx"}
+                {name:"Integral de la potencia",eq:"∫ x^n dx = x^(n+1) / (n+1) + C"},
+                {name:"Regla de Barrow",eq:"∫_a^b f(x)dx = F(b) - F(a)"},
+                {name:"Integración por partes",eq:"∫ u dv = u·v - ∫ v du"}
             ],
             stats: [
-                {name:"Media aritmética",eq:"x̄ = Σxᵢ / n"},
-                {name:"Varianza poblacional",eq:"σ² = Σ(xᵢ - μ)² / N"},
-                {name:"Desviación estándar",eq:"σ = √σ²"},
-                {name:"Varianza muestral",eq:"s² = Σ(xᵢ - x̄)² / (n - 1)"},
-                {name:"Coeficiente de variación",eq:"CV = (σ / x̄) · 100%"}
+                {name:"Media",eq:"x̄ = Σxᵢ / n"},
+                {name:"Varianza",eq:"σ² = Σ(xᵢ - μ)² / N"},
+                {name:"Desviación estándar",eq:"σ = √σ²"}
             ],
             probability: [
-                {name:"Probabilidad clásica",eq:"P(A) = Casos favorables / Casos posibles"},
-                {name:"Regla de la suma",eq:"P(A ∪ B) = P(A) + P(B) - P(A ∩ B)"},
-                {name:"Probabilidad condicional",eq:"P(A|B) = P(A ∩ B) / P(B)"},
-                {name:"Teorema de Bayes",eq:"P(Aᵢ|B) = [P(B|Aᵢ)P(Aᵢ)] / Σ[P(B|Aⱼ)P(Aⱼ)]"},
-                {name:"Valor esperado (Esperanza)",eq:"E[X] = Σ [xᵢ · P(X = xᵢ)]"},
-                {name:"Distribución binomial",eq:"P(X = k) = C(n,k) · p^k · (1-p)^(n-k)"}
+                {name:"Probabilidad",eq:"P(A) = Favorables / Posibles"},
+                {name:"Teorema de Bayes",eq:"P(A|B) = [P(B|A)P(A)] / P(B)"}
             ],
             topology: [
-                {name:"Característica de Euler (Poliedros)",eq:"χ = V - E + F = 2"},
-                {name:"Característica de Euler (Superficies)",eq:"χ = 2 - 2g"},
-                {name:"Teorema del punto fijo de Brouwer",eq:"f: Dⁿ → Dⁿ tiene al menos un punto fijo"},
-                {name:"Teorema Gauss-Bonnet",eq:"∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"},
-                {name:"Grupo Fundamental del Círculo",eq:"π₁(S¹) ≅ ℤ"}
+                {name:"Característica de Euler",eq:"χ = V - E + F = 2"},
+                {name:"Teorema Gauss-Bonnet",eq:"∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"}
             ],
             matrices: [
                 {name:"Determinante 2×2",eq:"det(A) = ad - bc"},
-                {name:"Determinante 3×3 (Sarrus)",eq:"det(A) = aei + bfg + cdh - gec - hfa - idb"},
                 {name:"Matriz inversa 2×2",eq:"A⁻¹ = (1 / det(A)) · [[d, -b], [-c, a]]"}
             ],
             vectors: [
-                {name:"Módulo de un vector",eq:"||v|| = √(v₁² + v₂² + v₃²)"},
-                {name:"Producto escalar (punto)",eq:"u · v = ||u|| ||v|| cos(θ) = u₁v₁ + u₂v₂ + u₃v₃"},
-                {name:"Producto vectorial (cruz)",eq:"u × v = (u₂v₃ - u₃v₂, u₃v₁ - u₁v₃, u₁v₂ - u₂v₁)"},
+                {name:"Producto escalar",eq:"u · v = u₁v₁ + u₂v₂ + u₃v₃"},
                 {name:"Condición de perpendicularidad",eq:"u · v = 0"}
             ],
             complex: [
-                {name:"Número complejo binómico",eq:"z = a + bi"},
-                {name:"Módulo complejo",eq:"|z| = √(a² + b²)"},
-                {name:"Conjugado complejo",eq:"z̄ = a - bi"},
-                {name:"Forma polar",eq:"z = r(cos(θ) + i sin(θ))"},
-                {name:"Fórmula de De Moivre",eq:"[r(cos(θ) + i sin(θ))]ⁿ = rⁿ(cos(nθ) + i sin(nθ))"},
+                {name:"Número complejo",eq:"z = a + bi"},
                 {name:"Identidad de Euler",eq:"e^(iπ) + 1 = 0"}
             ],
             physics: [
                 {name:"Segunda Ley de Newton",eq:"F = m · a"},
-                {name:"Peso",eq:"P = m · g"},
-                {name:"MRUA (Posición)",eq:"x = x₀ + v₀t + (1/2)at²"},
                 {name:"Energía Cinética",eq:"E_k = (1/2)m · v²"},
-                {name:"Energía Potencial",eq:"E_p = m · g · h"},
                 {name:"Ley de Ohm",eq:"V = I · R"}
             ]
         };
@@ -692,7 +632,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER, PDF Y GALERÍA =================
+        // ================= RUTINAS STAMPER, PDF Y GALERÍA (INFALIBLES) =================
         function updateGalleryGrid() {
             const grid = document.getElementById('gallery-grid-container');
             if(savedCaptures.length === 0) {
@@ -813,129 +753,75 @@
         }
         function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
         
-        let stampCropMode = false, stampCropStart = null, stampCropBox = null;
+        // == MOTOR DE RECORTE SEGURO (Stamper) ==
+        let stampCropMode = false, sStartX, sStartY;
+        const sOverlay = document.getElementById('stamp-crop-overlay');
+        const sBox = document.getElementById('stamp-crop-box');
+
         function startStampCrop() {
             const img = document.getElementById('stamp-img');
-            const sc = document.getElementById('stamper-content');
-            if (!img || !img.src || !img.naturalWidth) return alert('Primero selecciona algo.');
-            stampCropMode = true; sc.style.cursor = 'crosshair';
-            if (!stampCropBox) {
-                stampCropBox = document.createElement('div');
-                stampCropBox.style.cssText = 'position:absolute;left:0;top:0;border:2px dashed #8b5cf6;background:rgba(139,92,246,.12);z-index:40;pointer-events:none;display:none;';
-                sc.appendChild(stampCropBox);
-            }
+            if (!img || !img.src) return alert('Primero selecciona algo.');
+            stampCropMode = true;
+            sOverlay.style.display = 'block';
         }
 
-        document.getElementById('stamper-content').addEventListener('pointerdown', function(e) {
-            if (!stampCropMode || e.target.closest('button') || e.target.id === 'resize-handle' || e.target.id === 'stamper-header') return;
-            const sc = this.getBoundingClientRect();
-            stampCropStart = { x: Math.max(0, Math.min(sc.width, e.clientX - sc.left)), y: Math.max(0, Math.min(sc.height, e.clientY - sc.top)) };
-            stampCropBox.style.left = stampCropStart.x + 'px'; stampCropBox.style.top = stampCropStart.y + 'px';
-            stampCropBox.style.width = '0px'; stampCropBox.style.height = '0px'; stampCropBox.style.display = 'block';
+        sOverlay.addEventListener('pointerdown', e => {
+            if(!stampCropMode) return;
+            const rect = sOverlay.getBoundingClientRect();
+            sStartX = e.clientX - rect.left;
+            sStartY = e.clientY - rect.top;
+            sBox.style.left = sStartX + 'px'; sBox.style.top = sStartY + 'px';
+            sBox.style.width = '0px'; sBox.style.height = '0px';
+            sBox.style.display = 'block';
+            try { sOverlay.setPointerCapture(e.pointerId); } catch(err){}
             e.preventDefault(); e.stopPropagation();
-        }, true);
+        });
 
-        window.addEventListener('pointermove', function(e) {
-            if (!stampCropMode || !stampCropStart || !stampCropBox) return;
-            const sc = document.getElementById('stamper-content').getBoundingClientRect();
-            const x = Math.max(0, Math.min(sc.width, e.clientX - sc.left)); const y = Math.max(0, Math.min(sc.height, e.clientY - sc.top));
-            stampCropBox.style.left = Math.min(x, stampCropStart.x) + 'px'; stampCropBox.style.top = Math.min(y, stampCropStart.y) + 'px';
-            stampCropBox.style.width = Math.abs(x - stampCropStart.x) + 'px'; stampCropBox.style.height = Math.abs(y - stampCropStart.y) + 'px';
-        }, true);
-
-        window.addEventListener('pointerup', function(e) {
-            if (!stampCropMode || !stampCropStart || !stampCropBox) return;
-            const sc = document.getElementById('stamper-content').getBoundingClientRect();
-            const left = parseFloat(stampCropBox.style.left) || 0; const top = parseFloat(stampCropBox.style.top) || 0;
-            const cw = parseFloat(stampCropBox.style.width) || 0; const ch = parseFloat(stampCropBox.style.height) || 0;
+        sOverlay.addEventListener('pointermove', e => {
+            if(!stampCropMode || sStartX === undefined) return;
+            const rect = sOverlay.getBoundingClientRect();
+            const currentX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+            const currentY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
             
-            if (cw > 15 && ch > 15) {
+            sBox.style.left = Math.min(currentX, sStartX) + 'px';
+            sBox.style.top = Math.min(currentY, sStartY) + 'px';
+            sBox.style.width = Math.abs(currentX - sStartX) + 'px';
+            sBox.style.height = Math.abs(currentY - sStartY) + 'px';
+            e.preventDefault(); e.stopPropagation();
+        });
+
+        sOverlay.addEventListener('pointerup', e => {
+            if(!stampCropMode || sStartX === undefined) return;
+            try { sOverlay.releasePointerCapture(e.pointerId); } catch(err){}
+            
+            const cw = parseFloat(sBox.style.width);
+            const ch = parseFloat(sBox.style.height);
+            
+            if(cw > 10 && ch > 10) {
                 const img = document.getElementById('stamp-img');
-                const sx = (left / sc.width) * img.naturalWidth; const sy = (top / sc.height) * img.naturalHeight;
-                const sw = (cw / sc.width) * img.naturalWidth; const sh = (ch / sc.height) * img.naturalHeight;
+                const rect = sOverlay.getBoundingClientRect();
+                
+                const sx = (parseFloat(sBox.style.left) / rect.width) * img.naturalWidth;
+                const sy = (parseFloat(sBox.style.top) / rect.height) * img.naturalHeight;
+                const sw = (cw / rect.width) * img.naturalWidth;
+                const sh = (ch / rect.height) * img.naturalHeight;
 
                 const out = document.createElement('canvas');
                 out.width = Math.max(1, Math.round(sw)); out.height = Math.max(1, Math.round(sh));
                 out.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
                 
                 img.onload = function() {
-                    const sc2 = document.getElementById('stamper-content');
-                    sc2.style.width = Math.max(60, cw) + 'px'; sc2.style.height = Math.max(45, ch) + 'px';
+                    document.getElementById('stamper-content').style.width = Math.max(80, cw) + 'px';
+                    document.getElementById('stamper-content').style.height = Math.max(60, ch) + 'px';
                 };
                 img.src = out.toDataURL('image/png');
             }
-            stampCropMode = false; document.getElementById('stamper-content').style.cursor = 'grab';
-            stampCropBox.style.display = 'none'; stampCropStart = null;
-        }, true);
+            sOverlay.style.display = 'none';
+            sBox.style.display = 'none';
+            stampCropMode = false; sStartX = undefined;
+        });
 
-        function loadImageIntoStamp(file) {
-            if (!file || !file.type || !file.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = document.getElementById('stamp-img');
-                const source = new Image();
-                source.onload = function() {
-                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
-                    const ratio = Math.min(1, 900 / w, 650 / h);
-                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
-                    img.onload = function() {
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.top = (window.innerHeight/2) + 'px';
-                        stamper.style.left = (window.innerWidth/2) + 'px';
-                        stamper.style.display = 'block';
-                    };
-                    img.src = ev.target.result;
-                };
-                source.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // ======= Captura de Ventana para Dola AI =======
-        async function captureDolaScreen() {
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'window' } });
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    video.play();
-                    setTimeout(() => {
-                        const canvasCap = document.createElement('canvas');
-                        canvasCap.width = video.videoWidth; canvasCap.height = video.videoHeight;
-                        canvasCap.getContext('2d').drawImage(video, 0, 0);
-                        stream.getTracks().forEach(track => track.stop());
-                        
-                        const img = document.getElementById('stamp-img');
-                        img.src = canvasCap.toDataURL('image/png');
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = Math.min(800, canvasCap.width/2) + 'px';
-                        sc.style.height = Math.min(600, canvasCap.height/2) + 'px';
-                        
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.top = (window.innerHeight/2) + 'px';
-                        stamper.style.left = (window.innerWidth/2) + 'px';
-                        stamper.style.display = 'block';
-                        toggleDolaMinimize();
-                    }, 500);
-                };
-            } catch (err) {
-                alert("La captura fue cancelada o tu navegador no lo soporta.");
-            }
-        }
-        window.captureDolaScreen = captureDolaScreen;
-
-        // Visor Dola AI
-        const dolaPanel = document.getElementById('dola-panel');
-        function toggleDolaPanel() {
-            dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none';
-        }
-        function toggleDolaMinimize() {
-            dolaPanel.style.display = 'none';
-        }
-
-        // Visor PDF Mejorado con Súper Zoom
+        // Visor PDF
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -966,39 +852,51 @@
         function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.5; renderPage(pageNum); } }
         function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
         
-        let cropModePdf = false;
-        function toggleCropMode() {
+        // == MOTOR DE RECORTE SEGURO (PDF) ==
+        let cropModePdf = false, pStartX, pStartY;
+        const pOverlay = document.getElementById('crop-overlay');
+        const pBox = document.getElementById('crop-box');
+
+        function togglePdfCropMode() {
             cropModePdf = !cropModePdf;
-            const overlay = document.getElementById('crop-overlay');
-            overlay.style.display = cropModePdf ? 'block' : 'none';
-            overlay.style.width = pdfAppCanvas.width + 'px';
-            overlay.style.height = pdfAppCanvas.height + 'px';
+            pOverlay.style.display = cropModePdf ? 'block' : 'none';
+            pOverlay.style.width = pdfAppCanvas.width + 'px';
+            pOverlay.style.height = pdfAppCanvas.height + 'px';
         }
         
-        let pdfCropStart = null, pdfCropBox = document.getElementById('crop-box');
-        document.getElementById('crop-overlay').addEventListener('pointerdown', e => {
-            const rect = e.target.getBoundingClientRect();
-            pdfCropStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-            pdfCropBox.style.left = pdfCropStart.x + 'px'; pdfCropBox.style.top = pdfCropStart.y + 'px';
-            pdfCropBox.style.width = '0px'; pdfCropBox.style.height = '0px'; pdfCropBox.style.display = 'block'; e.preventDefault();
+        pOverlay.addEventListener('pointerdown', e => {
+            if(!cropModePdf) return;
+            const rect = pOverlay.getBoundingClientRect();
+            pStartX = e.clientX - rect.left; pStartY = e.clientY - rect.top;
+            pBox.style.left = pStartX + 'px'; pBox.style.top = pStartY + 'px';
+            pBox.style.width = '0px'; pBox.style.height = '0px'; pBox.style.display = 'block';
+            try { pOverlay.setPointerCapture(e.pointerId); } catch(err){}
+            e.preventDefault(); e.stopPropagation();
         });
-        window.addEventListener('pointermove', e => {
-            if(!pdfCropStart || !cropModePdf) return;
-            const rect = document.getElementById('crop-overlay').getBoundingClientRect();
-            const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-            const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
-            pdfCropBox.style.left = Math.min(x, pdfCropStart.x) + 'px'; pdfCropBox.style.top = Math.min(y, pdfCropStart.y) + 'px';
-            pdfCropBox.style.width = Math.abs(x - pdfCropStart.x) + 'px'; pdfCropBox.style.height = Math.abs(y - pdfCropStart.y) + 'px';
+
+        pOverlay.addEventListener('pointermove', e => {
+            if(!cropModePdf || pStartX === undefined) return;
+            const rect = pOverlay.getBoundingClientRect();
+            const currentX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+            const currentY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+            
+            pBox.style.left = Math.min(currentX, pStartX) + 'px';
+            pBox.style.top = Math.min(currentY, pStartY) + 'px';
+            pBox.style.width = Math.abs(currentX - pStartX) + 'px';
+            pBox.style.height = Math.abs(currentY - pStartY) + 'px';
         });
-        window.addEventListener('pointerup', e => {
-            if(!pdfCropStart || !cropModePdf) return;
-            const cssW = parseFloat(pdfCropBox.style.width), cssH = parseFloat(pdfCropBox.style.height);
-            if(cssW > 15 && cssH > 15) {
-                const scaleX = pdfAppCanvas.width / pdfAppCanvas.clientWidth;
-                const scaleY = pdfAppCanvas.height / pdfAppCanvas.clientHeight;
-                const srcX = parseFloat(pdfCropBox.style.left) * scaleX;
-                const srcY = parseFloat(pdfCropBox.style.top) * scaleY;
-                const srcW = cssW * scaleX; const srcH = cssH * scaleY;
+
+        pOverlay.addEventListener('pointerup', e => {
+            if(!cropModePdf || pStartX === undefined) return;
+            try { pOverlay.releasePointerCapture(e.pointerId); } catch(err){}
+            
+            const cw = parseFloat(pBox.style.width), ch = parseFloat(pBox.style.height);
+            if(cw > 15 && ch > 15) {
+                const scaleX = pdfAppCanvas.width / pOverlay.clientWidth;
+                const scaleY = pdfAppCanvas.height / pOverlay.clientHeight;
+                const srcX = parseFloat(pBox.style.left) * scaleX;
+                const srcY = parseFloat(pBox.style.top) * scaleY;
+                const srcW = cw * scaleX; const srcH = ch * scaleY;
                 
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = srcW; tempCanvas.height = srcH;
@@ -1007,16 +905,91 @@
                 tempCtx.drawImage(pdfAppCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
                 
                 document.getElementById('stamp-img').src = tempCanvas.toDataURL();
-                document.getElementById('stamper-content').style.width = Math.min(cssW, 900) + 'px';
-                document.getElementById('stamper-content').style.height = Math.min(cssH, 600) + 'px';
+                document.getElementById('stamper-content').style.width = Math.min(cw, 900) + 'px';
+                document.getElementById('stamper-content').style.height = Math.min(ch, 600) + 'px';
                 
                 const stamper = document.getElementById('stamper');
                 stamper.style.top = (window.innerHeight/2) + 'px';
                 stamper.style.left = (window.innerWidth/2) + 'px';
                 stamper.style.display = 'block';
-                togglePdfMinimize(); toggleCropMode();
+                togglePdfMinimize(); togglePdfCropMode();
             }
-            pdfCropStart = null;
+            pBox.style.display = 'none'; pStartX = undefined;
+        });
+
+        // Visor Dola AI
+        const dolaPanel = document.getElementById('dola-panel');
+        function toggleDolaPanel() {
+            dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none';
+        }
+        function toggleDolaMinimize() {
+            dolaPanel.style.display = 'none';
+        }
+
+        async function captureDolaScreen() {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'window' } });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    setTimeout(() => {
+                        const canvasCap = document.createElement('canvas');
+                        canvasCap.width = video.videoWidth; canvasCap.height = video.videoHeight;
+                        canvasCap.getContext('2d').drawImage(video, 0, 0);
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        const img = document.getElementById('stamp-img');
+                        img.src = canvasCap.toDataURL('image/png');
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = Math.min(800, canvasCap.width/2) + 'px';
+                        sc.style.height = Math.min(600, canvasCap.height/2) + 'px';
+                        
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.top = (window.innerHeight/2) + 'px';
+                        stamper.style.left = (window.innerWidth/2) + 'px';
+                        stamper.style.display = 'block';
+                        toggleDolaMinimize();
+                    }, 500);
+                };
+            } catch (err) {
+                alert("La captura fue cancelada o tu navegador no lo permite.");
+            }
+        }
+        window.captureDolaScreen = captureDolaScreen;
+
+        function loadImageIntoStamp(file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('stamp-img');
+                const source = new Image();
+                source.onload = function() {
+                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
+                    const ratio = Math.min(1, 900 / w, 650 / h);
+                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
+                    img.onload = function() {
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.top = (window.innerHeight/2) + 'px';
+                        stamper.style.left = (window.innerWidth/2) + 'px';
+                        stamper.style.display = 'block';
+                    };
+                    img.src = ev.target.result;
+                };
+                source.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        ['imageInput', 'cameraInput'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.addEventListener('change', function(e) {
+                if (e.target.files[0]) {
+                    loadImageIntoStamp(e.target.files[0]);
+                }
+                e.target.value = '';
+            });
         });
 
         function saveAsPDF() {
@@ -1283,7 +1256,6 @@
             function closeDragElement() { document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null; }
         }
         
-        // ======= FUNCIÓN MAESTRA DE REDIMENSIÓN PARA PANELES =======
         function makePanelResizable(panelId, handleId) {
             const panel = document.getElementById(panelId);
             const handle = document.getElementById(handleId);
@@ -1319,7 +1291,7 @@
         makePanelResizable('dola-panel', 'dola-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
 
-        // Redimensión de estampas (Zoom proporcional)
+        // Redimensión de estampas
         const resizeHandleStamper = document.getElementById('resize-handle');
         const stamperContent = document.getElementById('stamper-content');
         let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
@@ -1538,7 +1510,7 @@
   });
   
   const color = document.getElementById('mw-color');
-  color && color.addEventListener('input', e => { window.refreshCtxState(); });
+  color && color.addEventListener('input', e => { window.refreshCtxState(); setMode('pen'); });
   
   const size = document.getElementById('mw-size');
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
