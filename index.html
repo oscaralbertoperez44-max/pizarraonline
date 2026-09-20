@@ -96,11 +96,11 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        /* Motor de Recorte Seguro Libre de Bugs */
+        /* Stamper sin bug de saltos */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
-        #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; cursor: move; }
+        #stamper { position: fixed; display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; cursor: move; }
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; pointer-events: none;}
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
         
@@ -208,22 +208,21 @@
         <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
 
-    <!-- Calculadora Científica/Gráfica (Desmos / Estilo ClassWiz) -->
+    <!-- Calculadora GeoGebra Suite (Más potente que Desmos) -->
     <div id="calc-panel" class="floating-panel">
         <div class="panel-header" id="calc-header">
-            <span>🖩 Calculadora Gráfica Avanzada</span>
+            <span>🖩 GeoGebra - Calculadora Avanzada</span>
             <div class="panel-controls-header">
                 <button onclick="toggleMaximize('calc-panel')" title="Pantalla Completa">🗖</button>
                 <button onclick="toggleCalcMinimize()" title="Minimizar">_</button>
             </div>
         </div>
         <div class="pdf-controls">
-            <button onclick="window.open('https://www.desmos.com/calculator?lang=es', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
+            <button onclick="window.open('https://www.geogebra.org/calculator?lang=es', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
             <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
         </div>
         <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <!-- MODO EMBED AÑADIDO: Formato limpio y profesional sin estorbos de navegación -->
-            <iframe id="calc-frame" src="https://www.desmos.com/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+            <iframe id="calc-frame" src="https://www.geogebra.org/calculator?lang=es" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
@@ -333,7 +332,7 @@
         <div class="resize-handle resize-handle-panel" id="formulas-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General (Capa segura de recorte sin bugs) -->
+    <!-- Estampador General (Ahora libre de movimientos bruscos) -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-header">🖐️ Mueve desde la imagen</div>
         <div id="stamper-content">
@@ -836,8 +835,9 @@
                     const sc = document.getElementById('stamper-content');
                     sc.style.width = w + 'px'; sc.style.height = h + 'px';
                     const stamper = document.getElementById('stamper');
-                    stamper.style.top = (window.innerHeight/2) + 'px';
-                    stamper.style.left = (window.innerWidth/2) + 'px';
+                    // FIX: Centrar el elemento con coordenadas matemáticas
+                    stamper.style.left = (window.innerWidth - w) / 2 + 'px';
+                    stamper.style.top = (window.innerHeight - h) / 2 + 'px';
                     stamper.style.display = 'block';
                 };
                 img.src = src;
@@ -874,10 +874,11 @@
             const stamperContent = document.getElementById('stamper-content');
             stamperContent.style.width = width + 'px'; stamperContent.style.height = height + 'px';
             const stamper = document.getElementById('stamper');
-            stamper.style.display = 'block';
             
-            stamper.style.top = (window.innerHeight/2) + 'px';
-            stamper.style.left = (window.innerWidth/2) + 'px';
+            // FIX: Centrar matemáticamente
+            stamper.style.left = (window.innerWidth - width) / 2 + 'px';
+            stamper.style.top = (window.innerHeight - height) / 2 + 'px';
+            stamper.style.display = 'block';
             
             document.getElementById('formulas-panel').style.display = 'none';
         }
@@ -968,8 +969,10 @@
                 out.getContext('2d').drawImage(img, sx, sy, sw, sh, 0, 0, out.width, out.height);
                 
                 img.onload = function() {
-                    document.getElementById('stamper-content').style.width = Math.max(80, cw) + 'px';
-                    document.getElementById('stamper-content').style.height = Math.max(60, ch) + 'px';
+                    const finalW = Math.max(80, cw);
+                    const finalH = Math.max(60, ch);
+                    document.getElementById('stamper-content').style.width = finalW + 'px';
+                    document.getElementById('stamper-content').style.height = finalH + 'px';
                 };
                 img.src = out.toDataURL('image/png');
             }
@@ -1023,7 +1026,6 @@
             cropModePdf = !cropModePdf;
             pOverlay.style.display = cropModePdf ? 'block' : 'none';
             if (cropModePdf) {
-                // Cubrir TODO el área de scroll para que no se escape la selección
                 const container = document.getElementById('pdf-render-container');
                 pOverlay.style.width = Math.max(container.clientWidth, container.scrollWidth) + 'px';
                 pOverlay.style.height = Math.max(container.clientHeight, container.scrollHeight) + 'px';
@@ -1062,7 +1064,6 @@
             const pRect = pBox.getBoundingClientRect();
             const cRect = pdfAppCanvas.getBoundingClientRect();
             
-            // LA CLAVE DE ORO: Matemática exacta comparando las cajas visuales renderizadas en el monitor
             const visualX = pRect.left - cRect.left;
             const visualY = pRect.top - cRect.top;
             
@@ -1070,7 +1071,6 @@
                 const scaleX = pdfAppCanvas.width / cRect.width;
                 const scaleY = pdfAppCanvas.height / cRect.height;
                 
-                // Recorte seguro (clamp) para evitar zonas vacías si el usuario arrastra fuera del PDF
                 const safeX = Math.max(0, visualX);
                 const safeY = Math.max(0, visualY);
                 const adjW = pRect.width - (safeX - visualX);
@@ -1091,13 +1091,19 @@
                     tempCtx.drawImage(pdfAppCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
                     
                     document.getElementById('stamp-img').src = tempCanvas.toDataURL();
-                    document.getElementById('stamper-content').style.width = Math.min(safeW, 900) + 'px';
-                    document.getElementById('stamper-content').style.height = Math.min(safeH, 600) + 'px';
+                    
+                    const finalW = Math.min(safeW, 900);
+                    const finalH = Math.min(safeH, 600);
+                    document.getElementById('stamper-content').style.width = finalW + 'px';
+                    document.getElementById('stamper-content').style.height = finalH + 'px';
                     
                     const stamper = document.getElementById('stamper');
-                    stamper.style.top = (window.innerHeight/2) + 'px';
-                    stamper.style.left = (window.innerWidth/2) + 'px';
+                    
+                    // FIX: Centrar matemáticamente
+                    stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
+                    stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
                     stamper.style.display = 'block';
+                    
                     togglePdfMinimize(); togglePdfCropMode();
                 }
             }
@@ -1132,13 +1138,16 @@
                         
                         const img = document.getElementById('stamp-img');
                         img.src = canvasCap.toDataURL('image/png');
+                        
+                        const finalW = Math.min(800, canvasCap.width/2);
+                        const finalH = Math.min(600, canvasCap.height/2);
                         const sc = document.getElementById('stamper-content');
-                        sc.style.width = Math.min(800, canvasCap.width/2) + 'px';
-                        sc.style.height = Math.min(600, canvasCap.height/2) + 'px';
+                        sc.style.width = finalW + 'px';
+                        sc.style.height = finalH + 'px';
                         
                         const stamper = document.getElementById('stamper');
-                        stamper.style.top = (window.innerHeight/2) + 'px';
-                        stamper.style.left = (window.innerWidth/2) + 'px';
+                        stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
+                        stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
                         stamper.style.display = 'block';
                         
                         if(panelIdToMinimize === 'dola') toggleDolaMinimize();
@@ -1167,8 +1176,8 @@
                         const sc = document.getElementById('stamper-content');
                         sc.style.width = w + 'px'; sc.style.height = h + 'px';
                         const stamper = document.getElementById('stamper');
-                        stamper.style.top = (window.innerHeight/2) + 'px';
-                        stamper.style.left = (window.innerWidth/2) + 'px';
+                        stamper.style.left = (window.innerWidth - w) / 2 + 'px';
+                        stamper.style.top = (window.innerHeight - h) / 2 + 'px';
                         stamper.style.display = 'block';
                     };
                     img.src = ev.target.result;
