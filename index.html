@@ -986,11 +986,12 @@
             cropModePdf = !cropModePdf;
             pOverlay.style.display = cropModePdf ? 'block' : 'none';
             if (cropModePdf) {
-                // FIJACIÓN DEFINITIVA DE PRECISIÓN: Anclar geométricamente al DOM interno (ignora scroll y padding externos)
-                pOverlay.style.width = pdfAppCanvas.offsetWidth + 'px';
-                pOverlay.style.height = pdfAppCanvas.offsetHeight + 'px';
-                pOverlay.style.left = pdfAppCanvas.offsetLeft + 'px';
-                pOverlay.style.top = pdfAppCanvas.offsetTop + 'px';
+                // Cubrir TODO el área de scroll para que no se escape la selección
+                const container = document.getElementById('pdf-render-container');
+                pOverlay.style.width = Math.max(container.clientWidth, container.scrollWidth) + 'px';
+                pOverlay.style.height = Math.max(container.clientHeight, container.scrollHeight) + 'px';
+                pOverlay.style.left = '0px';
+                pOverlay.style.top = '0px';
             }
         }
         window.togglePdfCropMode = togglePdfCropMode;
@@ -1021,32 +1022,47 @@
             if(!cropModePdf || pStartX === undefined) return;
             try { pOverlay.releasePointerCapture(e.pointerId); } catch(err){}
             
-            const cw = parseFloat(pBox.style.width), ch = parseFloat(pBox.style.height);
-            if(cw > 10 && ch > 10) {
-                // MATEMÁTICA EXACTA: Relación intrínseca vs renderizada del canvas
-                const scaleX = pdfAppCanvas.width / pdfAppCanvas.offsetWidth;
-                const scaleY = pdfAppCanvas.height / pdfAppCanvas.offsetHeight;
+            const pRect = pBox.getBoundingClientRect();
+            const cRect = pdfAppCanvas.getBoundingClientRect();
+            
+            // LA CLAVE DE ORO: Matemática exacta comparando las cajas visuales renderizadas en el monitor
+            const visualX = pRect.left - cRect.left;
+            const visualY = pRect.top - cRect.top;
+            
+            if(pRect.width > 10 && pRect.height > 10) {
+                const scaleX = pdfAppCanvas.width / cRect.width;
+                const scaleY = pdfAppCanvas.height / cRect.height;
                 
-                const srcX = parseFloat(pBox.style.left) * scaleX;
-                const srcY = parseFloat(pBox.style.top) * scaleY;
-                const srcW = cw * scaleX; 
-                const srcH = ch * scaleY;
-                
-                const tempCanvas = document.createElement('canvas');
-                tempCanvas.width = srcW; tempCanvas.height = srcH;
-                const tempCtx = tempCanvas.getContext('2d');
-                tempCtx.fillStyle='#fff'; tempCtx.fillRect(0,0,srcW,srcH);
-                tempCtx.drawImage(pdfAppCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
-                
-                document.getElementById('stamp-img').src = tempCanvas.toDataURL();
-                document.getElementById('stamper-content').style.width = Math.min(cw, 900) + 'px';
-                document.getElementById('stamper-content').style.height = Math.min(ch, 600) + 'px';
-                
-                const stamper = document.getElementById('stamper');
-                stamper.style.top = (window.innerHeight/2) + 'px';
-                stamper.style.left = (window.innerWidth/2) + 'px';
-                stamper.style.display = 'block';
-                togglePdfMinimize(); togglePdfCropMode();
+                // Recorte seguro (clamp) para evitar zonas vacías si el usuario arrastra fuera del PDF
+                const safeX = Math.max(0, visualX);
+                const safeY = Math.max(0, visualY);
+                const adjW = pRect.width - (safeX - visualX);
+                const adjH = pRect.height - (safeY - visualY);
+                const safeW = Math.min(adjW, cRect.width - safeX);
+                const safeH = Math.min(adjH, cRect.height - safeY);
+
+                if(safeW > 0 && safeH > 0) {
+                    const srcX = safeX * scaleX;
+                    const srcY = safeY * scaleY;
+                    const srcW = safeW * scaleX;
+                    const srcH = safeH * scaleY;
+                    
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = srcW; tempCanvas.height = srcH;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.fillStyle='#fff'; tempCtx.fillRect(0,0,srcW,srcH);
+                    tempCtx.drawImage(pdfAppCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+                    
+                    document.getElementById('stamp-img').src = tempCanvas.toDataURL();
+                    document.getElementById('stamper-content').style.width = Math.min(safeW, 900) + 'px';
+                    document.getElementById('stamper-content').style.height = Math.min(safeH, 600) + 'px';
+                    
+                    const stamper = document.getElementById('stamper');
+                    stamper.style.top = (window.innerHeight/2) + 'px';
+                    stamper.style.left = (window.innerWidth/2) + 'px';
+                    stamper.style.display = 'block';
+                    togglePdfMinimize(); togglePdfCropMode();
+                }
             }
             pBox.style.display = 'none'; pStartX = undefined;
         });
