@@ -77,9 +77,10 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
-        #pdf-panel, #gemini-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
-        #pdf-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; }
+        #pdf-panel, #gemini-panel { top: 80px; left: 30px; width: 520px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
+        #pdf-render-container, #gemini-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
+        
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
@@ -92,8 +93,9 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
-        #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
+        /* Capas Recorte / Estampado */
+        #crop-overlay, #gemini-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
+        #crop-box, #gemini-crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         
         #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; }
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
@@ -265,19 +267,26 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Ventana Flotante de Gemini (Solo Profesor) -->
+    <!-- Visor IA (Gemini & Dola AI) Exclusivo Profesor con Explorador y Recorte -->
     <div id="gemini-panel" class="floating-panel">
         <div class="panel-header" id="gemini-header">
-            <span>🤖 Asistente Gemini (Profesor)</span>
+            <span>🤖 Asistente IA (Gemini & Dola)</span>
             <button onclick="toggleGeminiMinimize()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
         </div>
         <div class="pdf-controls">
-            <button onclick="window.open('https://gemini.google.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Abrir en Pestaña</button>
-            <button onclick="document.getElementById('geminiImageInput').click()" style="background:#10b981;">📥 Subir Captura de Gemini</button>
+            <div class="pdf-controls-group">
+                <button onclick="switchAiSource('gemini')" id="btn-src-gemini" style="background:#2563eb;">Gemini</button>
+                <button onclick="switchAiSource('dola')" id="btn-src-dola" style="background:#334155;">Dola AI</button>
+            </div>
+            <div class="pdf-controls-group">
+                <button onclick="openExternalAi()" style="background:#10b981;">🌐 Pestaña</button>
+                <button onclick="document.getElementById('geminiImageInput').click()" style="background:#8b5cf6;">🖼️ Subir Captura</button>
+            </div>
             <input type="file" id="geminiImageInput" class="hidden-file" accept="image/*">
         </div>
-        <div style="padding:15px; text-align:center; color:#cbd5e1; font-size:0.85rem; background:#1e293b; line-height:1.4;">
-            💡 Consulta tus dudas en Gemini, guarda una captura de pantalla y súbela con <b>"Subir Captura"</b> para pegarla al instante en la pizarra de la clase.
+        <div id="gemini-render-container">
+            <iframe id="ai-frame" src="https://gemini.google.com" style="width:100%; height:450px; border:none; background:#fff;"></iframe>
+            <div id="gemini-crop-overlay"><div id="gemini-crop-box"></div></div>
         </div>
         <div class="resize-handle resize-handle-pdf" id="gemini-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
@@ -299,11 +308,11 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
-        <!-- Opciones exclusivas de Profesor (Incluye Botón Gemini 🤖) -->
+        <!-- Opciones exclusivas de Profesor (Incluye Botón IA 🤖) -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
-            <button onclick="toggleGeminiPanel()" title="Abrir Asistente Gemini" style="background:#8b5cf6;">🤖</button>
+            <button onclick="toggleGeminiPanel()" title="Abrir Asistente IA (Gemini / Dola)" style="background:#8b5cf6;">🤖</button>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
             <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
@@ -892,8 +901,31 @@
             pdfCropStart = null;
         });
 
-        // Visor Gemini
+        // Visor IA (Gemini & Dola AI)
         const geminiPanel = document.getElementById('gemini-panel');
+        const aiFrame = document.getElementById('ai-frame');
+        let currentAiUrl = 'https://gemini.google.com';
+
+        function switchAiSource(source) {
+            const btnG = document.getElementById('btn-src-gemini');
+            const btnD = document.getElementById('btn-src-dola');
+            if(source === 'gemini') {
+                currentAiUrl = 'https://gemini.google.com';
+                aiFrame.src = currentAiUrl;
+                btnG.style.background = '#2563eb';
+                btnD.style.background = '#334155';
+            } else {
+                currentAiUrl = 'https://www.cici.com';
+                aiFrame.src = currentAiUrl;
+                btnD.style.background = '#2563eb';
+                btnG.style.background = '#334155';
+            }
+        }
+
+        function openExternalAi() {
+            window.open(currentAiUrl, '_blank', 'width=1000,height=800');
+        }
+
         function toggleGeminiPanel() {
             geminiPanel.style.display = geminiPanel.style.display === 'none' || geminiPanel.style.display === '' ? 'flex' : 'none';
         }
