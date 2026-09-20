@@ -45,7 +45,7 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #formulaPanel{right:15px;top:70px;width:min(520px,calc(100vw - 30px));max-height:560px;display:none}.formula{padding:10px;border-bottom:1px solid #27344f}.formula b{display:block;color:#91b5ff}.formula code{color:#fff;font-size:15px}
 #toast{position:fixed;z-index:200;left:50%;top:18px;transform:translate(-50%,-20px);opacity:0;background:#111b31ee;border:1px solid #41547c;padding:9px 14px;border-radius:10px;transition:.2s;pointer-events:none;box-shadow:var(--shadow);font-size:13px}
 #toast.show{opacity:1;transform:translate(-50%,0)}
-#fullscreenHint{display:none;position:fixed;z-index:150;right:14px;top:14px;background:#10182bea;border:1px solid #3b4b70;border-radius:10px;padding:8px 10px;font-size:11px}
+#dolaPanel{resize:both;min-width:280px;min-height:220px}#dolaPanel textarea{font-size:13px}#fullscreenHint{display:none;position:fixed;z-index:150;right:14px;top:14px;background:#10182bea;border:1px solid #3b4b70;border-radius:10px;padding:8px 10px;font-size:11px}
 body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}body.fs #topbar{opacity:0;pointer-events:none}body.fs #fullscreenHint{display:block}
 body.fs #boardWrap{cursor:crosshair}
 @media(max-width:700px){#toolbar{bottom:8px}.brand{font-size:12px}.status{font-size:10px}.tool{min-width:37px}#mediaPanel{left:8px;top:58px}#chatPanel{right:8px;bottom:65px}.panel{border-radius:13px}}
@@ -71,6 +71,8 @@ body.fs #boardWrap{cursor:crosshair}
       <button class="tool teacherOnly" id="roomBtn" title="Aula / código">🔢</button>
       <button class="tool teacherOnly" id="calcBtn" title="Calculadora">🧮</button>
       <button class="tool teacherOnly" id="pdfBtn" title="PDF">📄</button>
+      <button class="tool teacherOnly" id="photoBtn" title="Tomar foto">📷</button>
+      <button class="tool teacherOnly" id="dolaBtn" title="Dola">🪟</button>
       <button class="tool teacherOnly" id="galleryBtn" title="Galería">🖼️</button>
       <button class="tool teacherOnly" id="formulaBtn" title="Fórmulas">∑</button>
       <button class="tool teacherOnly" id="saveBtn" title="Guardar PDF">💾</button>
@@ -152,6 +154,19 @@ body.fs #boardWrap{cursor:crosshair}
 
   <div id="fullscreenHint">Pantalla completa · Esc para salir · doble clic para volver</div>
   <div id="toast"></div>
+  <div class="panel" id="dolaPanel" style="left:25%;top:18%;width:420px;height:300px;display:none">
+    <div class="panelHead"><b>🪟 Dola — solo profesor</b><button class="close">×</button></div>
+    <div class="panelBody" style="height:calc(100% - 45px)">
+      <textarea id="dolaText" placeholder="Escribí o pegá aquí el contenido de Dola..." style="width:100%;height:145px;resize:both;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:8px;padding:8px"></textarea>
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <button id="dolaPaste">Pegar en pizarra</button>
+        <button id="dolaSave">Guardar con nombre</button>
+        <button id="dolaCrop">Recortar selección</button>
+      </div>
+      <input id="dolaName" placeholder="Nombre para guardar" style="width:100%;margin-top:8px;padding:8px;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:8px">
+      <div id="dolaLibrary" style="margin-top:8px;max-height:65px;overflow:auto;font-size:12px"></div>
+    </div>
+  </div>
 </div>
 
 <div id="login">
@@ -177,6 +192,7 @@ body.fs #boardWrap{cursor:crosshair}
   </div>
 </div>
 
+<input id="cameraInput" type="file" accept="image/*" capture="environment" style="display:none">
 <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -190,20 +206,9 @@ const state={
  canDraw:true,tool:'pen',color:'#111827',size:4,dpr:1,
  scale:1,ox:0,oy:0,drawing:false,start:null,last:null,points:[],
  history:[],future:[],remoteCursors:new Map(),saveTimer:null,
- pdf:null,pdfPage:1,pdfScale:1,recording:false,recorder:null,chunks:[]
+ pdf:null,pdfPage:1,pdfScale:1,recording:false,recorder:null,chunks:[],dolaLibrary:[],recordLoop:null
 };
-const formulas={
-"Aritmética":[["Porcentaje","parte = total · p/100"],["Regla de tres","a/b = c/x  ⇒  x = bc/a"],["Potencias","aᵐ·aⁿ = aᵐ⁺ⁿ"],["Raíces","√(ab)=√a·√b"]],
-"Álgebra":[["Cuadrática","x = (-b ± √(b²-4ac))/(2a)"],["Binomio al cuadrado","(a±b)²=a²±2ab+b²"],["Diferencia de cuadrados","a²-b²=(a-b)(a+b)"],["Pendiente","m=(y₂-y₁)/(x₂-x₁)"]],
-"Geometría":[["Pitágoras","a²+b²=c²"],["Área triángulo","A=b·h/2"],["Área círculo","A=πr²"],["Longitud circunferencia","L=2πr"]],
-"Trigonometría":[["Seno","sen θ = op/hip"],["Coseno","cos θ = ady/hip"],["Tangente","tan θ = op/ady"],["Identidad","sen²θ+cos²θ=1"]],
-"Cálculo":[["Derivada","f'(x)=lim[h→0](f(x+h)-f(x))/h"],["Producto","(fg)'=f'g+fg'"],["Cadena","(f∘g)'=(f'∘g)·g'"],["Potencia","d(xⁿ)/dx = n xⁿ⁻¹"]],
-"Integrales":[["Potencia","∫xⁿ dx=xⁿ⁺¹/(n+1)+C"],["Constante","∫k dx=kx+C"],["Sustitución","∫f(g(x))g'(x)dx=∫f(u)du"]],
-"Probabilidad":[["Complementaria","P(Aᶜ)=1-P(A)"],["Unión","P(A∪B)=P(A)+P(B)-P(A∩B)"],["Condicional","P(A|B)=P(A∩B)/P(B)"]],
-"Matrices":[["Determinante 2×2","|a b;c d|=ad-bc"],["Producto","(AB)ᵢⱼ=Σ aᵢₖbₖⱼ"]],
-"Vectores":[["Módulo","|v|=√(x²+y²+z²)"],["Producto escalar","u·v=|u||v|cosθ"],["Distancia","d(P,Q)=√Σ(qᵢ-pᵢ)²"]],
-"Complejos":[["Euler","e^{iθ}=cosθ+i senθ"],["De Moivre","(r cis θ)ⁿ=rⁿ cis(nθ)"]]
-};
+const formulas={"Aritmética":[["Porcentaje","parte = total · p/100"],["Regla de tres","a/b = c/x ⇒ x = bc/a"],["Promedio","promedio = suma / cantidad"],["MCD y MCM","mcd(a,b)·mcm(a,b)=a·b"],["Fracciones","a/b ± c/d=(ad±bc)/bd"],["Proporción","a/b=c/d ⇒ ad=bc"],["Potencias","aᵐ·aⁿ=aᵐ⁺ⁿ"],["División de potencias","aᵐ/aⁿ=aᵐ⁻ⁿ"],["Raíz de producto","√(ab)=√a·√b"],["Notación científica","a·10ⁿ"]],"Álgebra":[["Cuadrática","x=(-b±√(b²-4ac))/(2a)"],["Binomio al cuadrado","(a±b)²=a²±2ab+b²"],["Diferencia de cuadrados","a²-b²=(a-b)(a+b)"],["Cubo de suma","(a+b)³=a³+3a²b+3ab²+b³"],["Cubo de diferencia","(a-b)³=a³-3a²b+3ab²-b³"],["Factor común","ax+ay=a(x+y)"],["Trinomio cuadrado perfecto","a²±2ab+b²=(a±b)²"],["Pendiente","m=(y₂-y₁)/(x₂-x₁)"],["Recta","y=mx+b"],["Distancia","d=√((x₂-x₁)²+(y₂-y₁)²)"]],"Geometría":[["Pitágoras","a²+b²=c²"],["Área triángulo","A=b·h/2"],["Área rectángulo","A=b·h"],["Área cuadrado","A=l²"],["Área círculo","A=πr²"],["Circunferencia","L=2πr"],["Área trapecio","A=(B+b)h/2"],["Área rombo","A=Dd/2"],["Volumen prisma","V=A_base·h"],["Volumen cilindro","V=πr²h"]],"Trigonometría":[["Seno","sen θ=op/hip"],["Coseno","cos θ=ady/hip"],["Tangente","tan θ=op/ady"],["Identidad","sen²θ+cos²θ=1"],["Ley de senos","a/sen A=b/sen B"],["Ley de cosenos","c²=a²+b²-2ab cos C"],["Seno doble","sen 2θ=2senθ cosθ"],["Coseno doble","cos 2θ=cos²θ-sen²θ"],["Grados a radianes","rad=grados·π/180"],["Suma de ángulos","sen(a+b)=sen a cos b+cos a sen b"]],"Cálculo":[["Derivada definición","f'(x)=lim[h→0](f(x+h)-f(x))/h"],["Producto","(fg)'=f'g+fg'"],["Cadena","(f∘g)'=(f'∘g)·g'"],["Potencia","d(xⁿ)/dx=nxⁿ⁻¹"],["Exponencial","d(eˣ)/dx=eˣ"],["Logaritmo","d(ln x)/dx=1/x"],["Seno","d(sen x)/dx=cos x"],["Coseno","d(cos x)/dx=-sen x"],["Tangente","y-f(a)=f'(a)(x-a)"],["Segunda derivada","f''(x)=d²f/dx²"]],"Integrales":[["Potencia","∫xⁿdx=xⁿ⁺¹/(n+1)+C"],["Constante","∫kdx=kx+C"],["Sustitución","∫f(g(x))g'(x)dx=∫f(u)du"],["Integral 1/x","∫1/x dx=ln|x|+C"],["Exponencial","∫eˣdx=eˣ+C"],["Seno","∫sen x dx=-cos x+C"],["Coseno","∫cos x dx=sen x+C"],["Definida","∫ₐᵇf(x)dx=F(b)-F(a)"],["Por partes","∫u dv=uv-∫v du"],["Área bajo curva","A=∫ₐᵇ|f(x)|dx"]]};
 Object.keys(formulas).forEach(k=>{let o=document.createElement('option');o.value=k;o.textContent=k;$('formulaCat').appendChild(o)});
 function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),1800)}
 function status(s,ok=true){$('statusText').textContent=s;$('statusDot').className='dotStatus '+(ok?'ok':'bad')}
@@ -360,12 +365,85 @@ $('saveBtn').onclick=()=>{
  const r=wrap.getBoundingClientRect(),out=document.createElement('canvas');out.width=Math.round(r.width*2);out.height=Math.round(r.height*2);const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,out.width,out.height);x.scale(2,2);x.drawImage(bg,0,0,r.width,r.height);x.drawImage(board,0,0,r.width,r.height);
  const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:r.width>r.height?'landscape':'portrait',unit:'px',format:[r.width,r.height]});pdf.addImage(out.toDataURL('image/jpeg',.92),'JPEG',0,0,r.width,r.height);pdf.save('MathBoard-Pro-Super-Star.pdf');toast('PDF guardado')}
 $('recordBtn').onclick=async()=>{
- if(state.recording){state.recorder.stop();return}
- try{const stream=board.captureStream(30);state.recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});state.chunks=[];state.recorder.ondataavailable=e=>e.data.size&&state.chunks.push(e.data);state.recorder.onstop=()=>{const b=new Blob(state.chunks,{type:'video/webm'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='MathBoard-Pro-Super-Star.webm';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);$('recordBtn').textContent='⏺️';state.recording=false;toast('Grabación guardada en WebM')};state.recorder.start();state.recording=true;$('recordBtn').textContent='⏹️';toast('Grabando pizarra…')}catch(e){toast('Tu navegador no permite grabación')}
+ if(state.recording){clearInterval(state.recordLoop);state.recorder.stop();return}
+ try{const recCanvas=document.createElement('canvas');const rr=wrap.getBoundingClientRect();recCanvas.width=Math.round(rr.width*2);recCanvas.height=Math.round(rr.height*2);const rc=recCanvas.getContext('2d');const drawRecordingFrame=()=>{rc.setTransform(2,0,0,2,0,0);rc.fillStyle='#fff';rc.fillRect(0,0,rr.width,rr.height);rc.drawImage(bg,0,0,rr.width,rr.height);rc.drawImage(board,0,0,rr.width,rr.height)};drawRecordingFrame();const stream=recCanvas.captureStream(30);state.recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});state.chunks=[];state.recorder.ondataavailable=e=>e.data.size&&state.chunks.push(e.data);state.recorder.onstop=()=>{const b=new Blob(state.chunks,{type:'video/webm'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='MathBoard-Pro-Super-Star.webm';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);$('recordBtn').textContent='⏺️';state.recording=false;toast('Grabación guardada en WebM')};state.recorder.start();state.recording=true;state.recordLoop=setInterval(drawRecordingFrame,33);$('recordBtn').textContent='⏹️';toast('Grabando pizarra…')}catch(e){toast('Tu navegador no permite grabación')}
 };
 $('pdfInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const ab=await f.arrayBuffer();state.pdf=await pdfjsLib.getDocument({data:ab}).promise;state.pdfPage=1;renderPDF()};
 async function renderPDF(){if(!state.pdf)return;const p=await state.pdf.getPage(state.pdfPage),v=p.getViewport({scale:state.pdfScale});$('pdfCanvas').width=v.width;$('pdfCanvas').height=v.height;await p.render({canvasContext:$('pdfCanvas').getContext('2d'),viewport:v}).promise;$('pdfPage').textContent=state.pdfPage+' / '+state.pdf.numPages}
 $('pdfPrev').onclick=()=>{if(state.pdf&&state.pdfPage>1){state.pdfPage--;renderPDF()}};$('pdfNext').onclick=()=>{if(state.pdf&&state.pdfPage<state.pdf.numPages){state.pdfPage++;renderPDF()}};$('pdfZoomIn').onclick=()=>{state.pdfScale=Math.min(3,state.pdfScale+.2);renderPDF()};$('pdfZoomOut').onclick=()=>{state.pdfScale=Math.max(.4,state.pdfScale-.2);renderPDF()};
+
+// --- Captura de fotos/JPG y Dola privado del profesor ---
+function addImageToBoard(url){
+  const im=new Image();
+  im.onload=()=>{
+    const c=state.bitmap||document.createElement('canvas');
+    if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
+    const x=c.getContext('2d');
+    const maxW=wrap.clientWidth*.65, w=Math.min(im.width,maxW), h=im.height*w/im.width;
+    x.drawImage(im,(wrap.clientWidth-w)/2,(wrap.clientHeight-h)/2,w,h);
+    render(); snapshot(); send({type:'image',url}); toast('Imagen colocada en la pizarra');
+  };
+  im.src=url;
+}
+$('photoBtn').onclick=()=>$('cameraInput').click();
+$('cameraInput').onchange=e=>{
+  const f=e.target.files[0]; if(!f)return;
+  const rd=new FileReader(); rd.onload=()=>{ 
+    let a=JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]');
+    a.unshift(rd.result); localStorage.setItem('mathboard.superstar.gallery',JSON.stringify(a.slice(0,48)));
+    renderGallery(); addImageToBoard(rd.result);
+  }; rd.readAsDataURL(f);
+};
+$('dolaBtn').onclick=()=>showPanel('dolaPanel');
+function loadDolaLibrary(){
+  try{state.dolaLibrary=JSON.parse(localStorage.getItem('mathboard.superstar.dola')||'[]')}catch(e){state.dolaLibrary=[]}
+  $('dolaLibrary').innerHTML=state.dolaLibrary.map((x,i)=>
+    `<div style="display:flex;justify-content:space-between;gap:5px;margin:3px 0"><span>${esc(x.name)}</span><button data-i="${i}">Abrir</button></div>`).join('');
+  $('dolaLibrary').querySelectorAll('button').forEach(b=>b.onclick=()=>{
+    $('dolaText').value=state.dolaLibrary[+b.dataset.i].text;
+  });
+}
+$('dolaSave').onclick=()=>{
+  const name=$('dolaName').value.trim()||('Dola '+(state.dolaLibrary.length+1));
+  state.dolaLibrary.unshift({name,text:$('dolaText').value});
+  localStorage.setItem('mathboard.superstar.dola',JSON.stringify(state.dolaLibrary));
+  loadDolaLibrary(); toast('Dola guardado permanentemente');
+};
+$('dolaPaste').onclick=()=>{
+  const text=$('dolaText').value.trim(); if(!text)return;
+  const c=state.bitmap||document.createElement('canvas');
+  if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
+  const x=c.getContext('2d'); x.font='18px sans-serif'; x.fillStyle='#111827';
+  const lines=text.split(/\n/); let y=70;
+  lines.forEach(line=>{x.fillText(line,40,y);y+=25});
+  render();snapshot(); toast('Contenido de Dola pegado en la pizarra');
+};
+$('dolaCrop').onclick=()=>{
+  const text=$('dolaText').value.trim(); if(!text)return;
+  const c=document.createElement('canvas');c.width=700;c.height=220;
+  const x=c.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,c.width,c.height);
+  x.fillStyle='#111827';x.font='18px sans-serif';
+  text.split(/\n/).slice(0,8).forEach((line,i)=>x.fillText(line,15,30+i*25));
+  addImageToBoard(c.toDataURL('image/png'));toast('Recorte creado y pegado');
+};
+loadDolaLibrary();
+// Keep Dola teacher-only and never include it in board recording: it is an HTML overlay.
+const originalOpenApp=openApp;
+openApp=function(){originalOpenApp();$('dolaBtn').style.display=state.role==='teacher'?'inline-flex':'none';$('dolaPanel').style.display='none';};
+const originalHandleData=handleData;
+handleData=function(d,c){if(d.type==='image'&&d.url){addImageToBoard(d.url);return}originalHandleData(d,c);};
+
+
+// Recorte rectangular preciso: solo se copia la pizarra y la cuadrícula, nunca las ventanas HTML.
+let cropMode=false,cropStart=null,cropRect=null;
+function activateCrop(){cropMode=true;cropStart=null;cropRect=null;clearPreview();wrap.style.cursor='crosshair';toast('Arrastrá para seleccionar el recorte');}
+function cropOverlay(a,b){clearPreview();pctx.save();pctx.setTransform(state.dpr,0,0,state.dpr,0,0);pctx.fillStyle='rgba(40,104,215,.15)';pctx.strokeStyle='#2868d7';pctx.setLineDash([6,4]);pctx.lineWidth=2;pctx.fillRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));pctx.strokeRect(Math.min(a.x,b.x),Math.min(a.y,b.y),Math.abs(b.x-a.x),Math.abs(b.y-a.y));pctx.restore();}
+function finishCrop(){if(!cropRect)return;const r=wrap.getBoundingClientRect(),x=Math.max(0,cropRect.x),y=Math.max(0,cropRect.y),w=Math.min(cropRect.w,r.width-x),h=Math.min(cropRect.h,r.height-y);if(w<6||h<6){cropMode=false;return}const c=document.createElement('canvas');c.width=Math.round(w*2);c.height=Math.round(h*2);const q=c.getContext('2d');q.fillStyle='#fff';q.fillRect(0,0,c.width,c.height);q.drawImage(bg,x*state.dpr,y*state.dpr,w*state.dpr,h*state.dpr,0,0,c.width,c.height);q.drawImage(board,x*state.dpr,y*state.dpr,w*state.dpr,h*state.dpr,0,0,c.width,c.height);cropMode=false;wrap.style.cursor='default';clearPreview();addImageToBoard(c.toDataURL('image/png'));toast('Recorte pegado en la pizarra');}
+board.addEventListener('pointerdown',e=>{if(!cropMode)return;const r=wrap.getBoundingClientRect();cropStart={x:e.clientX-r.left,y:e.clientY-r.top};});
+board.addEventListener('pointermove',e=>{if(!cropMode||!cropStart)return;const r=wrap.getBoundingClientRect(),b={x:e.clientX-r.left,y:e.clientY-r.top};cropRect={x:Math.min(cropStart.x,b.x),y:Math.min(cropStart.y,b.y),w:Math.abs(b.x-cropStart.x),h:Math.abs(b.y-cropStart.y)};cropOverlay(cropStart,b);});
+board.addEventListener('pointerup',()=>{if(cropMode&&cropStart)finishCrop();});
+$('dolaCrop').onclick=activateCrop;
+
 resize();
 </script>
 </body>
