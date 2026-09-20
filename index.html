@@ -450,6 +450,37 @@
             } catch(e) { return false; }
         }
 
+        // ================= SISTEMA DE AUDIO (VOZ) =================
+        function playAudio(stream) {
+            const audioEl = document.createElement('audio');
+            audioEl.srcObject = stream;
+            audioEl.autoplay = true;
+            document.body.appendChild(audioEl);
+            
+            audioEl.play().catch(err => {
+                console.warn("El navegador bloqueó el autoplay del audio:", err);
+            });
+        }
+        window.playAudio = playAudio;
+
+        function toggleMic() {
+            if (localStream) {
+                const audioTrack = localStream.getAudioTracks()[0];
+                if (audioTrack) {
+                    audioTrack.enabled = !audioTrack.enabled;
+                    const btn = document.getElementById('btn-mic');
+                    if (btn) {
+                        btn.innerHTML = audioTrack.enabled ? '🎙️' : '🔇';
+                        btn.style.background = audioTrack.enabled ? '' : '#dc2626';
+                    }
+                }
+            } else {
+                alert("El micrófono no está activo.");
+            }
+        }
+        window.toggleMic = toggleMic;
+        // ==========================================================
+
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
