@@ -87,11 +87,12 @@
         .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
         .formula-tab-btns::-webkit-scrollbar { height: 4px; }
         .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
+        
         .f-tab { background: transparent; border: none; color: #888; padding: 12px 14px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        /* Motor de Recorte Solucionado (No dispara taskbar en Windows) */
+        /* Motor de Recorte Seguro (No dispara taskbar en Windows) */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
@@ -99,7 +100,6 @@
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
         
-        /* Overlays de recorte estricto para el estampador */
         #stamp-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 10; background: rgba(0,0,0,0.3); border-radius: 0 0 9px 9px;}
         #stamp-crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.3); pointer-events: none; display: none; }
 
@@ -134,14 +134,14 @@
         #formulas-panel{overscroll-behavior:contain;}
         #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
-        /* Estilo de la galería de capturas guardadas */
+        /* Estilo de la galería de capturas guardadas PERSISTENTE */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none;}
 
-        /* === BARRA UNIFICADA - Zona Segura para Evitar Taskbar === */
+        /* === BARRA UNIFICADA - Zona Segura para Evitar Taskbar en Windows === */
         #main-toolbar {
-            position: fixed; bottom: 25px; /* Más alto para evadir barra de Windows */
+            position: fixed; bottom: 25px; 
             left: 50%; transform: translateX(-50%);
             z-index: 9999; gap: 8px; padding: 8px 16px;
             background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1);
@@ -277,7 +277,7 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI -->
+    <!-- Visor Dola AI (Exclusivo Profesor) con Explorador y Recorte -->
     <div id="dola-panel" class="floating-panel">
         <div class="panel-header" id="dola-header">
             <span>🤖 Dola AI (Asistente Inteligente)</span>
@@ -293,7 +293,7 @@
         <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Panel de Galería -->
+    <!-- Panel de Galería PERSISTENTE -->
     <div id="gallery-panel" class="floating-panel" style="width: 400px;">
         <div class="panel-header" id="gallery-header">
             <span>📁 Mis Ejercicios Guardados</span>
@@ -348,7 +348,7 @@
             <div class="toolbar-divider"></div>
         </div>
 
-        <!-- Opciones Universales de Dibujo -->
+        <!-- Opciones Universales de Dibujo (Todos) -->
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
         <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
@@ -396,7 +396,13 @@
         let peer, connections = [], localStream = null;
         let audioContext, audioDestination;
         let userRole = 'Alumno'; 
+        
+        // Memoria Persistente de la Galería
         let savedCaptures = [];
+        try {
+            const stored = localStorage.getItem('mathboard_gallery');
+            if(stored) savedCaptures = JSON.parse(stored);
+        } catch(e) {}
 
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
         function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
@@ -483,7 +489,7 @@
                 connections.forEach(conn => { if(conn.open) conn.send(batch); });
                 broadcastQueue = [];
             }
-        }, 16);
+        }, 10);
 
         function broadcastData(data) { 
             data.peerId = peer ? peer.id : 'local';
@@ -632,7 +638,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER, PDF Y GALERÍA (INFALIBLES) =================
+        // ================= RUTINAS STAMPER, PDF Y GALERÍA (PERSISTENTE) =================
         function updateGalleryGrid() {
             const grid = document.getElementById('gallery-grid-container');
             if(savedCaptures.length === 0) {
@@ -657,6 +663,7 @@
         function deleteFromGallery(idx) {
             if(confirm('¿Eliminar esta captura guardada?')) {
                 savedCaptures.splice(idx, 1);
+                try { localStorage.setItem('mathboard_gallery', JSON.stringify(savedCaptures)); } catch(e) {}
                 updateGalleryGrid();
             }
         }
@@ -666,8 +673,14 @@
             const img = document.getElementById('stamp-img');
             if(!img || !img.src) return;
             savedCaptures.push(img.src);
+            try { 
+                localStorage.setItem('mathboard_gallery', JSON.stringify(savedCaptures)); 
+                alert("¡Captura guardada en 'Mis Ejercicios' con éxito!");
+            } catch(e) { 
+                alert("Memoria llena. Por favor elimina capturas antiguas en la Galería.");
+                savedCaptures.pop();
+            }
             updateGalleryGrid();
-            alert("¡Captura guardada en 'Mis Ejercicios' con éxito!");
         }
         window.saveCurrentStampToGallery = saveCurrentStampToGallery;
 
@@ -1009,7 +1022,10 @@
             pdf.save(filename + ".pdf");
         }
 
+        // ================= GRABACIÓN AVANZADA (ANTI-DESFASE) =================
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
+        let recordingLoop;
+
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
         
         function startRecording() {
@@ -1031,6 +1047,7 @@
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
+                cancelAnimationFrame(recordingLoop);
                 const blob = new Blob(recordedChunks, { type: 'video/mp4' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
@@ -1038,9 +1055,22 @@
             };
             mediaRecorder.start(); isRecording = true;
             document.getElementById('btn-record').classList.add('record-active');
+
+            // Bucle Anti-Desfase (Fuerza la actualización de video en Chrome)
+            function keepRecordingAlive() {
+                if (!isRecording) return;
+                ctx.fillStyle = 'rgba(255,255,255,0.01)';
+                ctx.fillRect(0, 0, 1, 1);
+                recordingLoop = requestAnimationFrame(keepRecordingAlive);
+            }
+            keepRecordingAlive();
         }
         
-        function stopRecording() { mediaRecorder.stop(); isRecording = false; document.getElementById('btn-record').classList.remove('record-active'); }
+        function stopRecording() { 
+            mediaRecorder.stop(); 
+            isRecording = false; 
+            document.getElementById('btn-record').classList.remove('record-active'); 
+        }
 
         async function getMicrophone() {
             if (!navigator.mediaDevices) return false;
