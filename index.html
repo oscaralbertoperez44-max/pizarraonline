@@ -257,6 +257,7 @@
             <div style="display:flex; gap:5px;" class="hide-student">
                 <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:90px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Compartir</button>
+                <button onclick="stopAndCloseVideo()" style="background:#dc2626; min-width:80px;" title="Detener y cerrar el video a todos">🛑 Parar</button>
             </div>
         </div>
         <div id="video-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0; background:#000;">
@@ -632,7 +633,7 @@
         initCanvas();
         window.addEventListener('resize', resizeCanvas, { passive: true });
 
-        // ===== MOTOR DE RED MULTIJUGADOR =====
+        // ===== MOTOR DE RED MULTIJUGADOR (Optimizado) =====
         let broadcastQueue = [];
         
         function broadcastLoop() {
@@ -707,6 +708,15 @@
             alert("Video compartido. Abriéndose en las pantallas de los alumnos.");
         }
         window.loadAndShareVideo = loadAndShareVideo;
+        
+        function stopAndCloseVideo() {
+            document.getElementById('video-frame').src = '';
+            document.getElementById('video-panel').style.display = 'none';
+            if (typeof broadcastData === 'function') {
+                broadcastData({ type: 'video_stop' });
+            }
+        }
+        window.stopAndCloseVideo = stopAndCloseVideo;
 
         // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
         let sessionResources = [];
@@ -728,10 +738,24 @@
             btn.disabled = true;
             
             try {
-                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
-                const response = await fetch(proxyUrl);
-                if (!response.ok) throw new Error('Network error');
-                const buffer = await response.arrayBuffer();
+                let buffer = null;
+                // Proxies en cascada para evadir bloqueos de seguridad
+                const proxies = [
+                    'https://api.allorigins.win/raw?url=' + encodeURIComponent(url),
+                    'https://corsproxy.io/?' + encodeURIComponent(url)
+                ];
+                
+                for (let proxy of proxies) {
+                    try {
+                        const response = await fetch(proxy);
+                        if (response.ok) {
+                            buffer = await response.arrayBuffer();
+                            break;
+                        }
+                    } catch (e) { console.warn("Proxy falló:", proxy); }
+                }
+                
+                if (!buffer) throw new Error('CORS o Red bloqueada en todos los proxies');
                 
                 let binary = '';
                 const bytes = new Uint8Array(buffer);
@@ -742,7 +766,7 @@
                 const dataUri = 'data:application/pdf;base64,' + base64;
                 
                 let fileName = url.substring(url.lastIndexOf('/')+1).split('?')[0];
-                if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) fileName = "Documento_Buscador.pdf";
+                if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) fileName = "Documento_Importado.pdf";
                 
                 sessionResources.push({
                     name: fileName,
@@ -759,7 +783,7 @@
                 document.getElementById('pdf-url-input').value = '';
             } catch(e) {
                 console.error(e);
-                alert("Error al cargar. El servidor original ha bloqueado la descarga directa por seguridad.\n\nAlternativa: Descarga el PDF a tu PC y usa el botón verde 'Subir archivo desde mi PC'.");
+                alert("Error al cargar. El servidor original ha bloqueado la descarga directa por alta seguridad.\n\nAlternativa rápida: Descarga el PDF a tu PC y usa el botón verde 'Subir archivo desde mi PC'.");
             }
             btn.innerText = oldText;
             btn.disabled = false;
@@ -1420,6 +1444,11 @@
                 document.getElementById('video-panel').style.display = 'flex';
                 return;
             }
+            if (data.type === 'video_stop') {
+                document.getElementById('video-frame').src = '';
+                document.getElementById('video-panel').style.display = 'none';
+                return;
+            }
             if (data.type === 'theme') {
                 applyTheme(data.theme);
                 return;
@@ -1612,7 +1641,6 @@
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                     document.getElementById('main-toolbar').style.display = 'flex';
                     
-                    // Ocultar herramientas exclusivas del profesor al alumno
                     document.querySelectorAll('.hide-student').forEach(el => el.style.display = 'none');
                     
                     setTimeout(() => {
