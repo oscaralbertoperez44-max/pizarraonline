@@ -103,13 +103,14 @@
         
         #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: relative; }
+        #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel, #video-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: relative; }
         #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
         #dola-panel { width: 750px; height: 550px; }
         #calc-panel { width: 600px; height: 500px; }
         #resources-panel { width: 450px; height: 500px; }
+        #video-panel { width: 650px; height: 480px; }
         
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
@@ -181,7 +182,7 @@
         @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
 
         @media (max-width: 900px) {
-            #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel { width: 95%; left: 2.5%; top: 5%; }
+            #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel, #video-panel { width: 95%; left: 2.5%; top: 5%; }
             #main-toolbar { padding: 6px 12px; bottom: 15px; border-radius: 20px;}
             #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
             .hide-mobile { display: none !important; }
@@ -218,36 +219,72 @@
         <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
 
-    <!-- Calculadora GeoGebra Suite -->
+    <!-- Calculadora Desmos Integrada -->
     <div id="calc-panel" class="floating-panel">
         <div class="panel-header" id="calc-header">
-            <span>🖩 GeoGebra - Calculadora Avanzada</span>
+            <span>🖩 Desmos - Calculadora Avanzada</span>
             <div class="panel-controls-header">
                 <button onclick="toggleMaximize('calc-panel')" title="Pantalla Completa">🗖</button>
                 <button onclick="toggleCalcMinimize()" title="Minimizar">_</button>
             </div>
         </div>
         <div class="pdf-controls">
-            <button onclick="window.open('https://www.geogebra.org/calculator?lang=es', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
+            <button onclick="window.open('https://www.desmos.com/calculator?lang=es', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
             <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
         </div>
         <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <iframe id="calc-frame" src="https://www.geogebra.org/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+            <iframe id="calc-frame" src="https://www.desmos.com/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Gestor de Archivos -->
+    <!-- MÓDULO NUEVO: Visor de Videos Sincronizados -->
+    <div id="video-panel" class="floating-panel">
+        <div class="panel-header" id="video-header">
+            <span>📺 Cine Educativo (Video Sincronizado)</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('video-panel')" title="Pantalla Completa">🗖</button>
+                <button onclick="toggleVideoMinimize()" title="Minimizar">_</button>
+            </div>
+        </div>
+        <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
+            <!-- Buscador YouTube Matemático -->
+            <div style="display:flex; gap:5px;" class="hide-student">
+                <input type="text" id="video-search-input" placeholder="Buscar tema en YouTube (ej: Integrales)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
+                <button onclick="searchMathVideo()" style="background:#8b5cf6; min-width:90px;">🔍 Buscar</button>
+            </div>
+            <!-- Transmisor P2P -->
+            <div style="display:flex; gap:5px;" class="hide-student">
+                <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
+                <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:90px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Compartir</button>
+            </div>
+        </div>
+        <div id="video-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0; background:#000;">
+            <iframe id="video-frame" src="" style="width:100%; height:100%; flex-grow:1; border:none; background:#000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+        </div>
+        <div class="resize-handle resize-handle-panel" id="video-resize-handle" title="Arrastra para redimensionar"></div>
+    </div>
+
+    <!-- Gestor de Archivos y Buscador de PDFs -->
     <div id="resources-panel" class="floating-panel">
         <div class="panel-header" id="resources-header">
-            <span>📚 Gestor de Archivos (PDFs y Fotos)</span>
+            <span>📚 Gestor de Archivos & Buscador PDF</span>
             <div class="panel-controls-header">
                 <button onclick="toggleMaximize('resources-panel')" title="Pantalla Completa">🗖</button>
                 <button onclick="toggleResourcesPanel()" title="Minimizar">_</button>
             </div>
         </div>
-        <div class="pdf-controls">
-            <button onclick="document.getElementById('multiFileInput').click()" style="background:#10b981; width:100%;">➕ Añadir PDFs o Fotos</button>
+        <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
+            <div style="display:flex; gap:5px;" class="hide-student">
+                <input type="text" id="pdf-search-input" placeholder="Buscar tema (ej: Álgebra Lineal)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
+                <button onclick="searchWebPdf()" style="background:#8b5cf6; min-width:90px;" title="Busca PDFs matemáticos en la web">🔍 Buscar</button>
+            </div>
+            <div style="display:flex; gap:5px;" class="hide-student">
+                <input type="text" id="pdf-url-input" placeholder="Pega el link directo del PDF aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
+                <button id="btn-url-load" onclick="loadPdfFromUrl()" style="background:#2563eb; min-width:90px;" title="Descarga el PDF directo a la pizarra">📥 Importar</button>
+            </div>
+            <hr style="width:100%; border:1px solid #333; margin:2px 0;">
+            <button onclick="document.getElementById('multiFileInput').click()" style="background:#10b981; width:100%;">➕ Subir archivo desde mi PC</button>
             <input type="file" id="multiFileInput" class="hidden-file" accept="application/pdf, image/*" multiple>
         </div>
         <div class="gallery-grid" id="resources-grid-container" style="flex-grow: 1; min-height:200px;">
@@ -340,11 +377,12 @@
         <!-- Opciones Universales Extras (Profesor y Alumno) -->
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
         <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
-        <button onclick="toggleResourcesPanel()" title="Archivos de Clase (PDFs y Fotos)" style="background:#8b5cf6;">📚</button>
+        <button onclick="toggleResourcesPanel()" title="Buscador Académico y Archivos de Clase" style="background:#8b5cf6;">📚</button>
         <div class="toolbar-divider"></div>
 
-        <!-- Opciones exclusivas de Profesor (Sin formulas) -->
+        <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
+            <button onclick="toggleVideoPanel()" title="Compartir Video de Matemáticas" style="background:#ef4444;">📺</button>
             <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
             
@@ -594,7 +632,7 @@
         initCanvas();
         window.addEventListener('resize', resizeCanvas, { passive: true });
 
-        // ===== MOTOR DE RED MULTIJUGADOR (Optimizado) =====
+        // ===== MOTOR DE RED MULTIJUGADOR =====
         let broadcastQueue = [];
         
         function broadcastLoop() {
@@ -603,7 +641,7 @@
                 connections.forEach(conn => { if(conn.open) conn.send(batch); });
                 broadcastQueue = [];
             }
-            setTimeout(broadcastLoop, 16); // Evita loop infinito pesado usando setTimeout a 60fps
+            setTimeout(broadcastLoop, 16); 
         }
         broadcastLoop();
 
@@ -626,9 +664,108 @@
         }
         window.clearCanvas = clearCanvas;
 
-        // ================= GESTOR DE ARCHIVOS =================
+        // ================= GESTOR DE VIDEOS =================
+        function toggleVideoPanel() {
+            const p = document.getElementById('video-panel');
+            p.style.display = p.style.display === 'none' || p.style.display === '' ? 'flex' : 'none';
+        }
+        window.toggleVideoPanel = toggleVideoPanel;
+        function toggleVideoMinimize() { document.getElementById('video-panel').style.display = 'none'; }
+        window.toggleVideoMinimize = toggleVideoMinimize;
+
+        function searchMathVideo() {
+            const q = document.getElementById('video-search-input').value.trim();
+            if(!q) return alert("Escribe un tema para buscar.");
+            window.open(`https://www.youtube.com/results?search_query=matematicas+${encodeURIComponent(q)}`, '_blank');
+        }
+        window.searchMathVideo = searchMathVideo;
+
+        function extractYouTubeEmbedUrl(url) {
+            let videoId = null;
+            if (url.includes('youtube.com/watch')) {
+                videoId = new URL(url).searchParams.get('v');
+            } else if (url.includes('youtu.be/')) {
+                videoId = url.split('youtu.be/')[1].split('?')[0];
+            } else if (url.includes('youtube.com/embed/')) {
+                return url; 
+            }
+            if (videoId) return `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            return url; 
+        }
+
+        function loadAndShareVideo() {
+            const rawUrl = document.getElementById('video-url-input').value.trim();
+            if(!rawUrl) return alert("Pega una URL válida de YouTube.");
+            const embedUrl = extractYouTubeEmbedUrl(rawUrl);
+            
+            document.getElementById('video-frame').src = embedUrl;
+            document.getElementById('video-url-input').value = '';
+            
+            if (typeof broadcastData === 'function') {
+                broadcastData({ type: 'video_share', url: embedUrl });
+            }
+            alert("Video compartido. Abriéndose en las pantallas de los alumnos.");
+        }
+        window.loadAndShareVideo = loadAndShareVideo;
+
+        // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
         let sessionResources = [];
         
+        function searchWebPdf() {
+            const q = document.getElementById('pdf-search-input').value.trim();
+            if(!q) return alert("Escribe un tema para buscar (Ej: Funciones, Estadística, Geometría)");
+            const query = `${q} filetype:pdf AND (matemática OR álgebra OR cálculo OR estadística OR probabilidad OR geometría)`;
+            window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
+        }
+        window.searchWebPdf = searchWebPdf;
+
+        async function loadPdfFromUrl() {
+            const url = document.getElementById('pdf-url-input').value.trim();
+            if(!url) return alert("Pega la URL directa de un PDF (debe terminar en .pdf)");
+            const btn = document.getElementById('btn-url-load');
+            const oldText = btn.innerText;
+            btn.innerText = "⏳ Descargando...";
+            btn.disabled = true;
+            
+            try {
+                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(url);
+                const response = await fetch(proxyUrl);
+                if (!response.ok) throw new Error('Network error');
+                const buffer = await response.arrayBuffer();
+                
+                let binary = '';
+                const bytes = new Uint8Array(buffer);
+                for (let i = 0; i < bytes.byteLength; i++) {
+                    binary += String.fromCharCode(bytes[i]);
+                }
+                const base64 = window.btoa(binary);
+                const dataUri = 'data:application/pdf;base64,' + base64;
+                
+                let fileName = url.substring(url.lastIndexOf('/')+1).split('?')[0];
+                if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) fileName = "Documento_Buscador.pdf";
+                
+                sessionResources.push({
+                    name: fileName,
+                    type: 'pdf',
+                    data: dataUri
+                });
+                updateResourcesGrid();
+                
+                pdfDoc = await pdfjsLib.getDocument({ data: bytes }).promise;
+                pageNum = 1; pdfScale = 2.0; 
+                document.getElementById('pdf-panel').style.display = 'flex';
+                renderPage(pageNum);
+                
+                document.getElementById('pdf-url-input').value = '';
+            } catch(e) {
+                console.error(e);
+                alert("Error al cargar. El servidor original ha bloqueado la descarga directa por seguridad.\n\nAlternativa: Descarga el PDF a tu PC y usa el botón verde 'Subir archivo desde mi PC'.");
+            }
+            btn.innerText = oldText;
+            btn.disabled = false;
+        }
+        window.loadPdfFromUrl = loadPdfFromUrl;
+
         document.getElementById('multiFileInput').addEventListener('change', async function(e) {
             const files = e.target.files;
             if(!files || files.length === 0) return;
@@ -652,7 +789,7 @@
             const grid = document.getElementById('resources-grid-container');
             grid.innerHTML = '';
             if(sessionResources.length === 0) {
-                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">Carga archivos para tenerlos a mano.</div>';
+                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">Utiliza el buscador web, ingresa un link directo, o carga tus archivos locales.</div>';
                 return;
             }
             sessionResources.forEach((res, idx) => {
@@ -918,7 +1055,7 @@
             stampCropMode = false; sStartX = undefined;
         });
 
-        // Visor PDF
+        // Visor PDF Original
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -1199,6 +1336,9 @@
 
             function keepRecordingAlive() {
                 if (!isRecording) return;
+                const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
+                c.fillStyle = '#ffffff';
+                c.fillRect(0, 0, 1, 1);
                 recordingLoop = requestAnimationFrame(keepRecordingAlive);
             }
             keepRecordingAlive();
@@ -1275,6 +1415,11 @@
         }
 
         function processRemoteCommand(data) {
+            if (data.type === 'video_share') {
+                document.getElementById('video-frame').src = data.url;
+                document.getElementById('video-panel').style.display = 'flex';
+                return;
+            }
             if (data.type === 'theme') {
                 applyTheme(data.theme);
                 return;
@@ -1303,7 +1448,6 @@
             
             if (data.type === 'laser') {
                 if(data.lastPosX !== undefined && typeof drawLaserFade === 'function') {
-                    // Acceso a laserPaths global dentro del IIFE
                     window.laserPathsGlobal.push({ x1: data.lastPosX * canvas.width, y1: data.lastPosY * canvas.width, x2: data.x * canvas.width, y2: data.y * canvas.width, cX: data.x * canvas.width, cY: data.y * canvas.width, time: Date.now() });
                     if(!window.isLaserFadingGlobal) {
                         window.isLaserFadingGlobal = true;
@@ -1364,7 +1508,7 @@
                         mCtx.globalAlpha = 0.38;
                     } else if (isChalk) {
                         mCtx.globalAlpha = 0.9;
-                        mCtx.shadowBlur = 1; // Optimizado
+                        mCtx.shadowBlur = 1; 
                         mCtx.shadowColor = data.color;
                     } else {
                         mCtx.globalAlpha = 0.85;
@@ -1467,6 +1611,9 @@
                     document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                     document.getElementById('main-toolbar').style.display = 'flex';
+                    
+                    // Ocultar herramientas exclusivas del profesor al alumno
+                    document.querySelectorAll('.hide-student').forEach(el => el.style.display = 'none');
                     
                     setTimeout(() => {
                         if(localStream) { 
@@ -1590,6 +1737,7 @@
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
         makeDraggable(document.getElementById('resources-panel'), document.getElementById('resources-header'));
+        makeDraggable(document.getElementById('video-panel'), document.getElementById('video-header'));
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
@@ -1597,6 +1745,7 @@
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
+        makePanelResizable('video-panel', 'video-resize-handle');
 
         const resizeHandleStamper = document.getElementById('resize-handle');
         const stamperContent = document.getElementById('stamper-content');
@@ -1647,7 +1796,6 @@ window.isLaserFadingGlobal = false;
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
   
-  // Variables para la Tinta Dinámica (EMA)
   let smoothedSpeed = 0;
   let lastRenderedSize = mwSize;
   
@@ -1689,7 +1837,7 @@ window.isLaserFadingGlobal = false;
 
   function saveState(){
     try{
-      if(window.mwUndo && window.mwUndo.length >= 5) window.mwUndo.shift(); // Límite de 5 pasos para salvar RAM
+      if(window.mwUndo && window.mwUndo.length >= 5) window.mwUndo.shift(); 
       if(!window.mwUndo) window.mwUndo = [];
       window.mwUndo.push(board.toDataURL('image/png'));
     }catch(e){}
@@ -1810,7 +1958,6 @@ window.isLaserFadingGlobal = false;
         let dy = p.y - mwLastPosY;
         let dist = Math.hypot(dx, dy);
         
-        // Suavizado Exponencial (EMA) de la Velocidad
         smoothedSpeed = smoothedSpeed * 0.8 + dist * 0.2;
         let speedFactor = Math.max(0.2, 1 - (smoothedSpeed / 50)); 
         
@@ -1826,7 +1973,6 @@ window.isLaserFadingGlobal = false;
 
         let targetSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
         
-        // Suavizado Exponencial (EMA) del grosor (efecto iPad Pro)
         let finalSize = lastRenderedSize * 0.6 + targetSize * 0.4;
         lastRenderedSize = finalSize;
         
@@ -1858,7 +2004,7 @@ window.isLaserFadingGlobal = false;
                 mCtx.globalAlpha = 0.38;
             } else if (isChalk) {
                 mCtx.globalAlpha = 0.9;
-                mCtx.shadowBlur = 1; // Sombra optimizada
+                mCtx.shadowBlur = 1; 
                 mCtx.shadowColor = inkColor;
             } else {
                 mCtx.globalAlpha = 0.85;
@@ -1924,7 +2070,7 @@ window.isLaserFadingGlobal = false;
   });
   
   const color = document.getElementById('mw-color');
-  color && color.addEventListener('input', e => { setMode('pen'); });
+  color && color.addEventListener('input', e => { setMode(mwMode === 'eraser' || mwMode === 'laser' ? 'pen' : mwMode); });
   
   const size = document.getElementById('mw-size');
   size && size.addEventListener('input',e=>mwSize=+e.target.value);
