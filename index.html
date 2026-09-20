@@ -45,7 +45,7 @@
             transition: opacity 0.1s linear; opacity: 0; transform-origin: top left;
             margin-left: -5px; margin-top: -5px; will-change: transform;
         }
-        .remote-cursor .cursor-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.5); }
+        .remote-cursor .cursor-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.5); transition: all 0.2s ease-out; }
         .remote-cursor .cursor-label {
             margin-top: 4px; color: white; font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: bold;
             box-shadow: 0 3px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 0.5px;
@@ -406,6 +406,7 @@
         <button type="button" id="mw-rect" title="Cuadrado / Rectángulo" class="hide-mobile">▭</button>
         <button type="button" id="mw-circle" title="Círculo" class="hide-mobile">○</button>
         <button type="button" id="mw-eraser" title="Borrador Perfecto">🧼</button>
+        <button type="button" id="mw-laser" title="Puntero Láser">🎯</button>
         
         <div class="toolbar-divider"></div>
         
@@ -624,7 +625,7 @@
             data.peerId = peer ? peer.id : 'local';
             data.role = userRole;
 
-            if(data.type === 'stroke' || data.type === 'draw' || data.type === 'shape') {
+            if(data.type === 'stroke' || data.type === 'draw' || data.type === 'shape' || data.type === 'laser') {
                 broadcastQueue.push(data);
             } else {
                 connections.forEach(conn => { if (conn.open) conn.send(data); }); 
@@ -949,6 +950,7 @@
                     const sc = document.getElementById('stamper-content');
                     sc.style.width = w + 'px'; sc.style.height = h + 'px';
                     const stamper = document.getElementById('stamper');
+                    // FIX: Centrar el elemento con coordenadas matemáticas
                     stamper.style.left = (window.innerWidth - w) / 2 + 'px';
                     stamper.style.top = (window.innerHeight - h) / 2 + 'px';
                     stamper.style.display = 'block';
@@ -1395,7 +1397,20 @@
             const realY = (data.lastPosY || data.y) * canvas.width;
             
             cursor.style.transform = `translate(${realX}px, ${realY}px)`;
-            cursor.querySelector('.cursor-dot').style.backgroundColor = data.color || '#3b82f6';
+            
+            const dot = cursor.querySelector('.cursor-dot');
+            if (data.type === 'laser') {
+                dot.style.backgroundColor = '#ef4444';
+                dot.style.borderColor = '#b91c1c';
+                dot.style.boxShadow = '0 0 12px 4px rgba(239, 68, 68, 0.8)';
+                dot.style.transform = 'scale(1.5)';
+            } else {
+                dot.style.backgroundColor = data.color || '#3b82f6';
+                dot.style.borderColor = 'white';
+                dot.style.boxShadow = '0 1px 4px rgba(0,0,0,0.5)';
+                dot.style.transform = 'scale(1)';
+            }
+            
             cursor.querySelector('.cursor-label').style.backgroundColor = data.role === 'Profesor' ? '#10b981' : '#2563eb';
             
             clearTimeout(cursor.timeout);
@@ -1452,6 +1467,11 @@
                         }, Math.random() * 500 + 500); // Retraso escalonado para no colapsar WebRTC
                     }
                 });
+                return;
+            }
+            
+            if (data.type === 'laser') {
+                updateRemoteCursor(data);
                 return;
             }
             
@@ -1845,10 +1865,17 @@
 
   function setMode(mode){
     mwMode = mode;
-    ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser'].forEach(id=>{
+    ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
       const b=document.getElementById(id);
       if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
+    
+    // Cambiar visualmente el ratón local para que parezca un láser
+    if (mode === 'laser') {
+        board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="%23ef4444"/><circle cx="16" cy="16" r="14" fill="%23ef4444" fill-opacity="0.3"/></svg>\') 16 16, crosshair';
+    } else {
+        board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>\') 12 12, crosshair !important';
+    }
   }
   
   function start(ev){
@@ -1866,7 +1893,7 @@
         shapePreviewCanvas.width = canvas.width; shapePreviewCanvas.height = canvas.height;
         shapePreviewCanvas.getContext('2d').drawImage(canvas, 0, 0);
     } else {
-        if (typeof broadcastData === 'function') {
+        if (typeof broadcastData === 'function' && mwMode !== 'laser') {
             broadcastData({ type:'start' });
         }
     }
@@ -1889,6 +1916,20 @@
         c.drawImage(shapePreviewCanvas, 0, 0);
         drawShapeExact(c, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
         mwLastPosX = p.x; mwLastPosY = p.y;
+        return; 
+    }
+    
+    // MODO LÁSER (Transmisión exclusiva de puntero sin dibujar)
+    if (mwMode === 'laser') {
+        let p = pos(events[events.length - 1]);
+        if (typeof broadcastData === 'function') {
+            broadcastData({ 
+                type: 'laser', 
+                x: p.x / canvas.width, 
+                y: p.y / canvas.width, 
+                color: '#ef4444' // Láser Rojo intenso
+            });
+        }
         return; 
     }
 
@@ -1951,7 +1992,7 @@
   board.addEventListener('pointercancel', end, {passive:false});
   board.addEventListener('contextmenu', e=>e.preventDefault());
 
-  ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser'].forEach(id=>{
+  ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
       const btn = document.getElementById(id);
       if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
