@@ -453,20 +453,41 @@
             } catch(e) { return false; }
         }
 
-        // ================= SISTEMA DE AUDIO (VOZ) =================
-        function playAudio(stream) {
-            if (document.getElementById('audio-' + stream.id)) return; // Prevenir duplicación
-            const audioEl = document.createElement('audio');
-            audioEl.id = 'audio-' + stream.id;
-            audioEl.srcObject = stream;
-            audioEl.autoplay = true;
-            document.body.appendChild(audioEl);
+        // ================= SISTEMA DE AUDIO EN MALLA (EVITA ECOS Y PERMITE MÚLTIPLES ALUMNOS) =================
+        function unlockAudio() {
+            if(document.getElementById('unlock-btn')) return;
+            const btn = document.createElement('button');
+            btn.id = 'unlock-btn';
+            btn.className = 'audio-unlock-btn';
+            btn.innerText = "🔊 Activar Audio de la Clase";
+            btn.onclick = () => {
+                document.querySelectorAll('audio').forEach(a => a.play().catch(e=>console.log(e)));
+                btn.remove();
+            };
+            document.body.appendChild(btn);
+        }
+
+        function playAudio(stream, peerId) {
+            // Evitar reproducir nuestro propio micrófono o duplicar conexiones
+            if (!peerId || stream.id === localStream?.id) return;
             
-            setTimeout(() => {
-                audioEl.play().catch(err => {
-                    console.warn("El navegador bloqueó el autoplay del audio:", err);
-                });
-            }, 100);
+            let audioEl = document.getElementById('audio-' + peerId);
+            if (!audioEl) {
+                audioEl = document.createElement('audio');
+                audioEl.id = 'audio-' + peerId;
+                audioEl.autoplay = true;
+                document.body.appendChild(audioEl);
+            }
+            
+            // Asignar stream solo si es distinto (evita reinicios y ecos por recargas de PeerJS)
+            if (audioEl.srcObject !== stream) {
+                audioEl.srcObject = stream;
+            }
+            
+            audioEl.play().catch(err => {
+                console.warn("Autoplay bloqueado para", peerId, err);
+                unlockAudio();
+            });
         }
         window.playAudio = playAudio;
 
@@ -486,6 +507,14 @@
             }
         }
         window.toggleMic = toggleMic;
+        
+        function setupPeerAudio(currentPeer) {
+            currentPeer.on('call', (call) => {
+                if (localStream) call.answer(localStream);
+                else call.answer();
+                call.on('stream', (stream) => playAudio(stream, call.peer));
+            });
+        }
         // ==========================================================
 
         function verifyAdmin() {
@@ -1290,6 +1319,18 @@
                 window.location.reload();
                 return;
             }
+            if (data.type === 'peer_list') {
+                // El profesor nos avisa de otros alumnos, abrimos canal de voz con ellos
+                data.peers.forEach(pId => {
+                    if (pId !== peer.id && localStream) {
+                        setTimeout(() => {
+                            const call = peer.call(pId, localStream);
+                            if(call) call.on('stream', (stream) => playAudio(stream, pId));
+                        }, Math.random() * 500 + 500); // Retraso escalonado para no colapsar WebRTC
+                    }
+                });
+                return;
+            }
             
             if (data.type === 'start') { 
                 updateRemoteCursor(data);
@@ -1356,6 +1397,8 @@
             // PREFIJO DE SEGURIDAD: Evita que el servidor público de PeerJS cruce tu sala con la de otros en el mundo
             peer = new Peer('MBPRO_' + randomCode, peerNetworkOptions);
             
+            setupPeerAudio(peer);
+
             peer.on('open', (id) => {
                 // Solo ocultar login cuando el servidor nos asignó el ID exitosamente
                 document.getElementById('login-overlay').style.opacity = '0';
@@ -1377,13 +1420,15 @@
             });
 
             peer.on('connection', (conn) => { 
-                connections.push(conn); 
+                conn.on('open', () => {
+                    // Enviar lista de alumnos actuales al nuevo alumno para establecer la red Malla
+                    const activePeers = connections.filter(c => c.open).map(c => c.peer);
+                    if (activePeers.length > 0) {
+                        conn.send({ type: 'peer_list', peers: activePeers });
+                    }
+                    connections.push(conn); 
+                });
                 conn.on('data', drawRemote); 
-            });
-
-            peer.on('call', (call) => { 
-                if(localStream) call.answer(localStream); else call.answer(); 
-                call.on('stream', playAudio); 
             });
 
             peer.on('error', (err) => {
@@ -1409,6 +1454,8 @@
             await getMicrophone();
             peer = new Peer(peerNetworkOptions);
             
+            setupPeerAudio(peer);
+
             peer.on('open', () => {
                 const targetId = 'MBPRO_' + roomId;
                 // Reliable: true forza a WebRTC a usar un canal más estable para la pizarra
@@ -1423,11 +1470,11 @@
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                     document.getElementById('main-toolbar').style.display = 'flex';
                     
-                    // MEJORA: Pequeño retraso de 1000ms para asegurar conexión limpia antes de enviar voz
+                    // MEJORA: Pequeño retraso de 1000ms para asegurar conexión limpia antes de enviar voz al profesor
                     setTimeout(() => {
                         if(localStream) { 
                             const call = peer.call(targetId, localStream); 
-                            if(call) call.on('stream', playAudio); 
+                            if(call) call.on('stream', (stream) => playAudio(stream, targetId)); 
                         }
                     }, 1000);
                 });
