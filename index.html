@@ -96,7 +96,7 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        /* Motor de Recorte Seguro */
+        /* Motor de Recorte Seguro Libre de Bugs */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
@@ -121,8 +121,24 @@
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         .hidden-file { display: none; }
+        #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
+        #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+        .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
+        
+        .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
+        .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
+        .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
+        #formula-grid-container{display:grid;grid-template-columns:1fr;gap:8px;padding-bottom:10px;}
+        .formula-card{padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);}
+        .formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;}
+        .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
+        .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+        .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
+        
+        #formulas-panel{overscroll-behavior:contain;}
+        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
-        /* Estilo de la Galería */
+        /* Estilo de la Galería de Ejercicios Guardados PERMANENTE */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none;}
@@ -154,6 +170,7 @@
         @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
 
         @media (max-width: 900px) {
+            #formulas-panel { width: 92vw !important; max-height:66vh !important; }
             #pdf-panel, #dola-panel, #calc-panel, #gallery-panel { width: 95%; left: 2.5%; top: 5%; }
             #main-toolbar { padding: 6px 12px; bottom: 15px; border-radius: 20px;}
             #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
@@ -272,6 +289,49 @@
         <div class="resize-handle resize-handle-panel" id="gallery-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
+    <!-- WIDGET DE FÓRMULAS -->
+    <div id="formulas-panel" class="floating-panel">
+        <div class="panel-header" id="formulas-header">
+            <span>🧮 Gran Biblioteca Matemática</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('formulas-panel')">🗖</button>
+                <button onclick="toggleFormulasPanel()">_</button>
+            </div>
+        </div>
+        <div class="formula-tab-btns">
+            <button class="f-tab active" onclick="loadFormulas('algebra', this)">Álgebra</button>
+            <button class="f-tab" onclick="loadFormulas('geometry', this)">Geometría</button>
+            <button class="f-tab" onclick="loadFormulas('analytic_geometry', this)">G. Analítica</button>
+            <button class="f-tab" onclick="loadFormulas('trigonometry', this)">Trigonometría</button>
+            <button class="f-tab" onclick="loadFormulas('calculus', this)">Derivadas</button>
+            <button class="f-tab" onclick="loadFormulas('integrals', this)">Integrales</button>
+            <button class="f-tab" onclick="loadFormulas('stats', this)">Estadística</button>
+            <button class="f-tab" onclick="loadFormulas('probability', this)">Probabilidad</button>
+            <button class="f-tab" onclick="loadFormulas('topology', this)">Topología</button>
+            <button class="f-tab" onclick="loadFormulas('physics', this)">Física</button>
+        </div>
+        <div id="formula-category-selector" class="formula-category-selector">
+            <button class="f-cat" data-cat="arithmetic" onclick="selectFormulaCategory('arithmetic')">Aritmética</button>
+            <button class="f-cat" data-cat="algebra" onclick="selectFormulaCategory('algebra')">Álgebra</button>
+            <button class="f-cat" data-cat="geometry" onclick="selectFormulaCategory('geometry')">Geometría</button>
+            <button class="f-cat" data-cat="analytic_geometry" onclick="selectFormulaCategory('analytic_geometry')">G. Analítica</button>
+            <button class="f-cat" data-cat="trigonometry" onclick="selectFormulaCategory('trigonometry')">Trigonometría</button>
+            <button class="f-cat" data-cat="calculus" onclick="selectFormulaCategory('calculus')">Derivadas</button>
+            <button class="f-cat" data-cat="integrals" onclick="selectFormulaCategory('integrals')">Integrales ∫</button>
+            <button class="f-cat" data-cat="statistics" onclick="selectFormulaCategory('statistics')">Estadística</button>
+            <button class="f-cat" data-cat="probability" onclick="selectFormulaCategory('probability')">Probabilidad</button>
+            <button class="f-cat" data-cat="topology" onclick="selectFormulaCategory('topology')">Topología</button>
+            <button class="f-cat" data-cat="matrices" onclick="selectFormulaCategory('matrices')">Matrices</button>
+            <button class="f-cat" data-cat="vectors" onclick="selectFormulaCategory('vectors')">Vectores</button>
+            <button class="f-cat" data-cat="complex" onclick="selectFormulaCategory('complex')">Complejos</button>
+            <button class="f-cat" data-cat="physics" onclick="selectFormulaCategory('physics')">Física</button>
+        </div>
+        <input id="formula-search" type="search" placeholder="🔎 Buscar fórmula..." autocomplete="off">
+        <div class="formula-count" id="formula-count"></div>
+        <div class="formula-grid" id="formula-grid-container"></div>
+        <div class="resize-handle resize-handle-panel" id="formulas-resize-handle" title="Arrastra para redimensionar"></div>
+    </div>
+
     <!-- Estampador General (Capa segura de recorte sin bugs) -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-header">🖐️ Arrastrar para Mover</div>
@@ -293,12 +353,13 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
-        <!-- Opciones exclusivas de Profesor (Calculadora 🖩, Dola 🤖 y Galería 📁) -->
+        <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
             <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
             <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
+            <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
             <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
@@ -341,7 +402,7 @@
     </div>
 
 <script>
-        // Súper Script Unificado y Seguro
+        // Súper Script Unificado y Seguro (Restaurado Completo)
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -377,6 +438,17 @@
         
         document.getElementById('adminPin')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyAdmin(); });
         document.getElementById('roomIdInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
+
+        async function getMicrophone() {
+            if (!navigator.mediaDevices) return false;
+            try { 
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioDestination = audioContext.createMediaStreamDestination();
+                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
+                return true; 
+            } catch(e) { return false; }
+        }
 
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
@@ -484,6 +556,138 @@
         }
         window.clearCanvas = clearCanvas;
 
+        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA ================= */
+        const mathFormulas = {
+            arithmetic: [
+                {name:"Regla de tres simple",eq:"x = (b · c) / a"},
+                {name:"Cálculo de porcentaje",eq:"P = (Parte / Total) · 100%"},
+                {name:"Progresión Aritmética",eq:"aₙ = a₁ + (n - 1)d"},
+                {name:"Suma de Progresión Aritmética",eq:"Sₙ = n · (a₁ + aₙ) / 2"},
+                {name:"Progresión Geométrica",eq:"aₙ = a₁ · r^(n-1)"}
+            ],
+            algebra: [
+                {name:"Cuadrado de suma",eq:"(a+b)² = a² + 2ab + b²"},
+                {name:"Diferencia de cuadrados",eq:"a² - b² = (a - b)(a + b)"},
+                {name:"Fórmula cuadrática",eq:"x = (-b ± √(b² - 4ac)) / (2a)"},
+                {name:"Logaritmo del producto",eq:"log_b(x · y) = log_b(x) + log_b(y)"},
+                {name:"Cambio de base",eq:"log_b(x) = ln(x) / ln(b)"}
+            ],
+            geometry: [
+                {name:"Pitágoras",eq:"a²+b²=c²"},
+                {name:"Área del círculo",eq:"A = π · r²"},
+                {name:"Volumen de la esfera",eq:"V = (4/3) · π · r³"}
+            ],
+            analytic_geometry: [
+                {name:"Distancia entre dos puntos",eq:"d = √((x₂ - x₁)² + (y₂ - y₁)²)"},
+                {name:"Punto medio",eq:"M = ((x₁ + x₂)/2 , (y₁ + y₂)/2)"},
+                {name:"Pendiente",eq:"m = (y₂ - y₁) / (x₂ - x₁)"}
+            ],
+            trigonometry: [
+                {name:"Identidad pitagórica",eq:"sin²x + cos²x = 1"},
+                {name:"Seno de la suma",eq:"sin(a ± b) = sin(a)cos(b) ± cos(a)sin(b)"},
+                {name:"Ley de los senos",eq:"a / sin(A) = b / sin(B) = c / sin(C)"},
+                {name:"Ley de los cosenos",eq:"c² = a² + b² - 2ab cos(C)"}
+            ],
+            calculus: [
+                {name:"Definición de Derivada",eq:"f'(x) = lim(h→0) [f(x+h) - f(x)] / h"},
+                {name:"Derivada de la potencia",eq:"d/dx [x^n] = n · x^(n-1)"},
+                {name:"Regla de la cadena",eq:"[f(g(x))]' = f'(g(x)) · g'(x)"}
+            ],
+            integrals: [
+                {name:"Integral de la potencia",eq:"∫ x^n dx = x^(n+1) / (n+1) + C"},
+                {name:"Regla de Barrow",eq:"∫_a^b f(x)dx = F(b) - F(a)"},
+                {name:"Integración por partes",eq:"∫ u dv = u·v - ∫ v du"}
+            ],
+            stats: [
+                {name:"Media",eq:"x̄ = Σxᵢ / n"},
+                {name:"Varianza",eq:"σ² = Σ(xᵢ - μ)² / N"},
+                {name:"Desviación estándar",eq:"σ = √σ²"}
+            ],
+            probability: [
+                {name:"Probabilidad",eq:"P(A) = Favorables / Posibles"},
+                {name:"Teorema de Bayes",eq:"P(A|B) = [P(B|A)P(A)] / P(B)"}
+            ],
+            topology: [
+                {name:"Característica de Euler",eq:"χ = V - E + F = 2"},
+                {name:"Teorema Gauss-Bonnet",eq:"∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"}
+            ],
+            matrices: [
+                {name:"Determinante 2×2",eq:"det(A) = ad - bc"},
+                {name:"Matriz inversa 2×2",eq:"A⁻¹ = (1 / det(A)) · [[d, -b], [-c, a]]"}
+            ],
+            vectors: [
+                {name:"Producto escalar",eq:"u · v = u₁v₁ + u₂v₂ + u₃v₃"},
+                {name:"Condición de perpendicularidad",eq:"u · v = 0"}
+            ],
+            complex: [
+                {name:"Número complejo",eq:"z = a + bi"},
+                {name:"Identidad de Euler",eq:"e^(iπ) + 1 = 0"}
+            ],
+            physics: [
+                {name:"Segunda Ley de Newton",eq:"F = m · a"},
+                {name:"Energía Cinética",eq:"E_k = (1/2)m · v²"},
+                {name:"Ley de Ohm",eq:"V = I · R"}
+            ]
+        };
+
+        function toggleFormulasPanel() {
+            const panel = document.getElementById('formulas-panel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'flex';
+                if(document.getElementById('formula-grid-container').innerHTML.trim() === '') {
+                    loadFormulas('algebra', document.querySelector('.f-tab'));
+                }
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        window.toggleFormulasPanel = toggleFormulasPanel;
+
+        let activeFormulaCategory = 'algebra';
+        function loadFormulas(category, tabBtn) {
+            activeFormulaCategory = category;
+            document.querySelectorAll('.f-tab').forEach(btn => btn.classList.remove('active'));
+            if (tabBtn) tabBtn.classList.add('active');
+            renderFormulaList();
+        }
+        window.loadFormulas = loadFormulas;
+
+        function renderFormulaList() {
+            const grid = document.getElementById('formula-grid-container');
+            const query = (document.getElementById('formula-search')?.value || '').trim().toLowerCase();
+            const list = mathFormulas[activeFormulaCategory] || [];
+            const filtered = list.filter(f => !query || f.name.toLowerCase().includes(query) || f.eq.toLowerCase().includes(query));
+            grid.innerHTML = '';
+            filtered.forEach((f) => {
+                const wrap=document.createElement('div');
+                wrap.className='formula-card';
+                wrap.innerHTML=`<div class="formula-card-title">${f.name}</div><div class="formula-card-eq">${f.eq}</div>`;
+                const actions=document.createElement('div');
+                actions.className='formula-card-actions';
+                const copy=document.createElement('button');
+                copy.textContent='📋 Copiar';
+                copy.onclick=()=>copyFormulaText(f.eq);
+                const stamp=document.createElement('button');
+                stamp.textContent='✏️ Pegar';
+                stamp.onclick=()=>{ renderFormulaToStamp(f.eq); };
+                actions.append(copy,stamp);
+                wrap.appendChild(actions);
+                grid.appendChild(wrap);
+            });
+        }
+        window.renderFormulaList = renderFormulaList;
+
+        function selectFormulaCategory(category){
+            if(!mathFormulas[category]) return;
+            activeFormulaCategory=category;
+            renderFormulaList();
+        }
+        window.selectFormulaCategory = selectFormulaCategory;
+
+        async function copyFormulaText(text) {
+            try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
+        }
+
         // ================= RUTINAS GALERÍA COMPRIMIDA PERSISTENTE =================
         function updateGalleryGrid() {
             const grid = document.getElementById('gallery-grid-container');
@@ -579,9 +783,37 @@
             const panel = document.getElementById('gallery-panel');
             panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
         }
+        window.toggleGalleryPanel = toggleGalleryPanel;
         function toggleGalleryMinimize() { document.getElementById('gallery-panel').style.display = 'none'; }
+        window.toggleGalleryMinimize = toggleGalleryMinimize;
 
         // ================= STAMPER Y PEGAR EN PIZARRA =================
+        function renderFormulaToStamp(formulaText) {
+            const tempCanvas = document.createElement('canvas');
+            const tCtx = tempCanvas.getContext('2d');
+            tCtx.font = 'bold 40px serif';
+            const metrics = tCtx.measureText(formulaText);
+            const width = Math.ceil(metrics.width + 60);
+            const height = 100;
+            tempCanvas.width = width; tempCanvas.height = height;
+            tCtx.font = 'bold 40px serif';
+            tCtx.textBaseline = 'middle'; tCtx.textAlign = 'center';
+            tCtx.fillStyle = document.getElementById('mw-color').value || '#0f172a';
+            tCtx.fillText(formulaText, width / 2, height / 2);
+
+            const img = document.getElementById('stamp-img');
+            img.src = tempCanvas.toDataURL('image/png');
+            const stamperContent = document.getElementById('stamper-content');
+            stamperContent.style.width = width + 'px'; stamperContent.style.height = height + 'px';
+            const stamper = document.getElementById('stamper');
+            stamper.style.display = 'block';
+            
+            stamper.style.top = (window.innerHeight/2) + 'px';
+            stamper.style.left = (window.innerWidth/2) + 'px';
+            
+            document.getElementById('formulas-panel').style.display = 'none';
+        }
+
         function applyStamp() {
             const img = document.getElementById('stamp-img');
             const rect = document.getElementById('stamper-content').getBoundingClientRect();
@@ -604,7 +836,10 @@
             document.getElementById('stamper').style.display = 'none';
             if(typeof window.saveState === 'function') window.saveState(); 
         }
+        window.applyStamp = applyStamp;
+
         function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
+        window.cancelStamp = cancelStamp;
         
         // == MOTOR DE RECORTE SEGURO (Stamper) ==
         let stampCropMode = false, sStartX, sStartY;
@@ -617,6 +852,7 @@
             stampCropMode = true;
             sOverlay.style.display = 'block';
         }
+        window.startStampCrop = startStampCrop;
 
         sOverlay.addEventListener('pointerdown', e => {
             if(!stampCropMode) return;
@@ -700,10 +936,15 @@
         }
 
         function prevPage() { if (!pdfDoc || pageNum <= 1) return; pageNum--; renderPage(pageNum); }
+        window.prevPage = prevPage;
         function nextPage() { if (!pdfDoc || pageNum >= pdfDoc.numPages) return; pageNum++; renderPage(pageNum); }
+        window.nextPage = nextPage;
         function zoomIn() { if (!pdfDoc) return; pdfScale += 0.5; renderPage(pageNum); }
+        window.zoomIn = zoomIn;
         function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.5; renderPage(pageNum); } }
+        window.zoomOut = zoomOut;
         function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
+        window.togglePdfMinimize = togglePdfMinimize;
         
         // == MOTOR DE RECORTE SEGURO (PDF) ==
         let cropModePdf = false, pStartX, pStartY;
@@ -716,6 +957,7 @@
             pOverlay.style.width = pdfAppCanvas.width + 'px';
             pOverlay.style.height = pdfAppCanvas.height + 'px';
         }
+        window.togglePdfCropMode = togglePdfCropMode;
         
         pOverlay.addEventListener('pointerdown', e => {
             if(!cropModePdf) return;
@@ -773,11 +1015,15 @@
         // Visores Dinámicos (Dola AI & Calculadora)
         const dolaPanel = document.getElementById('dola-panel');
         function toggleDolaPanel() { dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none'; }
+        window.toggleDolaPanel = toggleDolaPanel;
         function toggleDolaMinimize() { dolaPanel.style.display = 'none'; }
+        window.toggleDolaMinimize = toggleDolaMinimize;
         
         const calcPanel = document.getElementById('calc-panel');
         function toggleCalcPanel() { calcPanel.style.display = calcPanel.style.display === 'none' || calcPanel.style.display === '' ? 'flex' : 'none'; }
+        window.toggleCalcPanel = toggleCalcPanel;
         function toggleCalcMinimize() { calcPanel.style.display = 'none'; }
+        window.toggleCalcMinimize = toggleCalcMinimize;
 
         async function captureScreenSource(panelIdToMinimize) {
             try {
@@ -865,12 +1111,14 @@
             pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
             pdf.save(filename + ".pdf");
         }
+        window.saveAsPDF = saveAsPDF;
 
         // ================= GRABACIÓN AVANZADA MP4 (MOTOR ANTI-DESFASE TOTAL) =================
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
         let recordingLoop;
 
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
+        window.toggleRecording = toggleRecording;
         
         function startRecording() {
             if (!audioDestination) { alert("Audio no inicializado."); return; }
@@ -900,7 +1148,7 @@
             mediaRecorder.start(); isRecording = true;
             document.getElementById('btn-record').classList.add('record-active');
 
-            // MOTOR ANTI-DESFASE DE AUDIO/VIDEO (Cura el problema de pausa de fotogramas en web)
+            // MOTOR ANTI-DESFASE DE AUDIO/VIDEO
             function keepRecordingAlive() {
                 if (!isRecording) return;
                 const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
@@ -915,39 +1163,6 @@
             mediaRecorder.stop(); 
             isRecording = false; 
             document.getElementById('btn-record').classList.remove('record-active'); 
-        }
-
-        async function getMicrophone() {
-            if (!navigator.mediaDevices) return false;
-            try { 
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                audioDestination = audioContext.createMediaStreamDestination();
-                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
-                return true; 
-            } catch(e) { return false; }
-        }
-
-        function toggleMic() {
-            if (localStream) {
-                const audioTrack = localStream.getAudioTracks()[0];
-                audioTrack.enabled = !audioTrack.enabled;
-                const btn = document.getElementById('btn-mic');
-                btn.style.background = audioTrack.enabled ? '#10b981' : '#dc2626';
-            }
-        }
-
-        function playAudio(stream) { 
-            const audio = new Audio(); 
-            audio.srcObject = stream; audio.autoplay = true; audio.playsInline = true;
-            document.body.appendChild(audio); 
-            audio.play().catch(() => {
-                const unlock = document.createElement('button');
-                unlock.className = "audio-unlock-btn";
-                unlock.innerHTML = "🔊 Toca para escuchar la clase";
-                unlock.onclick = () => { audio.play(); unlock.remove(); };
-                document.body.appendChild(unlock);
-            });
         }
 
         // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR =================
@@ -1050,7 +1265,68 @@
             }
         }
 
-        // ================= SISTEMA DE VENTANAS FLOTANTES (REFINADO PARA EVITAR IFRAME-BUGS) =================
+        let remoteRenderQueue = [];
+        let isRemoteRendering = false;
+        
+        function drawRemote(data) {
+            if (data.type === 'batch') {
+                for(let i=0; i<data.data.length; i++) processRemoteCommand(data.data[i]);
+            } else {
+                processRemoteCommand(data);
+            }
+        }
+
+        async function createRoom() {
+            await getMicrophone();
+            document.getElementById('main-toolbar').style.display = 'flex';
+            
+            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            peer = new Peer(randomCode, peerNetworkOptions);
+            
+            peer.on('open', (id) => {
+                document.getElementById('ui-panel').style.display = 'block';
+                const codeDisplay = document.getElementById('room-code-display');
+                codeDisplay.innerText = id; 
+                codeDisplay.style.display = 'block';
+                
+                setTimeout(() => { 
+                    const uiPanel = document.getElementById('ui-panel');
+                    if(uiPanel) {
+                        uiPanel.style.opacity = '0'; 
+                        setTimeout(() => uiPanel.style.display = 'none', 1000); 
+                    }
+                }, 40000); 
+            });
+            peer.on('connection', (conn) => { 
+                connections.push(conn); 
+                conn.on('data', drawRemote); 
+            });
+            peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
+        }
+
+        async function joinRoom() {
+            const roomId = document.getElementById('roomIdInput').value.toUpperCase().trim();
+            if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
+            
+            await getMicrophone();
+            peer = new Peer(peerNetworkOptions);
+            peer.on('open', () => {
+                document.getElementById('login-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                document.getElementById('main-toolbar').style.display = 'flex';
+                
+                const conn = peer.connect(roomId); 
+                connections.push(conn);
+                conn.on('data', drawRemote);
+                if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
+            });
+            peer.on('error', () => {
+                alert("No se pudo conectar a la clase. Verifica el código.");
+                window.location.reload();
+            });
+        }
+
+        // ================= SISTEMA DE VENTANAS FLOTANTES Y REDIMENSIÓN =================
         function disableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none'); }
         function enableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'auto'); }
 
@@ -1061,7 +1337,7 @@
                 if(e.target.tagName === 'BUTTON') return;
                 e.preventDefault(); 
                 pos3 = e.clientX; pos4 = e.clientY; 
-                disableIframes(); // Congela iframes para que no roben el evento
+                disableIframes(); 
                 document.addEventListener('pointerup', closeDragElement); 
                 document.addEventListener('pointermove', elementDrag); 
             }
@@ -1109,14 +1385,12 @@
             const panel = document.getElementById(panelId);
             if (!panel) return;
             if (panel.dataset.maximized === 'true') {
-                // Restaurar
                 panel.style.width = panel.dataset.w;
                 panel.style.height = panel.dataset.h;
                 panel.style.top = panel.dataset.t;
                 panel.style.left = panel.dataset.l;
                 panel.dataset.maximized = 'false';
             } else {
-                // Maximizar
                 panel.dataset.w = panel.style.width || panel.offsetWidth + 'px';
                 panel.dataset.h = panel.style.height || panel.offsetHeight + 'px';
                 panel.dataset.t = panel.style.top || panel.offsetTop + 'px';
@@ -1145,6 +1419,7 @@
         makePanelResizable('dola-panel', 'dola-resize-handle');
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
+        makePanelResizable('formulas-panel', 'formulas-resize-handle');
 
         // Redimensión de estampas
         const resizeHandleStamper = document.getElementById('resize-handle');
