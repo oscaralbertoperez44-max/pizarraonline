@@ -77,9 +77,12 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
-        #pdf-panel, #dola-panel, #gallery-panel { top: 80px; left: 30px; width: 520px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
-        #pdf-render-container, #dola-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; }
+        #pdf-panel, #dola-panel, #gallery-panel { top: 80px; left: 30px; width: 520px; display: none; max-height: 85vh; position: relative; }
+        #pdf-render-container, #dola-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
+        
+        /* Modificación para Dola Panel: tamaño más grande inicial */
+        #dola-panel { width: 680px; height: 500px; }
         
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
@@ -131,8 +134,8 @@
         #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
         /* Estilo de la galería de capturas guardadas */
-        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
-        .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; }
+        .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
+        .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; }
 
         /* === BARRA UNIFICADA === */
@@ -269,34 +272,35 @@
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
         </div>
-        <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
+        <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI (Exclusivo Profesor) con Explorador y Recorte -->
+    <!-- Visor Dola AI (Exclusivo Profesor) -->
     <div id="dola-panel" class="floating-panel">
         <div class="panel-header" id="dola-header">
-            <span>🤖 Dola AI (Asistente de Clase)</span>
+            <span>🤖 Dola AI (Asistente Inteligente)</span>
             <button onclick="toggleDolaMinimize()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
         </div>
         <div class="pdf-controls">
-            <button onclick="window.open('https://www.cici.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Abrir en Pestaña</button>
-            <button onclick="captureDolaScreen()" style="background:#10b981;">📸 Capturar Pantalla</button>
+            <button onclick="window.open('https://www.cici.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Pantalla Completa</button>
+            <button onclick="captureDolaScreen()" style="background:#10b981;" title="Haz clic y selecciona la pestaña de Dola para recortar">📸 Capturar Pantalla</button>
         </div>
-        <div id="dola-render-container">
-            <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:450px; border:none; background:#fff;"></iframe>
+        <div id="dola-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
+            <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
-        <div class="resize-handle resize-handle-pdf" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
+        <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Panel de Galería / Ejercicios Guardados -->
-    <div id="gallery-panel" class="floating-panel">
+    <div id="gallery-panel" class="floating-panel" style="width: 400px;">
         <div class="panel-header" id="gallery-header">
-            <span>📁 Mis Ejercicios y Capturas Guardadas</span>
+            <span>📁 Mis Ejercicios Guardados</span>
             <button onclick="toggleGalleryMinimize()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
         </div>
         <div class="gallery-grid" id="gallery-grid-container">
-            <div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">No hay capturas guardadas aún.<br>Los recortes que pegues se guardarán aquí automáticamente.</div>
+            <!-- Contenido dinámico -->
         </div>
+        <div class="resize-handle resize-handle-panel" id="gallery-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Estampador General -->
@@ -317,11 +321,11 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
-        <!-- Opciones exclusivas de Profesor (Incluye Dola AI 🤖 y Galería 📁) -->
+        <!-- Opciones exclusivas de Profesor (Dola 🤖 y Galería 📁) -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
-            <button onclick="toggleDolaPanel()" title="Abrir Dola AI" style="background:#8b5cf6;">🤖</button>
+            <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
@@ -386,8 +390,6 @@
         let peer, connections = [], localStream = null;
         let audioContext, audioDestination;
         let userRole = 'Alumno'; 
-
-        // Galería de Capturas Local
         let savedCaptures = [];
 
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa el código de la clase"; }
@@ -405,6 +407,7 @@
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 createRoom();
+                updateGalleryGrid();
             } else { alert("PIN Incorrecto."); }
         }
 
@@ -495,7 +498,7 @@
         }
         window.clearCanvas = clearCanvas;
 
-        /* ================= BIBLIOTECA MATEMÁTICA ================= */
+        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA ================= */
         const mathFormulas = {
             arithmetic: [
                 {name:"Regla de tres simple",eq:"x = (b · c) / a"},
@@ -689,7 +692,77 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= RUTINAS STAMPER Y PDF =================
+        // ================= RUTINAS STAMPER, PDF Y GALERÍA =================
+        function updateGalleryGrid() {
+            const grid = document.getElementById('gallery-grid-container');
+            if(savedCaptures.length === 0) {
+                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">No hay capturas guardadas aún.<br>Usa el botón "💾 Guardar" en el panel de recorte.</div>';
+                return;
+            }
+            grid.innerHTML = '';
+            savedCaptures.forEach((src, idx) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                item.innerHTML = `
+                    <img src="${src}">
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="loadFromGallery(${idx})" style="background:#2563eb; flex:1; font-size:0.75rem; padding:4px;">✏️ Usar</button>
+                        <button onclick="deleteFromGallery(${idx})" style="background:#dc2626; font-size:0.75rem; padding:4px;" title="Eliminar">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function deleteFromGallery(idx) {
+            if(confirm('¿Eliminar esta captura guardada?')) {
+                savedCaptures.splice(idx, 1);
+                updateGalleryGrid();
+            }
+        }
+        window.deleteFromGallery = deleteFromGallery;
+
+        function saveCurrentStampToGallery() {
+            const img = document.getElementById('stamp-img');
+            if(!img || !img.src) return;
+            savedCaptures.push(img.src);
+            updateGalleryGrid();
+            alert("¡Captura guardada en 'Mis Ejercicios' con éxito!");
+        }
+        window.saveCurrentStampToGallery = saveCurrentStampToGallery;
+
+        function loadFromGallery(idx) {
+            const src = savedCaptures[idx];
+            if(!src) return;
+            const img = document.getElementById('stamp-img');
+            const source = new Image();
+            source.onload = function() {
+                let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
+                const ratio = Math.min(1, 900 / w, 650 / h);
+                w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
+                img.onload = function() {
+                    const sc = document.getElementById('stamper-content');
+                    sc.style.width = w + 'px'; sc.style.height = h + 'px';
+                    const stamper = document.getElementById('stamper');
+                    stamper.style.top = (window.innerHeight/2) + 'px';
+                    stamper.style.left = (window.innerWidth/2) + 'px';
+                    stamper.style.display = 'block';
+                };
+                img.src = src;
+            };
+            source.src = src;
+            toggleGalleryMinimize();
+        }
+        window.loadFromGallery = loadFromGallery;
+
+        function toggleGalleryPanel() {
+            const panel = document.getElementById('gallery-panel');
+            panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
+        }
+        function toggleGalleryMinimize() {
+            document.getElementById('gallery-panel').style.display = 'none';
+        }
+
         function renderFormulaToStamp(formulaText) {
             const tempCanvas = document.createElement('canvas');
             const tCtx = tempCanvas.getContext('2d');
@@ -795,63 +868,6 @@
             stampCropBox.style.display = 'none'; stampCropStart = null;
         }, true);
 
-        // Función para guardar en la Galería local
-        function saveCurrentStampToGallery() {
-            const img = document.getElementById('stamp-img');
-            if(!img || !img.src) return;
-            savedCaptures.push(img.src);
-            updateGalleryGrid();
-            alert("¡Captura guardada en 'Mis Ejercicios' con éxito!");
-        }
-        window.saveCurrentStampToGallery = saveCurrentStampToGallery;
-
-        function updateGalleryGrid() {
-            const grid = document.getElementById('gallery-grid-container');
-            if(savedCaptures.length === 0) {
-                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">No hay capturas guardadas aún.</div>';
-                return;
-            }
-            grid.innerHTML = '';
-            savedCaptures.forEach((src, idx) => {
-                const item = document.createElement('div');
-                item.className = 'gallery-item';
-                item.innerHTML = `<img src="${src}"><button onclick="loadFromGallery(${idx})" style="background:#2563eb; width:100%; font-size:0.75rem; padding:4px;">Usar en Pizarra</button>`;
-                grid.appendChild(item);
-            });
-        }
-
-        function loadFromGallery(idx) {
-            const src = savedCaptures[idx];
-            if(!src) return;
-            const img = document.getElementById('stamp-img');
-            const source = new Image();
-            source.onload = function() {
-                let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
-                const ratio = Math.min(1, 900 / w, 650 / h);
-                w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
-                img.onload = function() {
-                    const sc = document.getElementById('stamper-content');
-                    sc.style.width = w + 'px'; sc.style.height = h + 'px';
-                    const stamper = document.getElementById('stamper');
-                    stamper.style.top = (window.innerHeight/2) + 'px';
-                    stamper.style.left = (window.innerWidth/2) + 'px';
-                    stamper.style.display = 'block';
-                };
-                img.src = src;
-            };
-            source.src = src;
-            toggleGalleryMinimize();
-        }
-        window.loadFromGallery = loadFromGallery;
-
-        function toggleGalleryPanel() {
-            const panel = document.getElementById('gallery-panel');
-            panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
-        }
-        function toggleGalleryMinimize() {
-            document.getElementById('gallery-panel').style.display = 'none';
-        }
-
         function loadImageIntoStamp(file) {
             if (!file || !file.type || !file.type.startsWith('image/')) return;
             const reader = new FileReader();
@@ -876,21 +892,11 @@
             };
             reader.readAsDataURL(file);
         }
-        ['imageInput', 'cameraInput', 'geminiImageInput'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) input.addEventListener('change', function(e) {
-                if (e.target.files[0]) {
-                    loadImageIntoStamp(e.target.files[0]);
-                    if(id === 'geminiImageInput') toggleDolaMinimize();
-                }
-                e.target.value = '';
-            });
-        });
 
-        // Captura de pantalla para Dola AI
+        // ======= Captura de Ventana para Dola AI =======
         async function captureDolaScreen() {
             try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'screen' } });
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { mediaSource: 'window' } });
                 const video = document.createElement('video');
                 video.srcObject = stream;
                 video.onloadedmetadata = () => {
@@ -915,12 +921,21 @@
                     }, 500);
                 };
             } catch (err) {
-                alert("La captura de pantalla fue cancelada o no permitida por el navegador. Puedes usar 'Subir Captura' como alternativa.");
+                alert("La captura fue cancelada o tu navegador no lo soporta.");
             }
         }
         window.captureDolaScreen = captureDolaScreen;
 
-        // Visor PDF
+        // Visor Dola AI
+        const dolaPanel = document.getElementById('dola-panel');
+        function toggleDolaPanel() {
+            dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none';
+        }
+        function toggleDolaMinimize() {
+            dolaPanel.style.display = 'none';
+        }
+
+        // Visor PDF Mejorado con Súper Zoom
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -1003,15 +1018,6 @@
             }
             pdfCropStart = null;
         });
-
-        // Visor Dola AI
-        const dolaPanel = document.getElementById('dola-panel');
-        function toggleDolaPanel() {
-            dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none';
-        }
-        function toggleDolaMinimize() {
-            dolaPanel.style.display = 'none';
-        }
 
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
@@ -1276,18 +1282,49 @@
             function elementTouchDrag(e) { pos1 = pos3 - e.touches[0].clientX; pos2 = pos4 - e.touches[0].clientY; pos3 = e.touches[0].clientX; pos4 = e.touches[0].clientY; element.style.top = (element.offsetTop - pos2) + "px"; element.style.left = (element.offsetLeft - pos1) + "px"; }
             function closeDragElement() { document.onmouseup = null; document.onmousemove = null; document.ontouchend = null; document.ontouchmove = null; }
         }
-        makeDraggable(pdfPanel, document.getElementById('pdf-header'));
-        makeDraggable(dolaPanel, document.getElementById('dola-header'));
+        
+        // ======= FUNCIÓN MAESTRA DE REDIMENSIÓN PARA PANELES =======
+        function makePanelResizable(panelId, handleId) {
+            const panel = document.getElementById(panelId);
+            const handle = document.getElementById(handleId);
+            if(!panel || !handle) return;
+            let isR = false, sW, sH, sX, sY;
+            handle.addEventListener('pointerdown', e => {
+                e.preventDefault(); e.stopPropagation();
+                isR = true; sW = panel.offsetWidth; sH = panel.offsetHeight;
+                sX = e.clientX; sY = e.clientY;
+            });
+            window.addEventListener('pointermove', e => {
+                if(!isR) return;
+                let newW = sW + e.clientX - sX;
+                let newH = sH + e.clientY - sY;
+                if(newW > 200) panel.style.width = newW + 'px';
+                if(newH > 150) {
+                    panel.style.height = newH + 'px';
+                    panel.style.maxHeight = 'none'; 
+                    const container = panel.querySelector('div[id$="-render-container"]');
+                    if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
+                }
+            });
+            window.addEventListener('pointerup', () => isR = false);
+        }
+
+        makeDraggable(document.getElementById('pdf-panel'), document.getElementById('pdf-header'));
+        makeDraggable(document.getElementById('dola-panel'), document.getElementById('dola-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
 
+        makePanelResizable('pdf-panel', 'pdf-resize-handle');
+        makePanelResizable('dola-panel', 'dola-resize-handle');
+        makePanelResizable('gallery-panel', 'gallery-resize-handle');
+
         // Redimensión de estampas (Zoom proporcional)
-        const resizeHandle = document.getElementById('resize-handle');
+        const resizeHandleStamper = document.getElementById('resize-handle');
         const stamperContent = document.getElementById('stamper-content');
         let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
         
-        resizeHandle.addEventListener('pointerdown', (e) => {
+        resizeHandleStamper.addEventListener('pointerdown', (e) => {
             e.preventDefault(); e.stopPropagation();
             isResizingStamp = true;
             startStampW = stamperContent.offsetWidth;
