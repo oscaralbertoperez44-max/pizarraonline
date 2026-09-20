@@ -100,8 +100,8 @@
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
-        #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; }
-        #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
+        #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; cursor: move; }
+        #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; pointer-events: none;}
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
         
         #stamp-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 10; background: rgba(0,0,0,0.3); border-radius: 0 0 9px 9px;}
@@ -222,7 +222,8 @@
             <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
         </div>
         <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <iframe id="calc-frame" src="https://www.desmos.com/calculator?lang=es" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+            <!-- MODO EMBED AÑADIDO: Formato limpio y profesional sin estorbos de navegación -->
+            <iframe id="calc-frame" src="https://www.desmos.com/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
@@ -334,7 +335,7 @@
 
     <!-- Estampador General (Capa segura de recorte sin bugs) -->
     <div id="stamper" class="floating-panel">
-        <div id="stamper-header">🖐️ Arrastrar para Mover</div>
+        <div id="stamper-header">🖐️ Mueve desde la imagen</div>
         <div id="stamper-content">
             <img id="stamp-img" src="">
             <div id="stamp-crop-overlay">
@@ -1499,9 +1500,18 @@
 
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            
+            // LA CLAVE: Si hacemos que toda la ventana sea agarrable, no debemos bloquear clics en botones o iframes.
             handle.addEventListener('pointerdown', dragMouseDown);
+            
             function dragMouseDown(e) { 
-                if(e.target.tagName === 'BUTTON') return;
+                // Ignorar el arrastre si se hace clic en algo que necesita interactuarse normalmente
+                if(e.target.tagName === 'BUTTON' || 
+                   e.target.tagName === 'INPUT' || 
+                   e.target.classList.contains('resize-handle') ||
+                   e.target.classList.contains('f-tab') ||
+                   e.target.classList.contains('f-cat')) return;
+                   
                 e.preventDefault(); 
                 pos3 = e.clientX; pos4 = e.clientY; 
                 disableIframes(); 
@@ -1580,7 +1590,8 @@
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
-        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
+        // El stamper ahora es completamente arrastrable tocando cualquier parte de su contenido
+        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
         makePanelResizable('dola-panel', 'dola-resize-handle');
