@@ -353,10 +353,13 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
+        <!-- Opciones Universales Extras (Profesor y Alumno) -->
+        <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
+        <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
+        <div class="toolbar-divider"></div>
+
         <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
-            <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
-            <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
             <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
@@ -452,14 +455,18 @@
 
         // ================= SISTEMA DE AUDIO (VOZ) =================
         function playAudio(stream) {
+            if (document.getElementById('audio-' + stream.id)) return; // Prevenir duplicación
             const audioEl = document.createElement('audio');
+            audioEl.id = 'audio-' + stream.id;
             audioEl.srcObject = stream;
             audioEl.autoplay = true;
             document.body.appendChild(audioEl);
             
-            audioEl.play().catch(err => {
-                console.warn("El navegador bloqueó el autoplay del audio:", err);
-            });
+            setTimeout(() => {
+                audioEl.play().catch(err => {
+                    console.warn("El navegador bloqueó el autoplay del audio:", err);
+                });
+            }, 100);
         }
         window.playAudio = playAudio;
 
@@ -471,7 +478,7 @@
                     const btn = document.getElementById('btn-mic');
                     if (btn) {
                         btn.innerHTML = audioTrack.enabled ? '🎙️' : '🔇';
-                        btn.style.background = audioTrack.enabled ? '' : '#dc2626';
+                        btn.style.background = audioTrack.enabled ? 'transparent' : '#dc2626';
                     }
                 }
             } else {
@@ -986,7 +993,6 @@
             cropModePdf = !cropModePdf;
             pOverlay.style.display = cropModePdf ? 'block' : 'none';
             if (cropModePdf) {
-                // Cubrir TODO el área de scroll para que no se escape la selección
                 const container = document.getElementById('pdf-render-container');
                 pOverlay.style.width = Math.max(container.clientWidth, container.scrollWidth) + 'px';
                 pOverlay.style.height = Math.max(container.clientHeight, container.scrollHeight) + 'px';
@@ -1025,7 +1031,6 @@
             const pRect = pBox.getBoundingClientRect();
             const cRect = pdfAppCanvas.getBoundingClientRect();
             
-            // LA CLAVE DE ORO: Matemática exacta comparando las cajas visuales renderizadas en el monitor
             const visualX = pRect.left - cRect.left;
             const visualY = pRect.top - cRect.top;
             
@@ -1033,7 +1038,6 @@
                 const scaleX = pdfAppCanvas.width / cRect.width;
                 const scaleY = pdfAppCanvas.height / cRect.height;
                 
-                // Recorte seguro (clamp) para evitar zonas vacías si el usuario arrastra fuera del PDF
                 const safeX = Math.max(0, visualX);
                 const safeY = Math.max(0, visualY);
                 const adjW = pRect.width - (safeX - visualX);
@@ -1356,7 +1360,10 @@
                 connections.push(conn); 
                 conn.on('data', drawRemote); 
             });
-            peer.on('call', (call) => { if(localStream) call.answer(localStream); else call.answer(); call.on('stream', playAudio); });
+            peer.on('call', (call) => { 
+                if(localStream) call.answer(localStream); else call.answer(); 
+                call.on('stream', playAudio); 
+            });
         }
 
         async function joinRoom() {
@@ -1373,7 +1380,14 @@
                 const conn = peer.connect(roomId); 
                 connections.push(conn);
                 conn.on('data', drawRemote);
-                if(localStream) { const call = peer.call(roomId, localStream); call.on('stream', playAudio); }
+                
+                // MEJORA: Pequeño retraso de 800ms para asegurar conexión limpia
+                setTimeout(() => {
+                    if(localStream) { 
+                        const call = peer.call(roomId, localStream); 
+                        if(call) call.on('stream', playAudio); 
+                    }
+                }, 800);
             });
             peer.on('error', () => {
                 alert("No se pudo conectar a la clase. Verifica el código.");
