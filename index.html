@@ -77,12 +77,13 @@
         
         #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        #pdf-panel, #dola-panel, #calc-panel, #gallery-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: relative; }
+        #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: relative; }
         #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
         #dola-panel { width: 750px; height: 550px; }
         #calc-panel { width: 600px; height: 500px; }
+        #resources-panel { width: 450px; height: 500px; }
         
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
@@ -96,7 +97,7 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        /* Stamper sin bug de saltos */
+        /* Motor de Recorte Seguro Libre de Bugs */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
@@ -138,7 +139,7 @@
         #formulas-panel{overscroll-behavior:contain;}
         #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
 
-        /* Estilo de la Galería de Ejercicios Guardados PERMANENTE */
+        /* Estilo de las Galerías y Recursos */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none;}
@@ -171,7 +172,7 @@
 
         @media (max-width: 900px) {
             #formulas-panel { width: 92vw !important; max-height:66vh !important; }
-            #pdf-panel, #dola-panel, #calc-panel, #gallery-panel { width: 95%; left: 2.5%; top: 5%; }
+            #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel { width: 95%; left: 2.5%; top: 5%; }
             #main-toolbar { padding: 6px 12px; bottom: 15px; border-radius: 20px;}
             #main-toolbar button { min-width: 36px; min-height: 36px; padding: 4px 8px; font-size: 15px; }
             .hide-mobile { display: none !important; }
@@ -222,9 +223,29 @@
             <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
         </div>
         <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <iframe id="calc-frame" src="https://www.geogebra.org/calculator?lang=es" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+            <!-- MODO EMBED AÑADIDO: Formato limpio y profesional sin estorbos de navegación -->
+            <iframe id="calc-frame" src="https://www.geogebra.org/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
+    </div>
+
+    <!-- Gestor de Archivos (NUEVO) -->
+    <div id="resources-panel" class="floating-panel">
+        <div class="panel-header" id="resources-header">
+            <span>📚 Gestor de Archivos (PDFs y Fotos)</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('resources-panel')" title="Pantalla Completa">🗖</button>
+                <button onclick="toggleResourcesPanel()" title="Minimizar">_</button>
+            </div>
+        </div>
+        <div class="pdf-controls">
+            <button onclick="document.getElementById('multiFileInput').click()" style="background:#10b981; width:100%;">➕ Añadir PDFs o Fotos</button>
+            <input type="file" id="multiFileInput" class="hidden-file" accept="application/pdf, image/*" multiple>
+        </div>
+        <div class="gallery-grid" id="resources-grid-container" style="flex-grow: 1; min-height:200px;">
+            <!-- Los archivos cargados aparecerán aquí -->
+        </div>
+        <div class="resize-handle resize-handle-panel" id="resources-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Visor PDF -->
@@ -356,6 +377,7 @@
         <!-- Opciones Universales Extras (Profesor y Alumno) -->
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
         <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
+        <button onclick="toggleResourcesPanel()" title="Archivos de Clase (PDFs y Fotos)" style="background:#8b5cf6;">📚</button>
         <div class="toolbar-divider"></div>
 
         <!-- Opciones exclusivas de Profesor -->
@@ -365,11 +387,8 @@
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
             
             <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-            <button onclick="document.getElementById('pdfInput').click()" title="Abrir Archivo PDF" class="hide-mobile">📂</button>
-
             <input type="file" id="imageInput" class="hidden-file" accept="image/*">
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-            <button onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen de PC" class="hide-mobile">🖼️</button>
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
             <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
@@ -755,6 +774,101 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
+        // ================= NUEVO GESTOR DE ARCHIVOS (PDF Y FOTOS) =================
+        let sessionResources = [];
+        
+        document.getElementById('multiFileInput').addEventListener('change', async function(e) {
+            const files = e.target.files;
+            if(!files || files.length === 0) return;
+            
+            for(let file of files) {
+                const reader = new FileReader();
+                reader.onload = function(ev) {
+                    sessionResources.push({
+                        name: file.name,
+                        type: file.type.startsWith('image/') ? 'image' : 'pdf',
+                        data: ev.target.result
+                    });
+                    updateResourcesGrid();
+                };
+                reader.readAsDataURL(file);
+            }
+            e.target.value = '';
+        });
+
+        function updateResourcesGrid() {
+            const grid = document.getElementById('resources-grid-container');
+            grid.innerHTML = '';
+            if(sessionResources.length === 0) {
+                grid.innerHTML = '<div style="grid-column: span 2; text-align:center; color:#888; padding:20px;">Carga archivos para tenerlos a mano.</div>';
+                return;
+            }
+            sessionResources.forEach((res, idx) => {
+                const item = document.createElement('div');
+                item.className = 'gallery-item';
+                const icon = res.type === 'pdf' ? '📄' : '🖼️';
+                item.innerHTML = `
+                    <div style="font-size:2rem; margin-bottom:10px;">${icon}</div>
+                    <div style="font-size:0.75rem; word-break:break-all; margin-bottom:10px; color:#ccc;">${res.name}</div>
+                    <div style="display:flex; gap:5px;">
+                        <button onclick="openResource(${idx})" style="background:#2563eb; flex:1; font-size:0.75rem; padding:4px;">Abrir</button>
+                        <button onclick="removeResource(${idx})" style="background:#dc2626; font-size:0.75rem; padding:4px;">🗑️</button>
+                    </div>
+                `;
+                grid.appendChild(item);
+            });
+        }
+
+        function removeResource(idx) {
+            sessionResources.splice(idx, 1);
+            updateResourcesGrid();
+        }
+
+        async function openResource(idx) {
+            const res = sessionResources[idx];
+            if (res.type === 'image') {
+                const img = document.getElementById('stamp-img');
+                const source = new Image();
+                source.onload = function() {
+                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
+                    const ratio = Math.min(1, 900 / w, 650 / h);
+                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
+                    img.onload = function() {
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.left = (window.innerWidth - w) / 2 + 'px';
+                        stamper.style.top = (window.innerHeight - h) / 2 + 'px';
+                        stamper.style.display = 'block';
+                    };
+                    img.src = res.data;
+                };
+                source.src = res.data;
+                toggleResourcesPanel();
+            } else if (res.type === 'pdf') {
+                const base64Data = res.data.split(',')[1];
+                const binary = atob(base64Data);
+                const len = binary.length;
+                const buffer = new ArrayBuffer(len);
+                const view = new Uint8Array(buffer);
+                for (let i = 0; i < len; i++) {
+                    view[i] = binary.charCodeAt(i);
+                }
+                pdfDoc = await pdfjsLib.getDocument({ data: view }).promise;
+                pageNum = 1; pdfScale = 2.0; 
+                document.getElementById('pdf-panel').style.display = 'flex';
+                renderPage(pageNum);
+                toggleResourcesPanel();
+            }
+        }
+
+        function toggleResourcesPanel() {
+            const p = document.getElementById('resources-panel');
+            p.style.display = p.style.display === 'none' || p.style.display === '' ? 'flex' : 'none';
+            if (p.style.display === 'flex' && sessionResources.length === 0) updateResourcesGrid();
+        }
+        window.toggleResourcesPanel = toggleResourcesPanel;
+
         // ================= RUTINAS GALERÍA COMPRIMIDA PERSISTENTE =================
         function updateGalleryGrid() {
             const grid = document.getElementById('gallery-grid-container');
@@ -835,7 +949,6 @@
                     const sc = document.getElementById('stamper-content');
                     sc.style.width = w + 'px'; sc.style.height = h + 'px';
                     const stamper = document.getElementById('stamper');
-                    // FIX: Centrar el elemento con coordenadas matemáticas
                     stamper.style.left = (window.innerWidth - w) / 2 + 'px';
                     stamper.style.top = (window.innerHeight - h) / 2 + 'px';
                     stamper.style.display = 'block';
@@ -981,7 +1094,7 @@
             stampCropMode = false; sStartX = undefined;
         });
 
-        // Visor PDF
+        // Visor PDF Original
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -1509,6 +1622,7 @@
 
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            let startTop = 0, startLeft = 0;
             
             // LA CLAVE: Si hacemos que toda la ventana sea agarrable, no debemos bloquear clics en botones o iframes.
             handle.addEventListener('pointerdown', dragMouseDown);
@@ -1523,16 +1637,22 @@
                    
                 e.preventDefault(); 
                 pos3 = e.clientX; pos4 = e.clientY; 
+                startTop = element.offsetTop;
+                startLeft = element.offsetLeft;
                 disableIframes(); 
                 document.addEventListener('pointerup', closeDragElement); 
                 document.addEventListener('pointermove', elementDrag); 
             }
             function elementDrag(e) { 
                 e.preventDefault(); 
-                pos1 = pos3 - e.clientX; pos2 = pos4 - e.clientY; 
-                pos3 = e.clientX; pos4 = e.clientY; 
-                element.style.top = (element.offsetTop - pos2) + "px"; 
-                element.style.left = (element.offsetLeft - pos1) + "px"; 
+                pos1 = pos3 - e.clientX; 
+                pos2 = pos4 - e.clientY; 
+                pos3 = e.clientX; 
+                pos4 = e.clientY; 
+                startTop -= pos2;
+                startLeft -= pos1;
+                element.style.top = startTop + "px"; 
+                element.style.left = startLeft + "px"; 
             }
             function closeDragElement() { 
                 document.removeEventListener('pointerup', closeDragElement); 
@@ -1599,7 +1719,9 @@
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
-        // El stamper ahora es completamente arrastrable tocando cualquier parte de su contenido
+        makeDraggable(document.getElementById('resources-panel'), document.getElementById('resources-header'));
+        
+        // El stamper ahora es completamente arrastrable tocando cualquier parte de su contenido SIN LAG
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
@@ -1607,6 +1729,7 @@
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('formulas-panel', 'formulas-resize-handle');
+        makePanelResizable('resources-panel', 'resources-resize-handle');
 
         // Redimensión de estampas
         const resizeHandleStamper = document.getElementById('resize-handle');
