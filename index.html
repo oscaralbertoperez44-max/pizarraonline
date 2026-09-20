@@ -14,25 +14,44 @@
         /* Base General Ultra Optimizada - Bloqueo de Gestos de SO */
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
-            background-color: #ffffff; color: #1e293b;
+            color: #1e293b;
             font-family: 'Segoe UI', sans-serif; overflow: hidden;
             position: fixed; inset: 0; 
             touch-action: none; -ms-touch-action: none;
             user-select: none; -webkit-user-select: none;
             overscroll-behavior: none;
         }
+
+        /* TEMA 1: Pizarra Blanca (Fibrón al Agua) */
+        body.theme-whiteboard #canvas-container {
+            background-color: #ffffff;
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.04) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, rgba(0,0,0,0.04) 1.5px, transparent 1.5px);
+            background-size: 35px 35px;
+            transition: background-color 0.5s ease;
+        }
+
+        /* TEMA 2: Pizarra Retro (Tiza Real) */
+        body.theme-chalkboard #canvas-container {
+            background-color: #243447;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.04) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, rgba(255,255,255,0.04) 1.5px, transparent 1.5px);
+            background-size: 35px 35px;
+            transition: background-color 0.5s ease;
+        }
         
         #canvas-container {
             width: 100vw; height: 100vh;
             position: absolute; top: 0; left: 0; z-index: 1;
             overflow: hidden; 
-            background-color: #ffffff;
         }
 
         canvas#board {
             display: block; touch-action: none;
             width: 100vw; height: 100vh; 
-            background-color: #ffffff;
+            background-color: transparent !important;
             transform: translateZ(0);
             backface-visibility: hidden;
             will-change: contents;
@@ -179,7 +198,7 @@
         }
     </style>
 </head>
-<body>
+<body class="theme-whiteboard">
 
     <div id="login-overlay">
         <div class="login-box">
@@ -223,13 +242,12 @@
             <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
         </div>
         <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <!-- MODO EMBED AÑADIDO: Formato limpio y profesional sin estorbos de navegación -->
             <iframe id="calc-frame" src="https://www.geogebra.org/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Gestor de Archivos (NUEVO) -->
+    <!-- Gestor de Archivos -->
     <div id="resources-panel" class="floating-panel">
         <div class="panel-header" id="resources-header">
             <span>📚 Gestor de Archivos (PDFs y Fotos)</span>
@@ -276,7 +294,7 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI (Exclusivo Profesor) -->
+    <!-- Visor Dola AI -->
     <div id="dola-panel" class="floating-panel">
         <div class="panel-header" id="dola-header">
             <span>🤖 Dola AI (Asistente Inteligente)</span>
@@ -353,7 +371,7 @@
         <div class="resize-handle resize-handle-panel" id="formulas-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General (Ahora libre de movimientos bruscos) -->
+    <!-- Estampador General -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-header">🖐️ Mueve desde la imagen</div>
         <div id="stamper-content">
@@ -386,8 +404,6 @@
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
             
-            <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-            <input type="file" id="imageInput" class="hidden-file" accept="image/*">
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
@@ -405,7 +421,7 @@
         <button type="button" id="mw-arrow" title="Flecha" class="hide-mobile">➜</button>
         <button type="button" id="mw-rect" title="Cuadrado / Rectángulo" class="hide-mobile">▭</button>
         <button type="button" id="mw-circle" title="Círculo" class="hide-mobile">○</button>
-        <button type="button" id="mw-eraser" title="Borrador Perfecto">🧼</button>
+        <button type="button" id="mw-eraser" title="Borrador Real">🧼</button>
         <button type="button" id="mw-laser" title="Puntero Láser">🎯</button>
         
         <div class="toolbar-divider"></div>
@@ -415,6 +431,7 @@
         
         <div class="toolbar-divider"></div>
         
+        <button type="button" id="btn-theme" onclick="toggleTheme()" title="Modo Pizarra (Blanca / Tiza)" style="background:#14b8a6;">🌑</button>
         <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
         <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
@@ -425,7 +442,7 @@
     </div>
 
 <script>
-        // Súper Script Unificado y Seguro (Restaurado Completo)
+        // Súper Script Unificado y Seguro
         window.toggleFullScreen = function() {
             if (!document.fullscreenElement) {
                 document.documentElement.requestFullscreen().catch(err => console.log(err));
@@ -473,7 +490,7 @@
             } catch(e) { return false; }
         }
 
-        // ================= SISTEMA DE AUDIO EN MALLA (EVITA ECOS Y PERMITE MÚLTIPLES ALUMNOS) =================
+        // ================= SISTEMA DE AUDIO EN MALLA =================
         function unlockAudio() {
             if(document.getElementById('unlock-btn')) return;
             const btn = document.createElement('button');
@@ -488,9 +505,7 @@
         }
 
         function playAudio(stream, peerId) {
-            // Evitar reproducir nuestro propio micrófono o duplicar conexiones
             if (!peerId || stream.id === localStream?.id) return;
-            
             let audioEl = document.getElementById('audio-' + peerId);
             if (!audioEl) {
                 audioEl = document.createElement('audio');
@@ -498,12 +513,9 @@
                 audioEl.autoplay = true;
                 document.body.appendChild(audioEl);
             }
-            
-            // Asignar stream solo si es distinto (evita reinicios y ecos por recargas de PeerJS)
             if (audioEl.srcObject !== stream) {
                 audioEl.srcObject = stream;
             }
-            
             audioEl.play().catch(err => {
                 console.warn("Autoplay bloqueado para", peerId, err);
                 unlockAudio();
@@ -535,8 +547,37 @@
                 call.on('stream', (stream) => playAudio(stream, call.peer));
             });
         }
-        // ==========================================================
 
+        // ================= SISTEMA DE TEMAS =================
+        function toggleTheme() {
+            const isWhite = document.body.classList.contains('theme-whiteboard');
+            const newTheme = isWhite ? 'theme-chalkboard' : 'theme-whiteboard';
+            applyTheme(newTheme);
+            if (typeof broadcastData === 'function') {
+                broadcastData({ type: 'theme', theme: newTheme });
+            }
+        }
+        
+        function applyTheme(themeName) {
+            document.body.classList.remove('theme-whiteboard', 'theme-chalkboard');
+            document.body.classList.add(themeName);
+            
+            const btn = document.getElementById('btn-theme');
+            if (btn) btn.innerText = themeName === 'theme-whiteboard' ? '🌑' : '☀️';
+            
+            const colorPicker = document.getElementById('mw-color');
+            if (colorPicker) {
+                if (themeName === 'theme-chalkboard' && colorPicker.value === '#0f172a') {
+                    colorPicker.value = '#f8fafc'; // Default Tiza Blanca
+                } else if (themeName === 'theme-whiteboard' && colorPicker.value === '#f8fafc') {
+                    colorPicker.value = '#0f172a'; // Default Fibrón Negro
+                }
+            }
+        }
+        window.toggleTheme = toggleTheme;
+        window.applyTheme = applyTheme;
+
+        // ================= ADMIN & CANCEL =================
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
@@ -568,23 +609,12 @@
         let internalWidth = window.innerWidth;
         let internalHeight = window.innerHeight;
 
-        function drawGrid(targetCtx, w, h) {
-            targetCtx.fillStyle = '#ffffff';
-            targetCtx.fillRect(0, 0, w, h);
-            targetCtx.strokeStyle = 'rgba(0,0,0,0.05)';
-            targetCtx.lineWidth = 1.5;
-            targetCtx.beginPath();
-            for(let x=0; x<w; x+=35) { targetCtx.moveTo(x,0); targetCtx.lineTo(x,h); }
-            for(let y=0; y<h; y+=35) { targetCtx.moveTo(0,y); targetCtx.lineTo(w,y); }
-            targetCtx.stroke();
-        }
-
         function initCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
-            drawGrid(ctx, canvas.width, canvas.height);
+            // El fondo ahora es transparente, la cuadrícula la pone CSS
         }
 
         function resizeCanvas() {
@@ -593,8 +623,6 @@
             canvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
-            
-            drawGrid(ctx, canvas.width, canvas.height);
             
             const img = new Image();
             img.onload = () => {
@@ -608,7 +636,7 @@
         initCanvas();
         window.addEventListener('resize', resizeCanvas, { passive: true });
 
-        // ===== MOTOR DE RED MULTIJUGADOR (Ultra-Baja Latencia vinculada a pantalla) =====
+        // ===== MOTOR DE RED MULTIJUGADOR =====
         let broadcastQueue = [];
         
         function broadcastLoop() {
@@ -632,12 +660,9 @@
             }
         }
 
-        // ===== LIMPIEZA ABSOLUTA DE LA PIZARRA =====
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-            ctx.globalCompositeOperation = 'source-over';
-            ctx.globalAlpha = 1.0;
-            drawGrid(ctx, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             if(typeof window.saveState === 'function') window.saveState(); 
             broadcastData({ type:'clear' });
         }
@@ -950,7 +975,6 @@
                     const sc = document.getElementById('stamper-content');
                     sc.style.width = w + 'px'; sc.style.height = h + 'px';
                     const stamper = document.getElementById('stamper');
-                    // FIX: Centrar el elemento con coordenadas matemáticas
                     stamper.style.left = (window.innerWidth - w) / 2 + 'px';
                     stamper.style.top = (window.innerHeight - h) / 2 + 'px';
                     stamper.style.display = 'block';
@@ -990,7 +1014,6 @@
             stamperContent.style.width = width + 'px'; stamperContent.style.height = height + 'px';
             const stamper = document.getElementById('stamper');
             
-            // FIX: Centrar matemáticamente
             stamper.style.left = (window.innerWidth - width) / 2 + 'px';
             stamper.style.top = (window.innerHeight - height) / 2 + 'px';
             stamper.style.display = 'block';
@@ -1025,7 +1048,7 @@
         function cancelStamp() { document.getElementById('stamper').style.display = 'none'; }
         window.cancelStamp = cancelStamp;
         
-        // == MOTOR DE RECORTE SEGURO (Stamper) ==
+        // == MOTOR DE RECORTE SEGURO =================
         let stampCropMode = false, sStartX, sStartY;
         const sOverlay = document.getElementById('stamp-crop-overlay');
         const sBox = document.getElementById('stamp-crop-box');
@@ -1096,7 +1119,7 @@
             stampCropMode = false; sStartX = undefined;
         });
 
-        // Visor PDF Original
+        // Visor PDF
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -1132,7 +1155,6 @@
         function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
         window.togglePdfMinimize = togglePdfMinimize;
         
-        // == MOTOR DE RECORTE SEGURO (PDF) ==
         let cropModePdf = false, pStartX, pStartY;
         const pOverlay = document.getElementById('crop-overlay');
         const pBox = document.getElementById('crop-box');
@@ -1213,8 +1235,6 @@
                     document.getElementById('stamper-content').style.height = finalH + 'px';
                     
                     const stamper = document.getElementById('stamper');
-                    
-                    // FIX: Centrar matemáticamente
                     stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
                     stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
                     stamper.style.display = 'block';
@@ -1225,7 +1245,7 @@
             pBox.style.display = 'none'; pStartX = undefined;
         });
 
-        // Visores Dinámicos (Dola AI & Calculadora)
+        // Visores Dinámicos
         const dolaPanel = document.getElementById('dola-panel');
         function toggleDolaPanel() { dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none'; }
         window.toggleDolaPanel = toggleDolaPanel;
@@ -1277,40 +1297,6 @@
         window.captureDolaScreen = () => captureScreenSource('dola');
         window.captureCalcScreen = () => captureScreenSource('calc');
 
-        function loadImageIntoStamp(file) {
-            if (!file || !file.type || !file.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = document.getElementById('stamp-img');
-                const source = new Image();
-                source.onload = function() {
-                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
-                    const ratio = Math.min(1, 900 / w, 650 / h);
-                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
-                    img.onload = function() {
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.left = (window.innerWidth - w) / 2 + 'px';
-                        stamper.style.top = (window.innerHeight - h) / 2 + 'px';
-                        stamper.style.display = 'block';
-                    };
-                    img.src = ev.target.result;
-                };
-                source.src = ev.target.result;
-            };
-            reader.readAsDataURL(file);
-        }
-        ['imageInput', 'cameraInput'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) input.addEventListener('change', function(e) {
-                if (e.target.files[0]) {
-                    loadImageIntoStamp(e.target.files[0]);
-                }
-                e.target.value = '';
-            });
-        });
-
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
@@ -1318,7 +1304,18 @@
             tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
             const tCtx = tempCanvas.getContext('2d');
             
-            drawGrid(tCtx, tempCanvas.width, tempCanvas.height);
+            // Dibujar fondo según el tema antes de exportar
+            const isChalk = document.body.classList.contains('theme-chalkboard');
+            tCtx.fillStyle = isChalk ? '#243447' : '#ffffff';
+            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+            
+            tCtx.strokeStyle = isChalk ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
+            tCtx.lineWidth = 1.5;
+            tCtx.beginPath();
+            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); }
+            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); }
+            tCtx.stroke();
+
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
             
@@ -1329,7 +1326,7 @@
         }
         window.saveAsPDF = saveAsPDF;
 
-        // ================= GRABACIÓN AVANZADA MP4 (MOTOR ANTI-DESFASE TOTAL) =================
+        // ================= GRABACIÓN AVANZADA MP4 =================
         let mediaRecorder; let recordedChunks = []; let isRecording = false;
         let recordingLoop;
 
@@ -1338,7 +1335,7 @@
         
         function startRecording() {
             if (!audioDestination) { alert("Audio no inicializado."); return; }
-            const canvasStream = canvas.captureStream(60); // 60 FPS garantizados para fluidez nativa
+            const canvasStream = canvas.captureStream(60);
             let combinedStream;
             if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
                 combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
@@ -1364,12 +1361,9 @@
             mediaRecorder.start(); isRecording = true;
             document.getElementById('btn-record').classList.add('record-active');
 
-            // MOTOR ANTI-DESFASE DE AUDIO/VIDEO
             function keepRecordingAlive() {
                 if (!isRecording) return;
                 const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
-                c.fillStyle = '#ffffff';
-                c.fillRect(0, 0, 1, 1);
                 recordingLoop = requestAnimationFrame(keepRecordingAlive);
             }
             keepRecordingAlive();
@@ -1446,10 +1440,12 @@
         }
 
         function processRemoteCommand(data) {
+            if (data.type === 'theme') {
+                applyTheme(data.theme);
+                return;
+            }
             if (data.type === 'clear') { 
-                ctx.globalCompositeOperation = 'source-over';
-                ctx.globalAlpha = 1.0;
-                drawGrid(ctx, canvas.width, canvas.height); 
+                ctx.clearRect(0, 0, canvas.width, canvas.height); 
                 return; 
             }
             if (data.type === 'logout') {
@@ -1458,24 +1454,18 @@
                 return;
             }
             if (data.type === 'peer_list') {
-                // El profesor nos avisa de otros alumnos, abrimos canal de voz con ellos
                 data.peers.forEach(pId => {
                     if (pId !== peer.id && localStream) {
                         setTimeout(() => {
                             const call = peer.call(pId, localStream);
                             if(call) call.on('stream', (stream) => playAudio(stream, pId));
-                        }, Math.random() * 500 + 500); // Retraso escalonado para no colapsar WebRTC
+                        }, Math.random() * 500 + 500); 
                     }
                 });
                 return;
             }
             
-            if (data.type === 'laser') {
-                updateRemoteCursor(data);
-                return;
-            }
-            
-            if (data.type === 'start') { 
+            if (data.type === 'laser' || data.type === 'start') { 
                 updateRemoteCursor(data);
                 return; 
             }
@@ -1493,19 +1483,33 @@
                 updateRemoteCursor(data);
                 
                 const finalSize = data.size * canvas.width;
+                const isChalk = document.body.classList.contains('theme-chalkboard');
+                
                 ctx.beginPath();
                 ctx.moveTo(data.lastMidX * canvas.width, data.lastMidY * canvas.width);
                 ctx.quadraticCurveTo(data.lastPosX * canvas.width, data.lastPosY * canvas.width, data.midX * canvas.width, data.midY * canvas.width);
 
                 ctx.lineWidth = finalSize;
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = 'transparent';
+
+                // BORRADOR REAL DESTRUCTOR
                 if(data.tool === 'eraser'){
-                    ctx.globalCompositeOperation = 'source-over';
-                    ctx.strokeStyle = '#ffffff';
+                    ctx.globalCompositeOperation = 'destination-out';
+                    ctx.strokeStyle = 'rgba(0,0,0,1)';
                     ctx.globalAlpha = 1;
                 } else {
                     ctx.globalCompositeOperation = 'source-over';
                     ctx.strokeStyle = data.color;
-                    ctx.globalAlpha = data.tool === 'marker' ? 0.38 : 0.92;
+                    if (data.tool === 'marker') {
+                        ctx.globalAlpha = 0.38;
+                    } else if (isChalk) {
+                        ctx.globalAlpha = 0.9;
+                        ctx.shadowBlur = 2;
+                        ctx.shadowColor = data.color;
+                    } else {
+                        ctx.globalAlpha = 0.85;
+                    }
                 }
                 ctx.stroke();
             }
@@ -1521,8 +1525,6 @@
                 processRemoteCommand(data);
             }
             
-            // RE-TRANSMISIÓN PARA MÚLTIPLES ALUMNOS: 
-            // Si soy el profesor y recibo un trazo de un alumno, se lo reenvío a los demás.
             if (isAdmin) {
                 connections.forEach(conn => {
                     if (conn.open && conn.peer !== data.peerId) {
@@ -1537,20 +1539,18 @@
             document.getElementById('main-toolbar').style.display = 'flex';
             
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            // PREFIJO DE SEGURIDAD: Evita que el servidor público de PeerJS cruce tu sala con la de otros en el mundo
             peer = new Peer('MBPRO_' + randomCode, peerNetworkOptions);
             
             setupPeerAudio(peer);
 
             peer.on('open', (id) => {
-                // Solo ocultar login cuando el servidor nos asignó el ID exitosamente
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 document.getElementById('main-toolbar').style.display = 'flex';
 
                 document.getElementById('ui-panel').style.display = 'block';
                 const codeDisplay = document.getElementById('room-code-display');
-                codeDisplay.innerText = randomCode; // Muestra solo el número limpio
+                codeDisplay.innerText = randomCode;
                 codeDisplay.style.display = 'block';
                 
                 setTimeout(() => { 
@@ -1564,11 +1564,14 @@
 
             peer.on('connection', (conn) => { 
                 conn.on('open', () => {
-                    // Enviar lista de alumnos actuales al nuevo alumno para establecer la red Malla
                     const activePeers = connections.filter(c => c.open).map(c => c.peer);
                     if (activePeers.length > 0) {
                         conn.send({ type: 'peer_list', peers: activePeers });
                     }
+                    // Sincronizar el tema actual al alumno recién conectado
+                    const isChalk = document.body.classList.contains('theme-chalkboard');
+                    conn.send({ type: 'theme', theme: isChalk ? 'theme-chalkboard' : 'theme-whiteboard' });
+                    
                     connections.push(conn); 
                 });
                 conn.on('data', drawRemote); 
@@ -1588,7 +1591,6 @@
             const roomId = roomIdInput.value.toUpperCase().trim();
             if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
             
-            // UX: Mostrar al usuario que está conectando
             const btn = document.querySelector('#form-student .btn-student');
             const originalText = btn.innerText;
             btn.innerText = "Conectando al Profesor...";
@@ -1601,10 +1603,8 @@
 
             peer.on('open', () => {
                 const targetId = 'MBPRO_' + roomId;
-                // Reliable: true forza a WebRTC a usar un canal más estable para la pizarra
                 const conn = peer.connect(targetId, { reliable: true }); 
                 
-                // ESPERAR AL EVENTO 'open' REAL con el profesor
                 conn.on('open', () => {
                     connections.push(conn);
                     conn.on('data', drawRemote);
@@ -1613,7 +1613,6 @@
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                     document.getElementById('main-toolbar').style.display = 'flex';
                     
-                    // MEJORA: Pequeño retraso de 1000ms para asegurar conexión limpia antes de enviar voz al profesor
                     setTimeout(() => {
                         if(localStream) { 
                             const call = peer.call(targetId, localStream); 
@@ -1636,7 +1635,6 @@
             });
         }
 
-        // ================= SISTEMA DE VENTANAS FLOTANTES Y REDIMENSIÓN =================
         function disableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none'); }
         function enableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'auto'); }
 
@@ -1644,11 +1642,9 @@
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
             let startTop = 0, startLeft = 0;
             
-            // LA CLAVE: Si hacemos que toda la ventana sea agarrable, no debemos bloquear clics en botones o iframes.
             handle.addEventListener('pointerdown', dragMouseDown);
             
             function dragMouseDown(e) { 
-                // Ignorar el arrastre si se hace clic en algo que necesita interactuarse normalmente
                 if(e.target.tagName === 'BUTTON' || 
                    e.target.tagName === 'INPUT' || 
                    e.target.classList.contains('resize-handle') ||
@@ -1740,8 +1736,6 @@
         makeDraggable(document.getElementById('formulas-panel'), document.getElementById('formulas-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
         makeDraggable(document.getElementById('resources-panel'), document.getElementById('resources-header'));
-        
-        // El stamper ahora es completamente arrastrable tocando cualquier parte de su contenido SIN LAG
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
@@ -1751,7 +1745,6 @@
         makePanelResizable('formulas-panel', 'formulas-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
 
-        // Redimensión de estampas
         const resizeHandleStamper = document.getElementById('resize-handle');
         const stamperContent = document.getElementById('stamper-content');
         let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
@@ -1782,7 +1775,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA (RENDERIZADO RAF HIPER-FLUIDO) === */
+/* === MOTOR UNIVERSAL DE ESCRITURA === */
 (function(){
   const board = document.getElementById('board');
   if(!board) return;
@@ -1808,6 +1801,7 @@
       
       const c = board.getContext('2d', {desynchronized: true, alpha: false});
       c.lineCap = 'round'; c.lineJoin = 'round';
+      const isChalk = document.body.classList.contains('theme-chalkboard');
       
       const batch = renderQueue.splice(0, renderQueue.length);
       for(let i=0; i<batch.length; i++) {
@@ -1817,14 +1811,25 @@
           c.quadraticCurveTo(pt.lastPosX, pt.lastPosY, pt.midX, pt.midY);
 
           c.lineWidth = pt.size;
+          c.shadowBlur = 0;
+          c.shadowColor = 'transparent';
+
           if(pt.tool === 'eraser'){
-              c.globalCompositeOperation = 'source-over';
-              c.strokeStyle = '#ffffff';
+              c.globalCompositeOperation = 'destination-out';
+              c.strokeStyle = 'rgba(0,0,0,1)';
               c.globalAlpha = 1;
           } else {
               c.globalCompositeOperation = 'source-over';
               c.strokeStyle = pt.color;
-              c.globalAlpha = pt.tool === 'marker' ? 0.38 : 0.92;
+              if (pt.tool === 'marker') {
+                  c.globalAlpha = 0.38;
+              } else if (isChalk) {
+                  c.globalAlpha = 0.9;
+                  c.shadowBlur = 2;
+                  c.shadowColor = pt.color;
+              } else {
+                  c.globalAlpha = 0.85;
+              }
           }
           c.stroke();
       }
@@ -1855,9 +1860,7 @@
     const img = new Image();
     img.onload = function(){
       const c = board.getContext('2d');
-      c.fillStyle = '#ffffff';
-      c.fillRect(0,0,board.width,board.height);
-      drawGrid(c, board.width, board.height);
+      c.clearRect(0,0,board.width,board.height);
       c.drawImage(img,0,0);
     };
     img.src = url;
@@ -1870,7 +1873,6 @@
       if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
     
-    // Cambiar visualmente el ratón local para que parezca un láser
     if (mode === 'laser') {
         board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="%23ef4444"/><circle cx="16" cy="16" r="14" fill="%23ef4444" fill-opacity="0.3"/></svg>\') 16 16, crosshair';
     } else {
@@ -1910,25 +1912,17 @@
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
         const c = board.getContext('2d');
-        c.fillStyle = '#ffffff';
-        c.fillRect(0, 0, canvas.width, canvas.height);
-        drawGrid(c, canvas.width, canvas.height);
+        c.clearRect(0, 0, canvas.width, canvas.height);
         c.drawImage(shapePreviewCanvas, 0, 0);
         drawShapeExact(c, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
         mwLastPosX = p.x; mwLastPosY = p.y;
         return; 
     }
     
-    // MODO LÁSER (Transmisión exclusiva de puntero sin dibujar)
     if (mwMode === 'laser') {
         let p = pos(events[events.length - 1]);
         if (typeof broadcastData === 'function') {
-            broadcastData({ 
-                type: 'laser', 
-                x: p.x / canvas.width, 
-                y: p.y / canvas.width, 
-                color: '#ef4444' // Láser Rojo intenso
-            });
+            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
         }
         return; 
     }
