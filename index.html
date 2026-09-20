@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0, viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
 <title>MathBoard Pro — Super Star</title>
 <style>
 :root{--bg:#080c18;--panel:#10172aee;--panel2:#151e35;--line:#2b395b;--text:#eef3ff;--muted:#9eabc8;--accent:#6ea8ff;--good:#45d483;--warn:#ffca58;--danger:#ff6878;--shadow:0 14px 45px #0007}
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
 button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:#18223b;color:var(--text);border-radius:10px;padding:9px 11px;cursor:pointer;transition:.15s}button:hover{background:#223052;transform:translateY(-1px)}button:active{transform:translateY(0)}button.primary{background:#2868d7;border-color:#4380eb}button.good{background:#167747;border-color:#2eaa70}button.danger{background:#8e2638;border-color:#c44b5d}
-#app{position:fixed;inset:0;background:#fff}
+#app{position:fixed;inset:0;background:#f8f9fb}
 #boardWrap{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#fff}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #bgCanvas{z-index:0}#board{z-index:1;touch-action:none}#preview{z-index:2;pointer-events:none}
@@ -28,35 +28,27 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 #login{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 20%,#213d76 0,#0c1324 45%,#050811 100%);display:grid;place-items:center;padding:20px}
 .loginCard{width:min(440px,94vw);background:#10172aee;border:1px solid #3a4a70;border-radius:22px;padding:28px;box-shadow:0 25px 90px #0009;backdrop-filter:blur(18px)}
 .logo{font-size:28px;font-weight:800}.sub{color:var(--muted);margin:6px 0 24px}.roleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.roleGrid button{padding:15px}.loginForm{margin-top:16px;display:none}.loginForm input{width:100%;padding:13px;border-radius:11px;border:1px solid var(--line);background:#0b1120;color:#fff;outline:none}.loginForm input:focus{border-color:#5790f7}.hint{font-size:12px;color:var(--muted);margin-top:10px}.error{color:#ff8793;font-size:12px;margin-top:8px;min-height:16px}
-.panel{position:absolute;z-index:60;background:var(--panel);border:1px solid #3a4a70;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden;display:none;flex-direction:column}
+.panel{position:absolute;z-index:60;background:var(--panel);border:1px solid #3a4a70;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden}
 .panelHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #2d3955;cursor:move;background:#121b31}
-.panelHead b{font-size:13px}.panelBody{padding:11px;overflow:auto;flex:1}
-.close{background:transparent;border:0;font-size:18px;padding:2px 7px}
-#chatPanel{right:15px;bottom:75px;width:min(360px,calc(100vw - 30px));height:430px;max-height:calc(100vh - 90px)}
-#chatMessages{flex:1;overflow-y:auto;padding:4px;display:flex;flex-direction:column;overscroll-behavior:contain}
-.msg{margin:7px 0}.msg .who{font-size:10px;color:#88a8e9}.msg .bubble{display:inline-block;background:#1b2743;border-radius:10px;padding:7px 9px;max-width:90%;font-size:13px;word-break:break-word}.msg.me{text-align:right}.msg.me .bubble{background:#2868d7}
-.chatSend{display:flex;gap:6px;margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}.chatSend input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px;background:#0a1020;color:#fff}
-#mediaPanel{left:15px;top:70px;width:min(510px,calc(100vw - 30px));height:360px}
+.panelHead b{font-size:13px}.panelBody{padding:11px;overflow:auto}.close{background:transparent;border:0;font-size:18px;padding:2px 7px}
+#chatPanel{right:15px;bottom:75px;width:min(360px,calc(100vw - 30px));height:430px;display:none}
+#chatMessages{height:330px;overflow:auto;padding:4px}.msg{margin:7px 0}.msg .who{font-size:10px;color:#88a8e9}.msg .bubble{display:inline-block;background:#1b2743;border-radius:10px;padding:7px 9px;max-width:90%;font-size:13px}.msg.me{text-align:right}.msg.me .bubble{background:#2868d7}
+.chatSend{display:flex;gap:6px;margin-top:8px}.chatSend input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px;background:#0a1020;color:#fff}
+#mediaPanel{left:15px;top:70px;width:min(510px,calc(100vw - 30px));height:360px;display:none}
 #videoGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;height:285px;overflow:auto}.videoTile{position:relative;min-height:125px;background:#050912;border:1px solid #263451;border-radius:10px;overflow:hidden}.videoTile video{width:100%;height:100%;object-fit:cover}.videoTile span{position:absolute;left:6px;bottom:5px;background:#0009;padding:3px 6px;border-radius:5px;font-size:10px}
-#roomPanel{left:15px;top:70px;width:290px}.roomCode{font-size:34px;letter-spacing:8px;text-align:center;padding:12px;color:#fff}
-#calcPanel{right:15px;top:70px;width:min(600px,calc(100vw - 30px));height:min(600px,calc(100vh - 150px))}
-#pdfPanel{left:15px;top:70px;width:min(760px,calc(100vw - 30px));height:min(720px,calc(100vh - 150px))}
+#roomPanel{left:15px;top:70px;width:290px;display:none}.roomCode{font-size:34px;letter-spacing:8px;text-align:center;padding:12px;color:#fff}
+#calcPanel{right:15px;top:70px;width:min(600px,calc(100vw - 30px));height:min(600px,calc(100vh - 150px));display:none}
+#pdfPanel{left:15px;top:70px;width:min(760px,calc(100vw - 30px));height:min(720px,calc(100vh - 150px));display:none}
 #pdfCanvas{max-width:100%;display:block;margin:auto;background:#fff;box-shadow:0 2px 12px #0005}
-#galleryPanel{right:15px;top:70px;width:min(420px,calc(100vw - 30px));max-height:500px}
+#galleryPanel{right:15px;top:70px;width:min(420px,calc(100vw - 30px));max-height:500px;display:none}
 .galleryGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}.galleryGrid img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px;border:1px solid #31405f;cursor:pointer}
-#formulaPanel{right:15px;top:70px;width:min(520px,calc(100vw - 30px));max-height:560px}.formula{padding:10px;border-bottom:1px solid #27344f}.formula b{display:block;color:#91b5ff}.formula code{color:#fff;font-size:15px}
-#dolarPanel{right:15px;top:70px;width:min(320px,calc(100vw - 30px));max-height:500px}
-.dolarCard{background:#1b2743;border:1px solid #31405f;border-radius:8px;padding:8px;margin-bottom:6px;font-size:13px}
+#formulaPanel{right:15px;top:70px;width:min(520px,calc(100vw - 30px));max-height:560px;display:none}.formula{padding:10px;border-bottom:1px solid #27344f}.formula b{display:block;color:#91b5ff}.formula code{color:#fff;font-size:15px}
 #toast{position:fixed;z-index:200;left:50%;top:18px;transform:translate(-50%,-20px);opacity:0;background:#111b31ee;border:1px solid #41547c;padding:9px 14px;border-radius:10px;transition:.2s;pointer-events:none;box-shadow:var(--shadow);font-size:13px}
 #toast.show{opacity:1;transform:translate(-50%,0)}
 #fullscreenHint{display:none;position:fixed;z-index:150;right:14px;top:14px;background:#10182bea;border:1px solid #3b4b70;border-radius:10px;padding:8px 10px;font-size:11px}
 body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}body.fs #topbar{opacity:0;pointer-events:none}body.fs #fullscreenHint{display:block}
 body.fs #boardWrap{cursor:crosshair}
-@media(max-width:700px){
-  #toolbar{bottom:8px;padding:5px}.brand{font-size:12px}.status{font-size:10px}.tool{min-width:37px;height:37px;padding:6px}
-  .panel{left:8px !important; right:8px !important; width:calc(100vw - 16px) !important; top:58px !important; border-radius:13px}
-  #chatPanel{top:auto !important; bottom:65px !important; height:50vh}
-}
+@media(max-width:700px){#toolbar{bottom:8px}.brand{font-size:12px}.status{font-size:10px}.tool{min-width:37px}#mediaPanel{left:8px;top:58px}#chatPanel{right:8px;bottom:65px}.panel{border-radius:13px}}
 </style>
 </head>
 <body>
@@ -81,9 +73,8 @@ body.fs #boardWrap{cursor:crosshair}
       <button class="tool teacherOnly" id="pdfBtn" title="PDF">📄</button>
       <button class="tool teacherOnly" id="galleryBtn" title="Galería">🖼️</button>
       <button class="tool teacherOnly" id="formulaBtn" title="Fórmulas">∑</button>
-      <button class="tool teacherOnly" id="dolarBtn" title="Cotización Dólar">💵</button>
       <button class="tool teacherOnly" id="saveBtn" title="Guardar PDF">💾</button>
-      <button class="tool teacherOnly" id="recordBtn" title="Grabar MP4">⏺️</button>
+      <button class="tool teacherOnly" id="recordBtn" title="Grabar">⏺️</button>
       <span class="sep teacherOnly"></span>
     </div>
     <button class="tool active" id="penBtn" title="Lápiz">✎</button>
@@ -93,8 +84,8 @@ body.fs #boardWrap{cursor:crosshair}
     <button class="tool" id="rectBtn" title="Rectángulo">□</button>
     <button class="tool" id="circleBtn" title="Círculo">○</button>
     <button class="tool" id="eraserBtn" title="Borrador">⌫</button>
-    <input id="color" type="color" value="#050811" title="Color" style="width:38px;height:38px;border:0;background:transparent;cursor:pointer">
-    <select id="size" title="Grosor" style="background:#18223b;color:#fff;border-radius:8px"><option value="2">2</option><option value="4" selected>4</option><option value="7">7</option><option value="12">12</option><option value="20">20</option></select>
+    <input id="color" type="color" value="#111827" title="Color" style="width:38px;height:38px;border:0;background:transparent">
+    <select id="size" title="Grosor"><option value="2">2</option><option value="4" selected>4</option><option value="7">7</option><option value="12">12</option><option value="20">20</option></select>
     <span class="sep"></span>
     <button class="tool" id="undoBtn" title="Deshacer">↶</button>
     <button class="tool" id="redoBtn" title="Rehacer">↷</button>
@@ -106,7 +97,6 @@ body.fs #boardWrap{cursor:crosshair}
     <button class="tool" id="logoutBtn" title="Salir">⏻</button>
   </div>
 
-  <!-- Panels -->
   <div class="panel" id="roomPanel">
     <div class="panelHead"><b>🏫 Aula en vivo</b><button class="close">×</button></div>
     <div class="panelBody">
@@ -119,9 +109,9 @@ body.fs #boardWrap{cursor:crosshair}
 
   <div class="panel" id="chatPanel">
     <div class="panelHead"><b>💬 Chat del aula</b><button class="close">×</button></div>
-    <div class="panelBody" style="display:flex;flex-direction:column;padding:6px">
+    <div class="panelBody">
       <div id="chatMessages"></div>
-      <div class="chatSend"><input id="chatInput" placeholder="Escribí un mensaje…" autocomplete="off"><button class="primary" id="sendChat">Enviar</button></div>
+      <div class="chatSend"><input id="chatInput" placeholder="Escribí un mensaje…"><button class="primary" id="sendChat">Enviar</button></div>
     </div>
   </div>
 
@@ -135,24 +125,21 @@ body.fs #boardWrap{cursor:crosshair}
 
   <div class="panel" id="calcPanel">
     <div class="panelHead"><b>🧮 Calculadora gráfica</b><button class="close">×</button></div>
-    <div class="panelBody" style="padding:0"><iframe src="https://www.desmos.com/calculator?lang=es" style="width:100%;height:100%;border:0;border-radius:0 0 15px 15px"></iframe></div>
+    <div class="panelBody" style="height:calc(100% - 45px);padding:0"><iframe src="https://www.desmos.com/calculator?lang=es" style="width:100%;height:100%;border:0;border-radius:0 0 15px 15px"></iframe></div>
   </div>
 
   <div class="panel" id="pdfPanel">
     <div class="panelHead"><b>📄 Visor PDF</b><button class="close">×</button></div>
-    <div class="panelBody" style="display:flex;flex-direction:column">
-      <input id="pdfInput" type="file" accept="application/pdf" style="margin-bottom:8px">
-      <div style="display:flex;gap:6px;margin-bottom:8px;align-items:center"><button id="pdfPrev">‹</button><span id="pdfPage">0 / 0</span><button id="pdfNext">›</button><button id="pdfZoomOut">−</button><button id="pdfZoomIn">+</button></div>
-      <div style="flex:1;overflow:auto;background:#29334a;padding:12px"><canvas id="pdfCanvas"></canvas></div>
+    <div class="panelBody" style="height:calc(100% - 45px)">
+      <input id="pdfInput" type="file" accept="application/pdf">
+      <div style="display:flex;gap:6px;margin:8px 0;align-items:center"><button id="pdfPrev">‹</button><span id="pdfPage">0 / 0</span><button id="pdfNext">›</button><button id="pdfZoomOut">−</button><button id="pdfZoomIn">+</button></div>
+      <div style="height:calc(100% - 85px);overflow:auto;background:#29334a;padding:12px"><canvas id="pdfCanvas"></canvas></div>
     </div>
   </div>
 
   <div class="panel" id="galleryPanel">
     <div class="panelHead"><b>🖼️ Galería local</b><button class="close">×</button></div>
-    <div class="panelBody">
-      <input id="imageInput" type="file" accept="image/*" multiple style="margin-bottom:10px">
-      <div class="galleryGrid" id="galleryGrid"></div>
-    </div>
+    <div class="panelBody"><input id="imageInput" type="file" accept="image/*" multiple><div class="galleryGrid" id="galleryGrid"></div></div>
   </div>
 
   <div class="panel" id="formulaPanel">
@@ -160,14 +147,6 @@ body.fs #boardWrap{cursor:crosshair}
     <div class="panelBody">
       <select id="formulaCat" style="width:100%;margin-bottom:8px;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:9px;padding:9px"></select>
       <div id="formulaList"></div>
-    </div>
-  </div>
-
-  <div class="panel" id="dolarPanel">
-    <div class="panelHead"><b>💵 Cotización Dólar</b><button class="close">×</button></div>
-    <div class="panelBody" style="display:flex;flex-direction:column;gap:10px">
-      <div id="dolarList">Cargando datos...</div>
-      <button class="primary" id="stampDolarBtn" style="width:100%;padding:12px">✂️ Recortar y Pegar en Pizarra</button>
     </div>
   </div>
 
@@ -193,7 +172,7 @@ body.fs #boardWrap{cursor:crosshair}
       <input id="teacherName" placeholder="Nombre del profesor">
       <input id="teacherPin" type="password" placeholder="PIN" style="margin-top:8px">
       <button class="primary" id="createBtn" style="width:100%;margin-top:10px">Crear aula</button>
-      <div class="hint">El aula funciona directamente entre navegadores.</div><div class="error" id="teacherError"></div>
+      <div class="hint">El aula funciona directamente entre navegadores mediante PeerJS.</div><div class="error" id="teacherError"></div>
     </div>
   </div>
 </div>
@@ -208,26 +187,28 @@ const board=$('board'), bg=$('bgCanvas'), preview=$('preview'), wrap=$('boardWra
 const ctx=board.getContext('2d',{alpha:true}), bctx=bg.getContext('2d'), pctx=preview.getContext('2d');
 const state={
  role:null,name:'',room:'',peer:null,connections:new Map(),stream:null,video:true,mic:true,
- canDraw:true,tool:'pen',color:'#050811',size:4,dpr:1,
+ canDraw:true,tool:'pen',color:'#111827',size:4,dpr:1,
  scale:1,ox:0,oy:0,drawing:false,start:null,last:null,points:[],
  history:[],future:[],remoteCursors:new Map(),saveTimer:null,
  pdf:null,pdfPage:1,pdfScale:1,recording:false,recorder:null,chunks:[]
 };
-
-// Math Formulas DB
-const formulas={"Aritmética":[["Porcentaje","parte = total · p/100"],["Regla de tres","a/b = c/x  ⇒  x = bc/a"]],"Álgebra":[["Cuadrática","x = (-b ± √(b²-4ac))/(2a)"],["Binomio","(a±b)²=a²±2ab+b²"]],"Geometría":[["Pitágoras","a²+b²=c²"],["Área círculo","A=πr²"]],"Cálculo":[["Derivada","f'(x)=lim[h→0](f(x+h)-f(x))/h"]]};
+const formulas={
+"Aritmética":[["Porcentaje","parte = total · p/100"],["Regla de tres","a/b = c/x  ⇒  x = bc/a"],["Potencias","aᵐ·aⁿ = aᵐ⁺ⁿ"],["Raíces","√(ab)=√a·√b"]],
+"Álgebra":[["Cuadrática","x = (-b ± √(b²-4ac))/(2a)"],["Binomio al cuadrado","(a±b)²=a²±2ab+b²"],["Diferencia de cuadrados","a²-b²=(a-b)(a+b)"],["Pendiente","m=(y₂-y₁)/(x₂-x₁)"]],
+"Geometría":[["Pitágoras","a²+b²=c²"],["Área triángulo","A=b·h/2"],["Área círculo","A=πr²"],["Longitud circunferencia","L=2πr"]],
+"Trigonometría":[["Seno","sen θ = op/hip"],["Coseno","cos θ = ady/hip"],["Tangente","tan θ = op/ady"],["Identidad","sen²θ+cos²θ=1"]],
+"Cálculo":[["Derivada","f'(x)=lim[h→0](f(x+h)-f(x))/h"],["Producto","(fg)'=f'g+fg'"],["Cadena","(f∘g)'=(f'∘g)·g'"],["Potencia","d(xⁿ)/dx = n xⁿ⁻¹"]],
+"Integrales":[["Potencia","∫xⁿ dx=xⁿ⁺¹/(n+1)+C"],["Constante","∫k dx=kx+C"],["Sustitución","∫f(g(x))g'(x)dx=∫f(u)du"]],
+"Probabilidad":[["Complementaria","P(Aᶜ)=1-P(A)"],["Unión","P(A∪B)=P(A)+P(B)-P(A∩B)"],["Condicional","P(A|B)=P(A∩B)/P(B)"]],
+"Matrices":[["Determinante 2×2","|a b;c d|=ad-bc"],["Producto","(AB)ᵢⱼ=Σ aᵢₖbₖⱼ"]],
+"Vectores":[["Módulo","|v|=√(x²+y²+z²)"],["Producto escalar","u·v=|u||v|cosθ"],["Distancia","d(P,Q)=√Σ(qᵢ-pᵢ)²"]],
+"Complejos":[["Euler","e^{iθ}=cosθ+i senθ"],["De Moivre","(r cis θ)ⁿ=rⁿ cis(nθ)"]]
+};
 Object.keys(formulas).forEach(k=>{let o=document.createElement('option');o.value=k;o.textContent=k;$('formulaCat').appendChild(o)});
-
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),2500)}
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),1800)}
 function status(s,ok=true){$('statusText').textContent=s;$('statusDot').className='dotStatus '+(ok?'ok':'bad')}
-function showPanel(id){
-  const target = $(id);
-  const isVisible = target.style.display === 'flex';
-  document.querySelectorAll('.panel').forEach(p=>p.style.display='none');
-  if(!isVisible) target.style.display = 'flex';
-}
-document.querySelectorAll('.close').forEach(b=>b.onclick=()=>b.closest('.panel').style.display='none');
-
+function showPanel(id){document.querySelectorAll('.panel').forEach(p=>{if(p.id!==id)p.style.display='none'});let p=$(id);p.style.display=p.style.display==='block'?'none':'block'}
+function closePanels(){document.querySelectorAll('.panel').forEach(p=>p.style.display='none')}
 function resize(){
  state.dpr=Math.min(devicePixelRatio||1,2);
  const r=wrap.getBoundingClientRect(), w=Math.max(1,Math.floor(r.width)),h=Math.max(1,Math.floor(r.height));
@@ -235,51 +216,36 @@ function resize(){
  [ctx,bctx,pctx].forEach(c=>c.setTransform(state.dpr,0,0,state.dpr,0,0));
  drawGrid();render();
 }
-
-// Optimized Grid - Light Math Notebook style
 function drawGrid(){
  const r=wrap.getBoundingClientRect(),w=r.width,h=r.height;
- bctx.save();bctx.setTransform(state.dpr,0,0,state.dpr,0,0);
- bctx.fillStyle='#ffffff';bctx.fillRect(0,0,w,h);
- const step=25*state.scale, ox=mod(state.ox,step), oy=mod(state.oy,step);
- bctx.lineWidth=1;
- // Vertical lines
- for(let x=ox;x<w;x+=step){
-   bctx.beginPath();bctx.moveTo(x,0);bctx.lineTo(x,h);
-   bctx.strokeStyle = Math.abs(x-state.ox)%(step*4) < 1 ? '#d1d8e6' : '#edf2f9'; // Cuadrícula principal más oscura
-   bctx.stroke();
- }
- // Horizontal lines
- for(let y=oy;y<h;y+=step){
-   bctx.beginPath();bctx.moveTo(0,y);bctx.lineTo(w,y);
-   bctx.strokeStyle = Math.abs(y-state.oy)%(step*4) < 1 ? '#d1d8e6' : '#edf2f9';
-   bctx.stroke();
- }
+ bctx.save();bctx.setTransform(state.dpr,0,0,state.dpr,0,0);bctx.clearRect(0,0,w,h);bctx.fillStyle='#fff';bctx.fillRect(0,0,w,h);
+ const step=25*state.scale, ox=mod(state.ox,step),oy=mod(state.oy,step);
+ bctx.strokeStyle='#e8ebf0';bctx.lineWidth=1;
+ for(let x=ox;x<w;x+=step){bctx.beginPath();bctx.moveTo(x,0);bctx.lineTo(x,h);bctx.stroke()}
+ for(let y=oy;y<h;y+=step){bctx.beginPath();bctx.moveTo(0,y);bctx.lineTo(w,y);bctx.stroke()}
  bctx.restore();
 }
-
 function mod(a,b){return ((a%b)+b)%b}
 function screenToWorld(x,y){return{x:(x-state.ox)/state.scale,y:(y-state.oy)/state.scale}}
+function worldToScreen(x,y){return{x:x*state.scale+state.ox,y:y*state.scale+state.oy}}
 function clearPreview(){pctx.clearRect(0,0,preview.width/state.dpr,preview.height/state.dpr)}
-
 function render(){
  const r=wrap.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
+ // The board stores drawing in world coordinates in a temporary offscreen canvas.
  if(state.bitmap){ctx.save();ctx.translate(state.ox,state.oy);ctx.scale(state.scale,state.scale);ctx.drawImage(state.bitmap,0,0);ctx.restore()}
  $('zoomText').textContent=Math.round(state.scale*100)+'%';
 }
-
+function makeBitmap(){const r=wrap.getBoundingClientRect();const c=document.createElement('canvas');c.width=Math.max(1,Math.round(r.width));c.height=Math.max(1,Math.round(r.height));const x=c.getContext('2d');x.drawImage(board,0,0,board.width/state.dpr,board.height/state.dpr,0,0,c.width,c.height);return c}
 function snapshot(){state.history.push(state.bitmap?state.bitmap.toDataURL('image/png'):'');if(state.history.length>25)state.history.shift();state.future=[];saveLocal()}
 function loadData(url){if(!url){state.bitmap=null;render();return}const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=wrap.clientWidth;c.height=wrap.clientHeight;c.getContext('2d').drawImage(im,0,0,c.width,c.height);state.bitmap=c;render()};im.src=url}
 function saveLocal(){clearTimeout(state.saveTimer);state.saveTimer=setTimeout(()=>{try{localStorage.setItem('mathboard.superstar.board',state.bitmap?state.bitmap.toDataURL('image/jpeg',.72):'');localStorage.setItem('mathboard.superstar.meta',JSON.stringify({name:state.name}))}catch(e){}},250)}
 function restoreLocal(){try{const u=localStorage.getItem('mathboard.superstar.board');if(u)loadData(u)}catch(e){}}
-
 function drawStroke(points,color,size,erase=false){
  if(!points.length)return;
  const c=state.bitmap||document.createElement('canvas');if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
  const x=c.getContext('2d');x.lineCap='round';x.lineJoin='round';x.lineWidth=size;x.globalCompositeOperation=erase?'destination-out':'source-over';x.strokeStyle=color;
  x.beginPath();x.moveTo(points[0].x,points[0].y);for(let i=1;i<points.length;i++)x.lineTo(points[i].x,points[i].y);if(points.length===1)x.lineTo(points[0].x+.01,points[0].y+.01);x.stroke();x.globalCompositeOperation='source-over';render();
 }
-
 function drawShape(type,a,b,color,size){
  const c=state.bitmap||document.createElement('canvas');if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
  const x=c.getContext('2d');x.strokeStyle=color;x.lineWidth=size;x.lineCap='round';x.lineJoin='round';x.beginPath();
@@ -288,55 +254,34 @@ function drawShape(type,a,b,color,size){
  else{x.ellipse((a.x+b.x)/2,(a.y+b.y)/2,Math.abs(b.x-a.x)/2,Math.abs(b.y-a.y)/2,0,0,Math.PI*2);x.stroke()}
  render()
 }
-
 function pointerPos(e){const r=wrap.getBoundingClientRect();return screenToWorld(e.clientX-r.left,e.clientY-r.top)}
-
-// Wacom / Pen support via e.pressure
 board.addEventListener('pointerdown',e=>{
  if(!state.canDraw||e.button===2)return;
  state.drawing=true;board.setPointerCapture(e.pointerId);state.start=state.last=pointerPos(e);state.points=[state.start];
- if(['pen','marker','eraser'].includes(state.tool)){
-   const dynamicSize = state.size * (e.pointerType === 'pen' && e.pressure ? e.pressure * 2 : 1);
-   drawStroke(state.points,state.color,dynamicSize,state.tool==='eraser')
- }
+ if(state.tool==='pen'||state.tool==='marker'||state.tool==='eraser'){drawStroke(state.points,state.color,state.size,state.tool==='eraser')}
 });
-
 board.addEventListener('pointermove',e=>{
  const r=wrap.getBoundingClientRect();const sp={x:e.clientX-r.left,y:e.clientY-r.top};
  send({type:'cursor',x:sp.x/r.width,y:sp.y/r.height,name:state.name});
  if(!state.drawing)return;
  const p=pointerPos(e);
- if(['pen','marker','eraser'].includes(state.tool)){
-   const dynamicSize = state.size * (e.pointerType === 'pen' && e.pressure ? e.pressure * 2 : 1);
-   state.points.push(p);drawStroke([state.last,p],state.color,dynamicSize*(state.tool==='marker'?3:1),state.tool==='eraser');
- } else {
-   clearPreview();previewShape(state.tool,state.start,p)
- }
- state.last=p;
+ if(state.tool==='pen'||state.tool==='marker'||state.tool==='eraser'){state.points.push(p);drawStroke([state.last,p],state.color,state.size*(state.tool==='marker'?3:1),state.tool==='eraser')}
+ else{clearPreview();previewShape(state.tool,state.start,p)}state.last=p;
 });
-
 board.addEventListener('pointerup',e=>{
  if(!state.drawing)return;state.drawing=false;
  const end=pointerPos(e),tool=state.tool;
- if(['pen','marker','eraser'].includes(tool)){
-   send({type:'stroke',points:state.points,color:state.color,size:state.size*(tool==='marker'?3:1),erase:tool==='eraser'});
- }else{
-   clearPreview();drawShape(tool,state.start,end,state.color,state.size);
-   send({type:'shape',shape:tool,a:state.start,b:end,color:state.color,size:state.size})
- }
+ if(tool==='pen'||tool==='marker'||tool==='eraser'){send({type:'stroke',points:state.points,color:state.color,size:state.size*(tool==='marker'?3:1),erase:tool==='eraser'});}
+ else{clearPreview();drawShape(tool,state.start,end,state.color,state.size);send({type:'shape',shape:tool,a:state.start,b:end,color:state.color,size:state.size})}
  snapshot();
 });
-
 function previewShape(type,a,b){pctx.save();pctx.setTransform(state.dpr,0,0,state.dpr,0,0);pctx.strokeStyle=state.color;pctx.lineWidth=state.size;pctx.setLineDash([6,5]);pctx.beginPath();if(type==='line'||type==='arrow'){pctx.moveTo(a.x*state.scale+state.ox,a.y*state.scale+state.oy);pctx.lineTo(b.x*state.scale+state.ox,b.y*state.scale+state.oy)}else if(type==='rect')pctx.strokeRect(Math.min(a.x,b.x)*state.scale+state.ox,Math.min(a.y,b.y)*state.scale+state.oy,Math.abs(b.x-a.x)*state.scale,Math.abs(b.y-a.y)*state.scale);else pctx.ellipse((a.x+b.x)/2*state.scale+state.ox,(a.y+b.y)/2*state.scale+state.oy,Math.abs(b.x-a.x)/2*state.scale,Math.abs(b.y-a.y)/2*state.scale,0,0,Math.PI*2);pctx.stroke();pctx.restore()}
-
-// Pan & Zoom
 wrap.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();const r=wrap.getBoundingClientRect(),mx=e.clientX-r.left,my=e.clientY-r.top,old=state.scale,factor=e.deltaY<0?1.1:.9;state.scale=Math.max(.25,Math.min(5,state.scale*factor));state.ox=mx-(mx-state.ox)*state.scale/old;state.oy=my-(my-state.oy)*state.scale/old;drawGrid();render()}},{passive:false});
 let pan=null;
 wrap.addEventListener('pointerdown',e=>{if(e.button===1||(e.altKey&&e.button===0)){pan={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};}});
 wrap.addEventListener('pointermove',e=>{if(pan){state.ox=pan.ox+e.clientX-pan.x;state.oy=pan.oy+e.clientY-pan.y;drawGrid();render()}});
 wrap.addEventListener('pointerup',()=>pan=null);wrap.addEventListener('pointercancel',()=>pan=null);wrap.addEventListener('dblclick',()=>toggleFS());
-
-function setTool(t){state.tool=t;document.querySelectorAll('#toolbar .tool').forEach(x=>x.classList.remove('active'));$(t+'Btn').classList.add('active')}
+function setTool(t){state.tool=t;document.querySelectorAll('#toolbar .tool').forEach(x=>x.classList.remove('active'));({pen:'penBtn',marker:'markerBtn',line:'lineBtn',arrow:'arrowBtn',rect:'rectBtn',circle:'circleBtn',eraser:'eraserBtn'})[t]&&$( ({pen:'penBtn',marker:'markerBtn',line:'lineBtn',arrow:'arrowBtn',rect:'rectBtn',circle:'circleBtn',eraser:'eraserBtn'})[t]).classList.add('active')}
 ['pen','marker','line','arrow','rect','circle','eraser'].forEach(t=>$(t+'Btn').onclick=()=>setTool(t));
 $('color').oninput=e=>state.color=e.target.value;$('size').onchange=e=>state.size=+e.target.value;
 $('undoBtn').onclick=()=>{if(!state.history.length)return;state.future.push(state.bitmap?state.bitmap.toDataURL():'');loadData(state.history.pop())};
@@ -347,25 +292,13 @@ function zoom(d){state.scale=Math.max(.25,Math.min(5,state.scale+d));drawGrid();
 $('fullscreenBtn').onclick=toggleFS;
 async function toggleFS(){try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){}}
 document.addEventListener('fullscreenchange',()=>document.body.classList.toggle('fs',!!document.fullscreenElement));
-
+document.querySelectorAll('.close').forEach(b=>b.onclick=()=>b.closest('.panel').style.display='none');
 $('calcBtn').onclick=()=>showPanel('calcPanel');$('chatBtn').onclick=()=>showPanel('chatPanel');$('videoBtn').onclick=()=>showPanel('mediaPanel');$('roomBtn').onclick=()=>showPanel('roomPanel');$('pdfBtn').onclick=()=>showPanel('pdfPanel');$('galleryBtn').onclick=()=>showPanel('galleryPanel');$('formulaBtn').onclick=()=>showPanel('formulaPanel');
-
-// Formula rendering
-function renderFormulas(){let a=formulas[$('formulaCat').value]\vert{}\vert{}[];$('formulaList').innerHTML=a.map(x=>`<div class="formula"><b>${esc(x[0])}</b><code>${esc(x[1])}</code></div>`).join('')}
-$('formulaCat').onchange=renderFormulas; renderFormulas();
+$('formulaCat').onchange=renderFormulas;function renderFormulas(){let a=formulas[$('formulaCat').value]||[];$('formulaList').innerHTML=a.map(x=>`<div class="formula"><b>${esc(x[0])}</b><code>${esc(x[1])}</code></div>`).join('')}renderFormulas();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-
-// Network & Chat
 function send(data){if(!state.peer)return;data.from=state.peer.id;data.name=state.name;state.connections.forEach(c=>{if(c.open)try{c.send(data)}catch(e){}})}
-function addMsg(name,text,me=false){
-  const d=document.createElement('div');d.className='msg'+(me?' me':'');d.innerHTML=`<div class="who">${esc(name)}</div><span class="bubble">${esc(text)}</span>`;
-  $('chatMessages').appendChild(d);
-  // Auto-scroll smooth
-  $('chatMessages').scrollTo({top:$('chatMessages').scrollHeight, behavior: 'smooth'});
-}
-$('sendChat').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});
-function sendChat(){const v=$('chatInput').value.trim();if(!v)return;addMsg(state.name,v,true);send({type:'chat',text:v});$('chatInput').value=''}
-
+function addMsg(name,text,me=false){const d=document.createElement('div');d.className='msg'+(me?' me':'');d.innerHTML=`<div class="who">${esc(name)}</div><span class="bubble">${esc(text)}</span>`;$('chatMessages').appendChild(d);$('chatMessages').scrollTop=$('chatMessages').scrollHeight}
+$('sendChat').onclick=sendChat;$('chatInput').addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});function sendChat(){const v=$('chatInput').value.trim();if(!v)return;addMsg(state.name,v,true);send({type:'chat',text:v});$('chatInput').value=''}
 function setupConn(c){
  c.on('open',()=>{state.connections.set(c.peer,c);status('Conectado');updateCount();c.send({type:'hello',name:state.name,role:state.role,canDraw:state.canDraw,state:state.bitmap?state.bitmap.toDataURL('image/jpeg',.65):''})});
  c.on('data',d=>handleData(d,c));c.on('close',()=>{state.connections.delete(c.peer);removeCursor(c.peer);updateCount()});c.on('error',()=>{state.connections.delete(c.peer);updateCount()})
@@ -381,146 +314,58 @@ function handleData(d,c){
  if(d.type==='chat')addMsg(d.name||'Participante',d.text,false);
  if(d.type==='logout'){toast('El profesor cerró el aula');setTimeout(logout,800)}
 }
-
 function remoteCursor(id,d){let el=state.remoteCursors.get(id);if(!el){el=document.createElement('div');el.className='remoteCursor';el.innerHTML='<div class="dot"></div><div class="name"></div>';$('cursorLayer').appendChild(el);state.remoteCursors.set(id,el)}el.style.left=(d.x*100)+'%';el.style.top=(d.y*100)+'%';el.querySelector('.name').textContent=d.name||'Participante'}
 function removeCursor(id){const e=state.remoteCursors.get(id);if(e)e.remove();state.remoteCursors.delete(id)}
 function updateCount(){$('peerCount').textContent=state.connections.size+' participante'+(state.connections.size===1?'':'s');}
-
 $('permBtn').onclick=()=>{state.canDraw=!state.canDraw;$('permBtn').textContent=state.canDraw?'✍️ Todos escriben':'🔒 Solo profesor';send({type:'permission',canDraw:state.canDraw})};
 $('copyRoom').onclick=()=>navigator.clipboard?.writeText(state.room).then(()=>toast('Código copiado'));
-
 async function getMedia(){
  try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true,video:true});addLocalVideo();return true}catch(e){try{state.stream=await navigator.mediaDevices.getUserMedia({audio:true});addLocalVideo();return true}catch(e2){toast('Micrófono/cámara no disponibles');return false}}
 }
 function addLocalVideo(){if(!state.stream)return;let tile=document.createElement('div');tile.className='videoTile';tile.id='localTile';let v=document.createElement('video');v.autoplay=true;v.muted=true;v.playsInline=true;v.srcObject=state.stream;tile.appendChild(v);let s=document.createElement('span');s.textContent=state.name+' (vos)';tile.appendChild(s);$('videoGrid').appendChild(tile)}
 $('toggleCam').onclick=()=>{if(!state.stream)return;state.video=!state.video;state.stream.getVideoTracks().forEach(t=>t.enabled=state.video);$('toggleCam').textContent=state.video?'📹 Cámara':'🚫 Cámara'};
 $('toggleMic').onclick=()=>{if(!state.stream)return;state.mic=!state.mic;state.stream.getAudioTracks().forEach(t=>t.enabled=state.mic);$('toggleMic').textContent=state.mic?'🎙️ Micrófono':'🔇 Micrófono'};
-
 async function createRoom(){
- const name=$('teacherName').value.trim()\vert{}\vert{}'Profesor';const pin=$('teacherPin').value;
- if(pin!=='1977$'){$('teacherError').textContent='PIN incorrecto.';return}
+ const name=$('teacherName').value.trim()||'Profesor';const pin=$('teacherPin').value;
+ if(pin!=='1977$'){ $('teacherError').textContent='PIN incorrecto.';return}
  state.role='teacher';state.name=name;state.room=String(Math.floor(1000+Math.random()*9000));
  state.peer=new Peer('MathBoard-'+state.room,{debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}});
  state.peer.on('open',async()=>{openApp();$('roomCode').textContent=state.room;status('Aula creada');await getMedia()});
  state.peer.on('connection',setupConn);state.peer.on('error',e=>{status('Conexión con error',false);toast(e.type||'Error de conexión')});
 }
 function joinRoom(){
- const name=$('studentName').value.trim()\vert{}\vert{}'Estudiante';const room=$('roomInput').value.trim();
+ const name=$('studentName').value.trim()||'Estudiante';const room=$('roomInput').value.trim();
  if(!/^\d{4}$/.test(room)){$('studentError').textContent='Ingresá un código válido de 4 dígitos.';return}
  state.role='student';state.name=name;state.room=room;state.peer=new Peer({debug:0,config:{iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun.cloudflare.com:3478'}]}});
  state.peer.on('open',()=>{const c=state.peer.connect('MathBoard-'+room,{reliable:true});setupConn(c);openApp();status('Conectando…')});
  state.peer.on('error',()=>{$('studentError').textContent='No se pudo conectar. Verificá el código.';status('Sin conexión',false)});
 }
-
 function openApp(){
  $('login').style.display='none';$('roleText').textContent=(state.role==='teacher'?'Profesor':'Estudiante')+' · '+state.name;
  document.querySelectorAll('.teacherOnly').forEach(x=>x.style.display=state.role==='teacher'?'inline-flex':'none');
  $('teacherTools').style.display=state.role==='teacher'?'flex':'none';resize();restoreLocal();
 }
-
 function logout(){if(state.peer){try{send({type:'logout'})}catch(e){}try{state.peer.destroy()}catch(e){}}if(state.stream)state.stream.getTracks().forEach(t=>t.stop());location.reload()}
 $('logoutBtn').onclick=logout;
-$('studentRole').onclick=()=>{$('studentForm').style.display='block';$('teacherForm').style.display='none'};$('teacherRole').onclick=()=>{ $('teacherForm').style.display='block';$('studentForm').style.display='none'};
+$('studentRole').onclick=()=>{ $('studentForm').style.display='block';$('teacherForm').style.display='none'};
+$('teacherRole').onclick=()=>{ $('teacherForm').style.display='block';$('studentForm').style.display='none'};
 $('joinBtn').onclick=joinRoom;$('createBtn').onclick=createRoom;
 window.addEventListener('resize',resize);
 window.addEventListener('beforeunload',()=>{if(state.stream)state.stream.getTracks().forEach(t=>t.stop())});
-
-// Gallery & Stamping
 $('imageInput').onchange=e=>{[...e.target.files].forEach(f=>{const rd=new FileReader();rd.onload=()=>{let a=JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]');a.unshift(rd.result);a=a.slice(0,24);localStorage.setItem('mathboard.superstar.gallery',JSON.stringify(a));renderGallery()};rd.readAsDataURL(f)})};
 function renderGallery(){let a=[];try{a=JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]')}catch(e){}$('galleryGrid').innerHTML=a.map((u,i)=>`<img src="${u}" data-i="${i}" title="Insertar en pizarra">`).join('');$('galleryGrid').querySelectorAll('img').forEach(im=>im.onclick=()=>stampImage(a[+im.dataset.i]))}
-function stampImage(url){
- const im=new Image();
- im.onload=()=>{
-   const c=state.bitmap||document.createElement('canvas');
-   if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}
-   const x=c.getContext('2d'),w=Math.min(im.width,wrap.clientWidth*.55),h=im.height*w/im.width;
-   x.drawImage(im,(wrap.clientWidth-w)/2,(wrap.clientHeight-h)/2,w,h);
-   render();snapshot();toast('Recorte pegado en la pizarra');
- };
- im.src=url;
-}
+function stampImage(url){const im=new Image();im.onload=()=>{const c=state.bitmap||document.createElement('canvas');if(!state.bitmap){c.width=wrap.clientWidth;c.height=wrap.clientHeight;state.bitmap=c}const x=c.getContext('2d'),w=Math.min(im.width,wrap.clientWidth*.55),h=im.height*w/im.width;x.drawImage(im,(wrap.clientWidth-w)/2,(wrap.clientHeight-h)/2,w,h);render();snapshot();toast('Imagen colocada')};im.src=url}
 renderGallery();
-
-// Dólar Integration
-$('dolarBtn').onclick=()=>{
-  showPanel('dolarPanel');
-  $('dolarList').innerHTML = 'Cargando cotización...';
-  fetch('https://dolarapi.com/v1/dolares').then(r=>r.json()).then(d=>{
-    $('dolarList').innerHTML = d.map(x=>`<div class="dolarCard" data-n="${x.nombre}" data-c="${x.compra}" data-v="${x.venta}"><b>${x.nombre}</b><br><span style="color:#45d483">Compra: $${x.compra}</span> | <span style="color:#ffca58">Venta: $${x.venta}</span></div>`).join('');
-  }).catch(()=>$('dolarList').innerHTML='Error al cargar datos desde DolarAPI.');
-};
-
-$('stampDolarBtn').onclick=()=>{
-  const cards = document.querySelectorAll('.dolarCard');
-  if(!cards.length){ toast('No hay datos para recortar'); return; }
-  const c = document.createElement('canvas');
-  c.width = 320; c.height = cards.length * 50 + 60;
-  const cx = c.getContext('2d');
-  
-  // Fondo del recorte
-  cx.fillStyle = '#ffffff'; cx.fillRect(0,0,c.width,c.height);
-  cx.strokeStyle = '#2b6dde'; cx.lineWidth = 4; cx.strokeRect(0,0,c.width,c.height);
-  cx.fillStyle = '#050811'; cx.font = 'bold 22px Arial, sans-serif'; 
-  cx.fillText('💵 Cotización Dólar', 20, 35);
-  
-  // Imprimir líneas
-  let y = 80;
-  cx.font = '16px Arial, sans-serif';
-  cards.forEach(card => {
-    cx.fillStyle = '#10172a'; cx.fillText(card.dataset.n, 20, y);
-    cx.fillStyle = '#167747'; cx.fillText('C: $' + card.dataset.c, 150, y);
-    cx.fillStyle = '#b8860b'; cx.fillText('V: $' + card.dataset.v, 230, y);
-    y += 45;
-  });
-  
-  // Convertir a imagen y estamparla (Se guarda automático vía snapshot() dentro de stampImage)
-  stampImage(c.toDataURL('image/png'));
-  
-  // Opcional: Guardarlo en la galería de recortes también
-  let a = JSON.parse(localStorage.getItem('mathboard.superstar.gallery')||'[]');
-  a.unshift(c.toDataURL('image/png'));
-  localStorage.setItem('mathboard.superstar.gallery', JSON.stringify(a.slice(0,24)));
-  renderGallery();
-};
-
 $('saveBtn').onclick=()=>{
  const r=wrap.getBoundingClientRect(),out=document.createElement('canvas');out.width=Math.round(r.width*2);out.height=Math.round(r.height*2);const x=out.getContext('2d');x.fillStyle='#fff';x.fillRect(0,0,out.width,out.height);x.scale(2,2);x.drawImage(bg,0,0,r.width,r.height);x.drawImage(board,0,0,r.width,r.height);
- const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:r.width>r.height?'landscape':'portrait',unit:'px',format:[r.width,r.height]});pdf.addImage(out.toDataURL('image/jpeg',.92),'JPEG',0,0,r.width,r.height);pdf.save('MathBoard-Pro-Super-Star.pdf');toast('PDF guardado')
-}
-
-// Optimized MP4/WebM Screen Recording
+ const {jsPDF}=window.jspdf;const pdf=new jsPDF({orientation:r.width>r.height?'landscape':'portrait',unit:'px',format:[r.width,r.height]});pdf.addImage(out.toDataURL('image/jpeg',.92),'JPEG',0,0,r.width,r.height);pdf.save('MathBoard-Pro-Super-Star.pdf');toast('PDF guardado')}
 $('recordBtn').onclick=async()=>{
  if(state.recording){state.recorder.stop();return}
- try{
-   const stream=board.captureStream(30);
-   // Intentar forzar un codec MP4 o h264 de máxima compatibilidad celular/PC
-   const types = ['video/mp4', 'video/webm;codecs=h264', 'video/webm;codecs=vp9', 'video/webm'];
-   const mime = types.find(t => MediaRecorder.isTypeSupported(t)) || '';
-   
-   state.recorder=new MediaRecorder(stream,{mimeType: mime});
-   state.chunks=[];
-   state.recorder.ondataavailable=e=>e.data.size&&state.chunks.push(e.data);
-   state.recorder.onstop=()=>{
-     const b=new Blob(state.chunks,{type:mime});
-     const u=URL.createObjectURL(b), a=document.createElement('a');
-     a.href=u;
-     const ext = mime.includes('mp4') ? 'mp4' : 'webm';
-     a.download=`MathBoard-Super-Star.${ext}`;
-     a.click();
-     setTimeout(()=>URL.revokeObjectURL(u),1000);
-     $('recordBtn').textContent='⏺️';state.recording=false;
-     toast(`Grabación guardada en ${ext.toUpperCase()}`);
-   };
-   state.recorder.start();state.recording=true;
-   $('recordBtn').textContent='⏹️';toast('Grabando pizarra...');
- }catch(e){toast('Tu navegador no permite grabación')}
+ try{const stream=board.captureStream(30);state.recorder=new MediaRecorder(stream,{mimeType:'video/webm;codecs=vp9'});state.chunks=[];state.recorder.ondataavailable=e=>e.data.size&&state.chunks.push(e.data);state.recorder.onstop=()=>{const b=new Blob(state.chunks,{type:'video/webm'}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download='MathBoard-Pro-Super-Star.webm';a.click();setTimeout(()=>URL.revokeObjectURL(u),1000);$('recordBtn').textContent='⏺️';state.recording=false;toast('Grabación guardada en WebM')};state.recorder.start();state.recording=true;$('recordBtn').textContent='⏹️';toast('Grabando pizarra…')}catch(e){toast('Tu navegador no permite grabación')}
 };
-
-// PDF Viewer
 $('pdfInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const ab=await f.arrayBuffer();state.pdf=await pdfjsLib.getDocument({data:ab}).promise;state.pdfPage=1;renderPDF()};
 async function renderPDF(){if(!state.pdf)return;const p=await state.pdf.getPage(state.pdfPage),v=p.getViewport({scale:state.pdfScale});$('pdfCanvas').width=v.width;$('pdfCanvas').height=v.height;await p.render({canvasContext:$('pdfCanvas').getContext('2d'),viewport:v}).promise;$('pdfPage').textContent=state.pdfPage+' / '+state.pdf.numPages}
 $('pdfPrev').onclick=()=>{if(state.pdf&&state.pdfPage>1){state.pdfPage--;renderPDF()}};$('pdfNext').onclick=()=>{if(state.pdf&&state.pdfPage<state.pdf.numPages){state.pdfPage++;renderPDF()}};$('pdfZoomIn').onclick=()=>{state.pdfScale=Math.min(3,state.pdfScale+.2);renderPDF()};$('pdfZoomOut').onclick=()=>{state.pdfScale=Math.max(.4,state.pdfScale-.2);renderPDF()};
-
 resize();
 </script>
 </body>
