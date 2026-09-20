@@ -985,8 +985,16 @@
         function togglePdfCropMode() {
             cropModePdf = !cropModePdf;
             pOverlay.style.display = cropModePdf ? 'block' : 'none';
-            pOverlay.style.width = pdfAppCanvas.width + 'px';
-            pOverlay.style.height = pdfAppCanvas.height + 'px';
+            if (cropModePdf) {
+                // PRECISION FIX: Alinear exactamente con el canvas visual
+                const cRect = pdfAppCanvas.getBoundingClientRect();
+                const parent = pdfAppCanvas.parentElement;
+                const pRect = parent.getBoundingClientRect();
+                pOverlay.style.width = cRect.width + 'px';
+                pOverlay.style.height = cRect.height + 'px';
+                pOverlay.style.left = (cRect.left - pRect.left + parent.scrollLeft) + 'px';
+                pOverlay.style.top = (cRect.top - pRect.top + parent.scrollTop) + 'px';
+            }
         }
         window.togglePdfCropMode = togglePdfCropMode;
         
@@ -1018,11 +1026,15 @@
             
             const cw = parseFloat(pBox.style.width), ch = parseFloat(pBox.style.height);
             if(cw > 15 && ch > 15) {
-                const scaleX = pdfAppCanvas.width / pOverlay.clientWidth;
-                const scaleY = pdfAppCanvas.height / pOverlay.clientHeight;
+                // PRECISION FIX: Mapeo matemático exacto entre visual e interno
+                const vRect = pOverlay.getBoundingClientRect();
+                const scaleX = pdfAppCanvas.width / vRect.width;
+                const scaleY = pdfAppCanvas.height / vRect.height;
+                
                 const srcX = parseFloat(pBox.style.left) * scaleX;
                 const srcY = parseFloat(pBox.style.top) * scaleY;
-                const srcW = cw * scaleX; const srcH = ch * scaleY;
+                const srcW = cw * scaleX; 
+                const srcH = ch * scaleY;
                 
                 const tempCanvas = document.createElement('canvas');
                 tempCanvas.width = srcW; tempCanvas.height = srcH;
