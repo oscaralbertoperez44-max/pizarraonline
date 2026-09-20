@@ -22,22 +22,29 @@
             overscroll-behavior: none;
         }
 
-        /* TEMA 1: Pizarra Blanca (Fibrón al Agua) */
-        body.theme-whiteboard #canvas-container {
+        /* TEMA 1: Cuadriculada (Original) */
+        body.theme-grid #canvas-container {
             background-color: #ffffff;
             background-image: 
-                linear-gradient(to right, rgba(0,0,0,0.04) 1.5px, transparent 1.5px),
-                linear-gradient(to bottom, rgba(0,0,0,0.04) 1.5px, transparent 1.5px);
+                linear-gradient(to right, rgba(0,0,0,0.05) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, rgba(0,0,0,0.05) 1.5px, transparent 1.5px);
             background-size: 35px 35px;
             transition: background-color 0.5s ease;
         }
 
-        /* TEMA 2: Pizarra Retro (Tiza Real) */
+        /* TEMA 2: Blanca Lisa */
+        body.theme-whiteboard #canvas-container {
+            background-color: #ffffff;
+            background-image: none;
+            transition: background-color 0.5s ease;
+        }
+
+        /* TEMA 3: Pizarra Retro (Tiza Verde) */
         body.theme-chalkboard #canvas-container {
-            background-color: #243447;
+            background-color: #1e5631;
             background-image: 
-                linear-gradient(to right, rgba(255,255,255,0.04) 1.5px, transparent 1.5px),
-                linear-gradient(to bottom, rgba(255,255,255,0.04) 1.5px, transparent 1.5px);
+                linear-gradient(to right, rgba(255,255,255,0.06) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, rgba(255,255,255,0.06) 1.5px, transparent 1.5px);
             background-size: 35px 35px;
             transition: background-color 0.5s ease;
         }
@@ -198,7 +205,7 @@
         }
     </style>
 </head>
-<body class="theme-whiteboard">
+<body class="theme-grid">
 
     <div id="login-overlay">
         <div class="login-box">
@@ -242,6 +249,7 @@
             <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
         </div>
         <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
+            <!-- MODO EMBED AÑADIDO: Formato limpio y profesional sin estorbos de navegación -->
             <iframe id="calc-frame" src="https://www.geogebra.org/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
@@ -294,7 +302,7 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI -->
+    <!-- Visor Dola AI (Exclusivo Profesor) -->
     <div id="dola-panel" class="floating-panel">
         <div class="panel-header" id="dola-header">
             <span>🤖 Dola AI (Asistente Inteligente)</span>
@@ -371,7 +379,7 @@
         <div class="resize-handle resize-handle-panel" id="formulas-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Estampador General -->
+    <!-- Estampador General (Ahora libre de movimientos bruscos) -->
     <div id="stamper" class="floating-panel">
         <div id="stamper-header">🖐️ Mueve desde la imagen</div>
         <div id="stamper-content">
@@ -431,14 +439,18 @@
         
         <div class="toolbar-divider"></div>
         
-        <button type="button" id="btn-theme" onclick="toggleTheme()" title="Modo Pizarra (Blanca / Tiza)" style="background:#14b8a6;">🌑</button>
+        <!-- Botón Selector de Pizarra (3 modos) -->
+        <button type="button" id="btn-theme" onclick="toggleTheme()" title="Cambiar Fondo (Cuadrícula / Blanca Lisa / Tiza)" style="background:#14b8a6;">🌐</button>
+        
         <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
         <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
+    <!-- Canvas principal de dibujo y overlay para el láser -->
     <div id="canvas-container">
         <canvas id="board"></canvas>
+        <canvas id="laser-board" style="position:absolute; top:0; left:0; pointer-events:none; z-index:2;"></canvas>
     </div>
 
 <script>
@@ -548,29 +560,37 @@
             });
         }
 
-        // ================= SISTEMA DE TEMAS =================
+        // ================= SISTEMA DE TEMAS (3 MODOS) =================
         function toggleTheme() {
-            const isWhite = document.body.classList.contains('theme-whiteboard');
-            const newTheme = isWhite ? 'theme-chalkboard' : 'theme-whiteboard';
+            const themes = ['theme-grid', 'theme-whiteboard', 'theme-chalkboard'];
+            let current = themes.find(t => document.body.classList.contains(t)) || 'theme-grid';
+            let nextIndex = (themes.indexOf(current) + 1) % themes.length;
+            let newTheme = themes[nextIndex];
+            
             applyTheme(newTheme);
+            
             if (typeof broadcastData === 'function') {
                 broadcastData({ type: 'theme', theme: newTheme });
             }
         }
         
         function applyTheme(themeName) {
-            document.body.classList.remove('theme-whiteboard', 'theme-chalkboard');
+            document.body.classList.remove('theme-grid', 'theme-whiteboard', 'theme-chalkboard');
             document.body.classList.add(themeName);
             
             const btn = document.getElementById('btn-theme');
-            if (btn) btn.innerText = themeName === 'theme-whiteboard' ? '🌑' : '☀️';
+            if (btn) {
+                if (themeName === 'theme-grid') btn.innerText = '🌐';
+                else if (themeName === 'theme-whiteboard') btn.innerText = '📄';
+                else btn.innerText = '🌑';
+            }
             
             const colorPicker = document.getElementById('mw-color');
             if (colorPicker) {
                 if (themeName === 'theme-chalkboard' && colorPicker.value === '#0f172a') {
-                    colorPicker.value = '#f8fafc'; // Default Tiza Blanca
-                } else if (themeName === 'theme-whiteboard' && colorPicker.value === '#f8fafc') {
-                    colorPicker.value = '#0f172a'; // Default Fibrón Negro
+                    colorPicker.value = '#fdfbf7'; // Tiza Blanca
+                } else if (themeName !== 'theme-chalkboard' && colorPicker.value === '#fdfbf7') {
+                    colorPicker.value = '#0f172a'; // Regresa al fibrón negro
                 }
             }
         }
@@ -601,7 +621,8 @@
         window.logoutSession = logoutSession;
 
         const canvas = document.getElementById('board');
-        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: false });
+        const laserCanvas = document.getElementById('laser-board');
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
         
         ctx.lineCap = 'round'; 
         ctx.lineJoin = 'round';
@@ -612,15 +633,18 @@
         function initCanvas() {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            laserCanvas.width = window.innerWidth;
+            laserCanvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
-            // El fondo ahora es transparente, la cuadrícula la pone CSS
         }
 
         function resizeCanvas() {
             const temp = canvas.toDataURL();
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+            laserCanvas.width = window.innerWidth;
+            laserCanvas.height = window.innerHeight;
             internalWidth = canvas.width;
             internalHeight = canvas.height;
             
@@ -662,13 +686,13 @@
 
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
             if(typeof window.saveState === 'function') window.saveState(); 
             broadcastData({ type:'clear' });
         }
         window.clearCanvas = clearCanvas;
 
-        /* ================= BIBLIOTECA MATEMÁTICA DEFINITIVA ================= */
+        /* ================= BIBLIOTECA MATEMÁTICA ================= */
         const mathFormulas = {
             arithmetic: [
                 {name:"Regla de tres simple",eq:"x = (b · c) / a"},
@@ -800,7 +824,7 @@
             try { await navigator.clipboard.writeText(text); alert('Copiado'); } catch(e){}
         }
 
-        // ================= NUEVO GESTOR DE ARCHIVOS (PDF Y FOTOS) =================
+        // ================= GESTOR DE ARCHIVOS =================
         let sessionResources = [];
         
         document.getElementById('multiFileInput').addEventListener('change', async function(e) {
@@ -895,7 +919,7 @@
         }
         window.toggleResourcesPanel = toggleResourcesPanel;
 
-        // ================= RUTINAS GALERÍA COMPRIMIDA PERSISTENTE =================
+        // ================= GALERÍA =================
         function updateGalleryGrid() {
             const grid = document.getElementById('gallery-grid-container');
             if(savedCaptures.length === 0) {
@@ -1119,7 +1143,7 @@
             stampCropMode = false; sStartX = undefined;
         });
 
-        // Visor PDF
+        // Visor PDF Original
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
@@ -1297,6 +1321,40 @@
         window.captureDolaScreen = () => captureScreenSource('dola');
         window.captureCalcScreen = () => captureScreenSource('calc');
 
+        function loadImageIntoStamp(file) {
+            if (!file || !file.type || !file.type.startsWith('image/')) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                const img = document.getElementById('stamp-img');
+                const source = new Image();
+                source.onload = function() {
+                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
+                    const ratio = Math.min(1, 900 / w, 650 / h);
+                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
+                    img.onload = function() {
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.left = (window.innerWidth - w) / 2 + 'px';
+                        stamper.style.top = (window.innerHeight - h) / 2 + 'px';
+                        stamper.style.display = 'block';
+                    };
+                    img.src = ev.target.result;
+                };
+                source.src = ev.target.result;
+            };
+            reader.readAsDataURL(file);
+        }
+        ['imageInput', 'cameraInput'].forEach(id => {
+            const input = document.getElementById(id);
+            if (input) input.addEventListener('change', function(e) {
+                if (e.target.files[0]) {
+                    loadImageIntoStamp(e.target.files[0]);
+                }
+                e.target.value = '';
+            });
+        });
+
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
@@ -1304,17 +1362,21 @@
             tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
             const tCtx = tempCanvas.getContext('2d');
             
-            // Dibujar fondo según el tema antes de exportar
+            // Recrear fondo actual para el PDF
             const isChalk = document.body.classList.contains('theme-chalkboard');
-            tCtx.fillStyle = isChalk ? '#243447' : '#ffffff';
+            const isGrid = document.body.classList.contains('theme-grid');
+            
+            tCtx.fillStyle = isChalk ? '#1e5631' : '#ffffff';
             tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
             
-            tCtx.strokeStyle = isChalk ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
-            tCtx.lineWidth = 1.5;
-            tCtx.beginPath();
-            for(let x=0; x<tempCanvas.width; x+=35) { tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); }
-            for(let y=0; y<tempCanvas.height; y+=35) { tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); }
-            tCtx.stroke();
+            if (isGrid || isChalk) {
+                tCtx.strokeStyle = isChalk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+                tCtx.lineWidth = 1.5;
+                tCtx.beginPath();
+                for(let x=0; x<tempCanvas.width; x+=35) { tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); }
+                for(let y=0; y<tempCanvas.height; y+=35) { tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); }
+                tCtx.stroke();
+            }
 
             tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
             const { jsPDF } = window.jspdf;
@@ -1465,7 +1527,14 @@
                 return;
             }
             
-            if (data.type === 'laser' || data.type === 'start') { 
+            if (data.type === 'laser') {
+                // Dibujar estela mágica del láser remota
+                laserPaths.push({ x1: data.lastPosX * canvas.width, y1: data.lastPosY * canvas.width, x2: data.x * canvas.width, y2: data.y * canvas.width, cX: data.x * canvas.width, cY: data.y * canvas.width, time: Date.now() });
+                updateRemoteCursor(data);
+                return; 
+            }
+            
+            if (data.type === 'start') { 
                 updateRemoteCursor(data);
                 return; 
             }
@@ -1493,7 +1562,6 @@
                 ctx.shadowBlur = 0;
                 ctx.shadowColor = 'transparent';
 
-                // BORRADOR REAL DESTRUCTOR
                 if(data.tool === 'eraser'){
                     ctx.globalCompositeOperation = 'destination-out';
                     ctx.strokeStyle = 'rgba(0,0,0,1)';
@@ -1550,7 +1618,7 @@
 
                 document.getElementById('ui-panel').style.display = 'block';
                 const codeDisplay = document.getElementById('room-code-display');
-                codeDisplay.innerText = randomCode;
+                codeDisplay.innerText = randomCode; 
                 codeDisplay.style.display = 'block';
                 
                 setTimeout(() => { 
@@ -1568,9 +1636,8 @@
                     if (activePeers.length > 0) {
                         conn.send({ type: 'peer_list', peers: activePeers });
                     }
-                    // Sincronizar el tema actual al alumno recién conectado
-                    const isChalk = document.body.classList.contains('theme-chalkboard');
-                    conn.send({ type: 'theme', theme: isChalk ? 'theme-chalkboard' : 'theme-whiteboard' });
+                    const currentTheme = ['theme-grid', 'theme-whiteboard', 'theme-chalkboard'].find(t => document.body.classList.contains(t)) || 'theme-grid';
+                    conn.send({ type: 'theme', theme: currentTheme });
                     
                     connections.push(conn); 
                 });
@@ -1775,10 +1842,11 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA === */
+/* === MOTOR UNIVERSAL DE ESCRITURA Y LÁSER === */
 (function(){
   const board = document.getElementById('board');
-  if(!board) return;
+  const laserCanvas = document.getElementById('laser-board');
+  if(!board || !laserCanvas) return;
 
   let mwMode = 'pen';
   let mwSize = 5;
@@ -1790,60 +1858,36 @@
   let shapeStartX = 0, shapeStartY = 0;
   const shapePreviewCanvas = document.createElement('canvas');
 
-  let renderQueue = [];
-  let isRendering = false;
+  let laserPaths = [];
 
-  function processRenderQueue() {
-      if(renderQueue.length === 0) {
-          isRendering = false;
-          return;
-      }
+  function drawLaserFade() {
+      const lCtx = laserCanvas.getContext('2d');
+      lCtx.clearRect(0,0,laserCanvas.width, laserCanvas.height);
+      const now = Date.now();
+      laserPaths = laserPaths.filter(p => now - p.time < 800); 
       
-      const c = board.getContext('2d', {desynchronized: true, alpha: false});
-      c.lineCap = 'round'; c.lineJoin = 'round';
-      const isChalk = document.body.classList.contains('theme-chalkboard');
-      
-      const batch = renderQueue.splice(0, renderQueue.length);
-      for(let i=0; i<batch.length; i++) {
-          let pt = batch[i];
-          c.beginPath();
-          c.moveTo(pt.lastMidX, pt.lastMidY);
-          c.quadraticCurveTo(pt.lastPosX, pt.lastPosY, pt.midX, pt.midY);
-
-          c.lineWidth = pt.size;
-          c.shadowBlur = 0;
-          c.shadowColor = 'transparent';
-
-          if(pt.tool === 'eraser'){
-              c.globalCompositeOperation = 'destination-out';
-              c.strokeStyle = 'rgba(0,0,0,1)';
-              c.globalAlpha = 1;
-          } else {
-              c.globalCompositeOperation = 'source-over';
-              c.strokeStyle = pt.color;
-              if (pt.tool === 'marker') {
-                  c.globalAlpha = 0.38;
-              } else if (isChalk) {
-                  c.globalAlpha = 0.9;
-                  c.shadowBlur = 2;
-                  c.shadowColor = pt.color;
-              } else {
-                  c.globalAlpha = 0.85;
-              }
+      if(laserPaths.length > 0) {
+          lCtx.lineCap = 'round';
+          lCtx.lineJoin = 'round';
+          lCtx.shadowBlur = 15;
+          lCtx.shadowColor = '#ef4444';
+          
+          for(let i=0; i<laserPaths.length; i++) {
+              let p = laserPaths[i];
+              let age = now - p.time;
+              let alpha = Math.max(0, 1 - (age / 800));
+              
+              lCtx.beginPath();
+              lCtx.moveTo(p.x1, p.y1);
+              lCtx.quadraticCurveTo(p.cX, p.cY, p.x2, p.y2);
+              lCtx.lineWidth = (mwSize + 4) * alpha;
+              lCtx.strokeStyle = `rgba(239, 68, 68, ${alpha})`;
+              lCtx.stroke();
           }
-          c.stroke();
       }
-      
-      requestAnimationFrame(processRenderQueue);
+      requestAnimationFrame(drawLaserFade);
   }
-
-  function queueStroke(lastMidX, lastMidY, lastPosX, lastPosY, midX, midY, size, tool, color) {
-      renderQueue.push({ lastMidX, lastMidY, lastPosX, lastPosY, midX, midY, size, tool, color });
-      if(!isRendering) {
-          isRendering = true;
-          requestAnimationFrame(processRenderQueue);
-      }
-  }
+  drawLaserFade();
 
   function pos(ev){ return { x: ev.clientX, y: ev.clientY }; }
 
@@ -1874,8 +1918,10 @@
     });
     
     if (mode === 'laser') {
-        board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="%23ef4444"/><circle cx="16" cy="16" r="14" fill="%23ef4444" fill-opacity="0.3"/></svg>\') 16 16, crosshair';
+        laserCanvas.style.pointerEvents = 'auto'; 
+        laserCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="%23ef4444"/><circle cx="16" cy="16" r="14" fill="%23ef4444" fill-opacity="0.3"/></svg>\') 16 16, crosshair';
     } else {
+        laserCanvas.style.pointerEvents = 'none';
         board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>\') 12 12, crosshair !important';
     }
   }
@@ -1883,7 +1929,7 @@
   function start(ev){
     if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
     ev.preventDefault();
-    saveState();
+    if (mwMode !== 'laser') saveState();
 
     mwDrawing = true;
     const p = pos(ev);
@@ -1894,15 +1940,30 @@
         shapeStartX = p.x; shapeStartY = p.y;
         shapePreviewCanvas.width = canvas.width; shapePreviewCanvas.height = canvas.height;
         shapePreviewCanvas.getContext('2d').drawImage(canvas, 0, 0);
+    } else if (mwMode === 'laser') {
+        if (typeof broadcastData === 'function') {
+            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+        }
     } else {
-        if (typeof broadcastData === 'function' && mwMode !== 'laser') {
+        if (typeof broadcastData === 'function') {
             broadcastData({ type:'start' });
         }
     }
-    try{ board.setPointerCapture(ev.pointerId); }catch(e){}
+    try{ 
+        if(mwMode === 'laser') laserCanvas.setPointerCapture(ev.pointerId);
+        else board.setPointerCapture(ev.pointerId); 
+    }catch(e){}
   }
 
   function move(ev){
+    if (!mwDrawing && mwMode === 'laser') {
+        const p = pos(ev);
+        if (typeof broadcastData === 'function') {
+            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+        }
+        return;
+    }
+      
     if(!mwDrawing) return;
     ev.preventDefault();
     
@@ -1920,28 +1981,71 @@
     }
     
     if (mwMode === 'laser') {
-        let p = pos(events[events.length - 1]);
-        if (typeof broadcastData === 'function') {
-            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+        for (let i=0; i<events.length; i++) {
+            let p = pos(events[i]);
+            let midX = (mwLastPosX + p.x) * 0.5;
+            let midY = (mwLastPosY + p.y) * 0.5;
+            
+            laserPaths.push({ x1: mwLastMidX, y1: mwLastMidY, x2: midX, y2: midY, cX: mwLastPosX, cY: mwLastPosY, time: Date.now() });
+            
+            if (typeof broadcastData === 'function') {
+                broadcastData({ type: 'laser', lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+            }
+            mwLastPosX = p.x; mwLastPosY = p.y;
+            mwLastMidX = midX; mwLastMidY = midY;
         }
         return; 
     }
+
+    const c = board.getContext('2d', {desynchronized: true, alpha: true});
+    c.lineCap = 'round'; c.lineJoin = 'round';
+    const isChalk = document.body.classList.contains('theme-chalkboard');
 
     for (let i=0; i<events.length; i++) {
         let e = events[i];
         let p = pos(e);
         
-        let rawPressure = e.pointerType === 'pen' ? e.pressure : 0.5;
-        if (rawPressure === 0) rawPressure = 0.5; 
+        let dx = p.x - mwLastPosX;
+        let dy = p.y - mwLastPosY;
+        let dist = Math.sqrt(dx*dx + dy*dy);
+        let speedFactor = Math.max(0.4, 1 - (dist / 100)); 
+        
+        let rawPressure = e.pointerType === 'pen' ? e.pressure : speedFactor;
+        if (rawPressure === 0) rawPressure = speedFactor; 
 
-        let pFactor = e.pointerType === 'pen' ? (0.3 + (rawPressure * rawPressure) * 1.2) : 1;
+        let pFactor = e.pointerType === 'pen' ? (0.2 + (rawPressure * 0.8)) : rawPressure;
         let baseSize = mwMode === 'marker' ? Math.max(12, mwSize * 2.2) : mwSize;
         let finalSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
         
         let midX = (mwLastPosX + p.x) * 0.5;
         let midY = (mwLastPosY + p.y) * 0.5;
 
-        queueStroke(mwLastMidX, mwLastMidY, mwLastPosX, mwLastPosY, midX, midY, finalSize, mwMode, inkColor);
+        c.beginPath();
+        c.moveTo(mwLastMidX, mwLastMidY);
+        c.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
+
+        c.lineWidth = finalSize;
+        c.shadowBlur = 0;
+        c.shadowColor = 'transparent';
+
+        if(mwMode === 'eraser'){
+            c.globalCompositeOperation = 'destination-out';
+            c.strokeStyle = 'rgba(0,0,0,1)';
+            c.globalAlpha = 1;
+        } else {
+            c.globalCompositeOperation = 'source-over';
+            c.strokeStyle = inkColor;
+            if (mwMode === 'marker') {
+                c.globalAlpha = 0.38;
+            } else if (isChalk) {
+                c.globalAlpha = 0.9;
+                c.shadowBlur = 2;
+                c.shadowColor = inkColor;
+            } else {
+                c.globalAlpha = 0.85;
+            }
+        }
+        c.stroke();
 
         if (typeof broadcastData === 'function') {
             broadcastData({ 
@@ -1975,9 +2079,12 @@
             });
         }
     } else {
-        if (typeof broadcastData === 'function') broadcastData({ type:'stop' });
+        if (typeof broadcastData === 'function' && mwMode !== 'laser') broadcastData({ type:'stop' });
     }
-    try{ board.releasePointerCapture(ev.pointerId); }catch(e){}
+    try{ 
+        if(mwMode === 'laser') laserCanvas.releasePointerCapture(ev.pointerId);
+        else board.releasePointerCapture(ev.pointerId); 
+    }catch(e){}
   }
 
   board.addEventListener('pointerdown', start, {passive:false});
@@ -1985,6 +2092,12 @@
   board.addEventListener('pointerup', end, {passive:false});
   board.addEventListener('pointercancel', end, {passive:false});
   board.addEventListener('contextmenu', e=>e.preventDefault());
+  
+  laserCanvas.addEventListener('pointerdown', start, {passive:false});
+  laserCanvas.addEventListener('pointermove', move, {passive:false});
+  laserCanvas.addEventListener('pointerup', end, {passive:false});
+  laserCanvas.addEventListener('pointercancel', end, {passive:false});
+  laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
 
   ['mw-pen','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
       const btn = document.getElementById(id);
