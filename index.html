@@ -993,6 +993,7 @@
             cropModePdf = !cropModePdf;
             pOverlay.style.display = cropModePdf ? 'block' : 'none';
             if (cropModePdf) {
+                // Cubrir TODO el área de scroll para que no se escape la selección
                 const container = document.getElementById('pdf-render-container');
                 pOverlay.style.width = Math.max(container.clientWidth, container.scrollWidth) + 'px';
                 pOverlay.style.height = Math.max(container.clientHeight, container.scrollHeight) + 'px';
@@ -1031,6 +1032,7 @@
             const pRect = pBox.getBoundingClientRect();
             const cRect = pdfAppCanvas.getBoundingClientRect();
             
+            // LA CLAVE DE ORO: Matemática exacta comparando las cajas visuales renderizadas en el monitor
             const visualX = pRect.left - cRect.left;
             const visualY = pRect.top - cRect.top;
             
@@ -1038,6 +1040,7 @@
                 const scaleX = pdfAppCanvas.width / cRect.width;
                 const scaleY = pdfAppCanvas.height / cRect.height;
                 
+                // Recorte seguro (clamp) para evitar zonas vacías si el usuario arrastra fuera del PDF
                 const safeX = Math.max(0, visualX);
                 const safeY = Math.max(0, visualY);
                 const adjW = pRect.width - (safeX - visualX);
@@ -1333,6 +1336,16 @@
             } else {
                 processRemoteCommand(data);
             }
+            
+            // RE-TRANSMISIÓN PARA MÚLTIPLES ALUMNOS: 
+            // Si soy el profesor y recibo un trazo de un alumno, se lo reenvío a los demás.
+            if (isAdmin) {
+                connections.forEach(conn => {
+                    if (conn.open && conn.peer !== data.peerId) {
+                        conn.send(data);
+                    }
+                });
+            }
         }
 
         async function createRoom() {
@@ -1340,12 +1353,13 @@
             document.getElementById('main-toolbar').style.display = 'flex';
             
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            peer = new Peer(randomCode, peerNetworkOptions);
+            // PREFIJO DE SEGURIDAD: Evita que el servidor público de PeerJS cruce tu sala con la de otros en el mundo
+            peer = new Peer('MBPRO_' + randomCode, peerNetworkOptions);
             
             peer.on('open', (id) => {
                 document.getElementById('ui-panel').style.display = 'block';
                 const codeDisplay = document.getElementById('room-code-display');
-                codeDisplay.innerText = id; 
+                codeDisplay.innerText = randomCode; // Muestra solo el número limpio
                 codeDisplay.style.display = 'block';
                 
                 setTimeout(() => { 
@@ -1377,20 +1391,22 @@
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 document.getElementById('main-toolbar').style.display = 'flex';
                 
-                const conn = peer.connect(roomId); 
+                const targetId = 'MBPRO_' + roomId;
+                const conn = peer.connect(targetId); 
                 connections.push(conn);
                 conn.on('data', drawRemote);
                 
-                // MEJORA: Pequeño retraso de 800ms para asegurar conexión limpia
+                // MEJORA: Pequeño retraso de 1000ms para asegurar conexión limpia antes de enviar voz
                 setTimeout(() => {
                     if(localStream) { 
-                        const call = peer.call(roomId, localStream); 
+                        const call = peer.call(targetId, localStream); 
                         if(call) call.on('stream', playAudio); 
                     }
-                }, 800);
+                }, 1000);
             });
-            peer.on('error', () => {
-                alert("No se pudo conectar a la clase. Verifica el código.");
+            peer.on('error', (err) => {
+                console.error(err);
+                alert("No se pudo conectar a la clase. Verifica el código o tu conexión.");
                 window.location.reload();
             });
         }
