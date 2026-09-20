@@ -5,20 +5,14 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#0b1020">
 <title>MathBoard Pro — Super Star</title>
-<script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script>
-    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.worker.min.js';
-</script>
 <style>
 :root{--bg:#080c18;--panel:#10172aee;--panel2:#151e35;--line:#2b395b;--text:#eef3ff;--muted:#9eabc8;--accent:#6ea8ff;--good:#45d483;--warn:#ffca58;--danger:#ff6878;--shadow:0 14px 45px #0007}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;touch-action:none;-ms-touch-action:none;user-select:none;-webkit-user-select:none}
 button,input,select,textarea{font:inherit}button{border:1px solid var(--line);background:#18223b;color:var(--text);border-radius:10px;padding:9px 11px;cursor:pointer;transition:.15s}button:hover{background:#223052;transform:translateY(-1px)}button:active{transform:translateY(0)}button.primary{background:#2868d7;border-color:#4380eb}button.good{background:#167747;border-color:#2eaa70}button.danger{background:#8e2638;border-color:#c44b5d}
-#app{position:fixed;inset:0;background:#ffffff}
-#boardWrap{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#ffffff}
+#app{position:fixed;inset:0;background:#f8f9fb}
+#boardWrap{position:absolute;inset:0;overflow:hidden;touch-action:none;background:#fff;cursor:crosshair}
 canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
-#board{z-index:1; cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>') 12 12, crosshair !important; transform: translateZ(0); backface-visibility: hidden; will-change: contents;}
+#bgCanvas{z-index:0}#board{z-index:1}#preview{z-index:2;pointer-events:none}
 #cursorLayer{position:absolute;inset:0;z-index:3;pointer-events:none}
 .remoteCursor{position:absolute;pointer-events:none;transform:translate(-3px,-3px);filter:drop-shadow(0 1px 2px #0005);transition:transform 0.05s linear}
 .remoteCursor .dot{width:10px;height:10px;border-radius:50%;background:#6ea8ff;border:2px solid #fff;box-shadow:0 1px 4px #0006}
@@ -28,161 +22,126 @@ canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-acti
 .brand b{letter-spacing:.2px}.brand small{display:block;color:var(--muted);font-size:10px;margin-top:2px}
 .status{display:flex;gap:7px;align-items:center;background:#0c1324e8;border:1px solid #344366;border-radius:14px;padding:8px 11px;box-shadow:var(--shadow);pointer-events:auto;backdrop-filter:blur(12px);font-size:12px}
 .dotStatus{width:9px;height:9px;border-radius:50%;background:var(--warn)}.dotStatus.ok{background:var(--good)}.dotStatus.bad{background:var(--danger)}
-#toolbar{position:absolute;z-index:30;left:50%;bottom:25px;transform:translateX(-50%);display:flex;gap:5px;align-items:center;padding:7px;background:#0c1324eF;border:1px solid #344366;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(14px);max-width:calc(100vw - 18px);overflow-x:auto;white-space:nowrap}
-.tool{min-width:44px;height:42px;padding:7px; font-size:16px; display:flex; align-items:center; justify-content:center; flex-shrink: 0;}.tool.active{background:#2b6dde;border-color:#69a0ff}.sep{width:1px;height:28px;background:#33415f;margin:0 3px; flex-shrink: 0;}
+#toolbar{position:absolute;z-index:30;left:50%;bottom:20px;transform:translateX(-50%);display:flex;gap:5px;align-items:center;padding:7px;background:#0c1324eF;border:1px solid #344366;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(14px);max-width:calc(100vw - 18px);overflow-x:auto;white-space:nowrap}
+.tool{min-width:39px;height:39px;padding:7px}.tool.active{background:#2b6dde;border-color:#69a0ff}.sep{width:1px;height:28px;background:#33415f;margin:0 3px}
 #teacherTools{display:none;gap:5px;align-items:center}.teacherOnly{display:none}
-
-/* Sistema de Login Limpio */
 #login{position:fixed;inset:0;z-index:100;background:radial-gradient(circle at 50% 20%,#213d76 0,#0c1324 45%,#050811 100%);display:grid;place-items:center;padding:20px}
-.loginCard{width:min(440px,94vw);background:#10172aee;border:1px solid #3a4a70;border-radius:22px;padding:28px;box-shadow:0 25px 90px #0009;backdrop-filter:blur(18px); text-align:center;}
-.logo{font-size:28px;font-weight:800}.sub{color:var(--muted);margin:6px 0 24px}.roleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.roleGrid button{padding:15px; font-size:1.05rem; font-weight:bold;}.loginForm{margin-top:16px;display:none; animation: fadeIn 0.3s;}.loginForm input{width:100%;padding:13px;border-radius:11px;border:1px solid var(--line);background:#0b1120;color:#fff;outline:none; font-size:1.2rem; text-align:center; box-sizing:border-box; letter-spacing:2px;}.loginForm input:focus{border-color:#5790f7}.hint{font-size:12px;color:var(--muted);margin-top:10px}.error{color:#ff8793;font-size:12px;margin-top:8px;min-height:16px}
-.back-btn{background:transparent; border:none; color:#888; font-size:0.9rem; margin-top:15px; text-decoration:underline; cursor:pointer;}
-@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
-
-/* Sistema de Paneles Flotantes */
-.panel{position:absolute;z-index:60;background:var(--panel);border:1px solid #3a4a70;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden; display:flex; flex-direction:column; transition: width 0.2s, height 0.2s, top 0.2s, left 0.2s;}
-.panelHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #2d3955;cursor:move;background:#121b31;user-select:none;}
-.panelHead b{font-size:14px; font-weight:bold; color:var(--text); letter-spacing:0.5px;}
-.panelControls button { padding: 2px 8px; font-size: 1rem; background: transparent; color: #888; border: none; cursor: pointer; transition: 0.2s; }
-.panelControls button:hover { color: #fff; }
-.panelBody{flex-grow:1;padding:11px;overflow:auto;position:relative; background:#1e293b;}
-.panelToolbar{display:flex;gap:5px;padding:8px;background:#151e35;border-bottom:1px solid #2d3955;flex-wrap:wrap;align-items:center}
-.resize-handle { position: absolute; right: -5px; bottom: -5px; width: 24px; height: 24px; background: transparent; cursor: nwse-resize; z-index: 100; touch-action: none; }
-
-/* Posicionamiento y Tallas base de Paneles */
+.loginCard{width:min(440px,94vw);background:#10172aee;border:1px solid #3a4a70;border-radius:22px;padding:28px;box-shadow:0 25px 90px #0009;backdrop-filter:blur(18px)}
+.logo{font-size:28px;font-weight:800}.sub{color:var(--muted);margin:6px 0 24px}.roleGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.roleGrid button{padding:15px}.loginForm{margin-top:16px;display:none}.loginForm input{width:100%;padding:13px;border-radius:11px;border:1px solid var(--line);background:#0b1120;color:#fff;outline:none}.loginForm input:focus{border-color:#5790f7}.hint{font-size:12px;color:var(--muted);margin-top:10px}.error{color:#ff8793;font-size:12px;margin-top:8px;min-height:16px}
+.panel{position:absolute;z-index:60;background:var(--panel);border:1px solid #3a4a70;border-radius:16px;box-shadow:var(--shadow);backdrop-filter:blur(16px);overflow:hidden;display:flex;flex-direction:column}
+.panelHead{display:flex;align-items:center;justify-content:space-between;padding:10px 12px;border-bottom:1px solid #2d3955;cursor:move;background:#121b31;user-select:none}
+.panelHead b{font-size:13px}.panelBody{flex-grow:1;padding:11px;overflow:auto;position:relative}.panelToolbar{display:flex;gap:5px;padding:8px;background:#1f1f1f;border-bottom:1px solid #333;flex-wrap:wrap;align-items:center}
+.panelControls button{padding:2px 8px;font-size:1rem;background:transparent;color:#888;border:none;cursor:pointer;transition:.2s}.panelControls button:hover{color:#fff}
+.resize-handle{position:absolute;right:-5px;bottom:-5px;width:20px;height:20px;background:transparent;cursor:nwse-resize;z-index:100;touch-action:none}
+iframe{pointer-events:auto}
+#chatPanel{right:15px;bottom:75px;width:min(360px,calc(100vw - 30px));height:430px;display:none}
+#chatMessages{flex-grow:1;overflow:auto;padding:4px}.msg{margin:7px 0}.msg .who{font-size:10px;color:#88a8e9}.msg .bubble{display:inline-block;background:#1b2743;border-radius:10px;padding:7px 9px;max-width:90%;font-size:13px;word-break:break-word}.msg.me{text-align:right}.msg.me .bubble{background:#2868d7}
+.chatSend{display:flex;gap:6px;margin-top:8px}.chatSend input{min-width:0;flex:1;border:1px solid var(--line);border-radius:9px;padding:9px;background:#0a1020;color:#fff}
+#mediaPanel{left:15px;top:70px;width:min(510px,calc(100vw - 30px));height:360px;display:none}
+#videoGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;height:100%;overflow:auto}.videoTile{position:relative;min-height:125px;background:#050912;border:1px solid #263451;border-radius:10px;overflow:hidden}.videoTile video{width:100%;height:100%;object-fit:cover}.videoTile span{position:absolute;left:6px;bottom:5px;background:#0009;padding:3px 6px;border-radius:5px;font-size:10px;pointer-events:none}
+#roomPanel{left:15px;top:70px;width:290px;display:none}.roomCode{font-size:34px;letter-spacing:8px;text-align:center;padding:12px;color:#fff}
 #calcPanel{right:15px;top:70px;width:min(600px,calc(100vw - 30px));height:min(500px,calc(100vh - 150px));display:none}
-#dolaPanel{right:15px;top:70px;width:min(700px,calc(100vw - 30px));height:min(550px,calc(100vh - 150px));display:none}
 #pdfPanel{left:15px;top:70px;width:min(550px,calc(100vw - 30px));height:min(600px,calc(100vh - 150px));display:none}
+#dolaPanel{right:15px;top:70px;width:min(750px,calc(100vw - 30px));height:min(550px,calc(100vh - 150px));display:none}
+#pdfCanvas{max-width:100%;display:block;margin:auto;background:#fff;box-shadow:0 2px 12px #0005}
 #galleryPanel{right:15px;top:70px;width:min(420px,calc(100vw - 30px));height:min(500px,calc(100vh - 150px));display:none}
-#formulaPanel{right:15px;top:70px;width:min(480px,calc(100vw - 30px));height:min(560px,calc(100vh - 150px));display:none}
-
-/* PDF y Canvas Internos */
-#pdfCanvas{max-width:100%;display:block;margin:auto;background:#fff;box-shadow:0 4px 15px rgba(0,0,0,0.5)}
-
-/* Motor de Recorte Seguro (No interfiere con Windows) */
-.cropOverlay{position:absolute;inset:0;cursor:crosshair;display:none;z-index:5;background:rgba(0,0,0,0.3)}
-.cropBox{position:absolute;border:2px dashed #3b82f6;background:rgba(59,130,246,0.25);pointer-events:none;display:none}
-
-/* Estampador */
-#stamper{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);display:none;z-index:80;touch-action:none;background:var(--panel);border:1px solid #3a4a70;box-shadow:var(--shadow);border-radius:16px;flex-direction:column;width:auto;height:auto;padding:5px}
-#stamperHead{padding:8px;cursor:move;text-align:center;border-bottom:1px solid #2d3955;font-weight:bold;font-size:0.85rem;color:var(--accent);user-select:none}
-#stamperBody{position:relative;border:2px dashed #45d483;background:#fff;min-width:100px;min-height:50px;border-radius:4px;flex-grow:0;margin:10px;padding:0}
-#stampImg{width:100%;height:100%;object-fit:fill;display:block;pointer-events:none;border-radius:4px;-webkit-user-drag:none}
-.stampResize{position:absolute;right:-12px;bottom:-12px;width:28px;height:28px;background:#3b82f6;border-radius:50%;border:2px solid white;cursor:nwse-resize;z-index:21;touch-action:none}
-#stamperControls{display:flex;gap:5px;padding:8px;background:#151e35;border-radius:0 0 16px 16px;justify-content:center}
-
-/* Galería Grid */
-.galleryGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;height:100%;align-content:start;}
-.galleryItem{background:#2a2a2a;border-radius:8px;padding:8px;text-align:center;border:1px solid #444;display:flex;flex-direction:column;justify-content:space-between;gap:5px}
-.galleryItem img{max-width:100%;height:80px;object-fit:contain;background:#fff;border-radius:4px;display:block;margin:0 auto;pointer-events:none}
-.galleryActions{display:flex;gap:5px}.galleryActions button{padding:4px;font-size:12px;flex:1}
-
-/* Biblioteca de Fórmulas */
-.formula-card{padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--panel2);margin-bottom:8px;}
-.formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;color:var(--accent);}
-.formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.05rem;line-height:1.35;word-break:break-word;color:#fff;}
-.formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
-
-iframe{pointer-events:auto; border-radius:0 0 12px 12px;}
-.hidden-file{display:none;}
-.record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
-@keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+.galleryGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;height:100%;align-content:start}.galleryItem{background:#2a2a2a;border-radius:8px;padding:8px;text-align:center;border:1px solid #444;display:flex;flex-direction:column;gap:5px}.galleryItem img{width:100%;height:80px;object-fit:contain;background:#fff;border-radius:4px;pointer-events:none}.galleryActions{display:flex;gap:5px}.galleryActions button{padding:4px;font-size:12px;flex:1}
+#formulaPanel{right:15px;top:70px;width:min(520px,calc(100vw - 30px));height:min(560px,calc(100vh - 150px));display:none}.formula{padding:10px;border-bottom:1px solid #27344f}.formula b{display:block;color:#91b5ff}.formula code{color:#fff;font-size:15px;display:block;margin-top:4px}
+#toast{position:fixed;z-index:200;left:50%;top:18px;transform:translate(-50%,-20px);opacity:0;background:#111b31ee;border:1px solid #41547c;padding:9px 14px;border-radius:10px;transition:.2s;pointer-events:none;box-shadow:var(--shadow);font-size:13px}
+#toast.show{opacity:1;transform:translate(-50%,0)}
 #fullscreenHint{display:none;position:fixed;z-index:150;right:14px;top:14px;background:#10182bea;border:1px solid #3b4b70;border-radius:10px;padding:8px 10px;font-size:11px;pointer-events:none}
 body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}body.fs #topbar{opacity:0;pointer-events:none}body.fs #fullscreenHint{display:block}
-
-@media(max-width:700px){#toolbar{bottom:15px}.brand{font-size:12px}.status{font-size:10px}.tool{min-width:37px}.panel{width:calc(100vw - 16px)!important;left:8px!important}}
+/* Componentes de Recorte / Estampador */
+.cropOverlay{position:absolute;inset:0;cursor:crosshair;display:none;z-index:10;background:rgba(0,0,0,0.3)}
+.cropBox{position:absolute;border:2px dashed #3b82f6;background:rgba(59,130,246,0.25);pointer-events:none;display:none}
+#stamper{position:absolute;display:none;z-index:80;flex-direction:column;box-shadow:0 15px 40px rgba(0,0,0,0.6);border:2px solid #3b82f6;border-radius:12px;background:transparent}
+#stamperHead{background:rgba(15,23,42,0.95);padding:8px;cursor:move;text-align:center;border-radius:10px 10px 0 0;font-weight:bold;font-size:0.85rem;color:#60a5fa}
+#stamperBody{position:relative;background:transparent;flex-grow:1;overflow:hidden;border-radius:0 0 10px 10px}
+#stampImg{width:100%;height:100%;object-fit:fill;display:block;pointer-events:none;-webkit-user-drag:none}
+.stampResize{position:absolute;right:-5px;bottom:-5px;width:24px;height:24px;background:#3b82f6;border-radius:50%;border:2px solid white;cursor:nwse-resize;z-index:21;touch-action:none}
+#stamperControls{position:absolute;top:100%;left:50%;transform:translateX(-50%);margin-top:10px;display:flex;gap:6px;background:rgba(30,30,30,0.97);padding:6px 9px;border-radius:20px;border:1px solid #555;white-space:nowrap;z-index:50}
+.record-active{background:#dc2626!important;animation:pulse-record 1.5s infinite} @keyframes pulse-record{0%{opacity:1}50%{opacity:.7}100%{opacity:1}}
+@media(max-width:700px){#toolbar{bottom:15px}.brand{font-size:12px}.status{font-size:10px}.tool{min-width:37px}#mediaPanel{left:8px;top:58px}#chatPanel{right:8px;bottom:65px}.panel{border-radius:13px;width:calc(100vw - 16px)!important;left:8px!important}}
 </style>
 </head>
 <body>
-
-<div id="login">
-  <div class="loginCard">
-    <div class="logo">∑ MathBoard Pro</div>
-    <div class="sub">Pizarra Matemática Profesional · Super Star</div>
-    <div class="roleGrid" id="roleSelection">
-      <button id="studentRole">👨‍🎓 Soy Estudiante</button>
-      <button id="teacherRole">👨‍🏫 Soy Profesor</button>
-    </div>
-    
-    <div class="loginForm" id="studentForm">
-      <input id="studentName" placeholder="Tu nombre">
-      <input id="roomInput" inputmode="numeric" maxlength="4" placeholder="Código (Ej: 1234)">
-      <button class="primary" id="joinBtn" style="width:100%;margin-top:10px">Entrar al aula</button>
-      <div class="hint">Pídele al profesor el código de la clase.</div>
-      <div class="error" id="studentError"></div>
-      <button class="back-btn" onclick="resetLogin()">Volver atrás</button>
-    </div>
-    
-    <div class="loginForm" id="teacherForm">
-      <input id="teacherName" placeholder="Tu nombre">
-      <input id="teacherPin" type="password" placeholder="PIN de acceso">
-      <button class="primary" id="createBtn" style="width:100%;margin-top:10px">Crear aula</button>
-      <div class="hint">Entorno seguro y sincronizado.</div>
-      <div class="error" id="teacherError"></div>
-      <button class="back-btn" onclick="resetLogin()">Volver atrás</button>
-    </div>
-  </div>
-</div>
-
 <div id="app">
   <div id="boardWrap">
-    <canvas id="board"></canvas>
+    <canvas id="bgCanvas"></canvas><canvas id="board"></canvas><canvas id="preview"></canvas>
     <div id="cursorLayer"></div>
   </div>
 
   <div id="topbar">
-    <div class="brand"><b>∑ MathBoard Pro</b><small id="roleText">Pizarra Matemática</small></div>
-    <div class="status">
-        <i id="statusDot" class="dotStatus"></i>
-        <span id="statusText">Esperando conexión...</span>
-        <span id="peerCount" class="teacherOnly" style="margin-left:10px; color:var(--accent); font-weight:bold;">0 Alumnos</span>
-    </div>
+    <div class="brand"><b>∑ MathBoard Pro</b><small id="roleText">Pizarra Matemática • Super Star</small></div>
+    <div class="status"><i id="statusDot" class="dotStatus"></i><span id="statusText">Sin conexión</span><span id="zoomText">100%</span></div>
   </div>
 
   <div id="toolbar">
     <div id="teacherTools">
       <button class="tool teacherOnly" id="micBtn" title="Micrófono">🎙️</button>
-      <button class="tool teacherOnly" id="calcBtn" title="Calculadora Científica y Gráfica">🖩</button>
+      <button class="tool teacherOnly" id="videoBtn" title="Video en vivo">📹</button>
+      <button class="tool teacherOnly" id="chatBtn" title="Chat">💬</button>
+      <button class="tool teacherOnly" id="roomBtn" title="Aula / código">🔢</button>
+      <button class="tool teacherOnly" id="calcBtn" title="Calculadora Gráfica">🧮</button>
       <button class="tool teacherOnly" id="dolaBtn" title="Dola AI" style="color:#a78bfa">🤖</button>
-      <button class="tool teacherOnly" id="pdfBtn" title="PDF">📄</button>
-      <button class="tool teacherOnly" id="galleryBtn" title="Galería" style="color:#fbbf24">📁</button>
-      <button class="tool teacherOnly" id="formulaBtn" title="Fórmulas">∑</button>
-      
-      <input type="file" id="pdfInput" class="hidden-file" accept="application/pdf">
-      <input type="file" id="imageInput" class="hidden-file" accept="image/*">
-      <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
-      
-      <button class="tool teacherOnly hide-mobile" onclick="document.getElementById('imageInput').click()" title="Subir foto o imagen">🖼️</button>
-      <button class="tool teacherOnly" onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
-      
-      <button class="tool teacherOnly hide-mobile" id="saveBtn" title="Guardar PDF">💾</button>
-      <button class="tool teacherOnly hide-mobile" id="recordBtn" title="Grabar MP4">⏺️</button>
-      <button class="tool teacherOnly danger" id="logoutBtn" title="Cerrar sesión">🚪</button>
+      <button class="tool teacherOnly" id="pdfBtn" title="Visor PDF">📄</button>
+      <button class="tool teacherOnly" id="galleryBtn" title="Galería de Ejercicios" style="color:#fbbf24">🖼️</button>
+      <button class="tool teacherOnly" id="formulaBtn" title="Fórmulas Matemáticas">∑</button>
+      <button class="tool teacherOnly" id="saveBtn" title="Guardar Clase PDF">💾</button>
+      <button class="tool teacherOnly" id="recordBtn" title="Grabar Clase en MP4">⏺️</button>
+      <button class="tool teacherOnly danger" id="logoutBtn" title="Cerrar sesión para todos">🚪</button>
       <span class="sep teacherOnly"></span>
     </div>
-    
     <button class="tool active" id="penBtn" title="Lápiz">✎</button>
     <button class="tool" id="markerBtn" title="Marcador">🖍</button>
     <button class="tool" id="lineBtn" title="Línea">╱</button>
     <button class="tool" id="arrowBtn" title="Flecha">➜</button>
     <button class="tool" id="rectBtn" title="Rectángulo">□</button>
     <button class="tool" id="circleBtn" title="Círculo">○</button>
-    <button class="tool" id="eraserBtn" title="Borrador">🧼</button>
-    
-    <input id="color" type="color" value="#0f172a" title="Color de Tinta">
-    <input id="size" type="range" min="2" max="40" value="5" title="Grosor">
-    
+    <button class="tool" id="eraserBtn" title="Borrador Perfecto">⌫</button>
+    <input id="color" type="color" value="#111827" title="Color" style="width:38px;height:38px;border:0;background:transparent;padding:0;cursor:pointer">
+    <select id="size" title="Grosor"><option value="2">Fino</option><option value="5" selected>Medio</option><option value="9">Grueso</option><option value="15">Extra</option><option value="25">Gigante</option></select>
     <span class="sep"></span>
     <button class="tool" id="undoBtn" title="Deshacer">↶</button>
+    <button class="tool" id="redoBtn" title="Rehacer">↷</button>
     <button class="tool danger" id="clearBtn" title="Limpiar Absoluto">🗑</button>
-    <button class="tool hide-mobile" id="fullscreenBtn" title="Pantalla completa">⛶</button>
+    <button class="tool" id="zoomOut" title="Alejar">−</button>
+    <button class="tool" id="zoomReset" title="100%">100%</button>
+    <button class="tool" id="zoomIn" title="Acercar">+</button>
+    <button class="tool" id="fullscreenBtn" title="Pantalla completa">⛶</button>
   </div>
 
-  <!-- Calculadora Gráfica -->
+  <!-- Paneles Flotantes -->
+  <div class="panel" id="roomPanel">
+    <div class="panelHead"><b>🏫 Aula en vivo</b><div class="panelControls"><button class="close">×</button></div></div>
+    <div class="panelBody">
+      <div style="color:#9eabc8;font-size:12px">Código para compartir</div>
+      <div class="roomCode" id="roomCode">----</div>
+      <div style="display:flex;gap:6px"><button class="primary" id="copyRoom" style="flex:1">Copiar código</button><button id="permBtn" style="flex:1">✍️ Todos escriben</button></div>
+      <div id="peerCount" style="text-align:center;color:#9eabc8;font-size:12px;margin-top:10px">0 participantes</div>
+    </div>
+  </div>
+
+  <div class="panel" id="chatPanel">
+    <div class="panelHead"><b>💬 Chat del aula</b><div class="panelControls"><button class="close">×</button></div></div>
+    <div class="panelBody" style="display:flex;flex-direction:column">
+      <div id="chatMessages"></div>
+      <div class="chatSend"><input id="chatInput" placeholder="Escribí un mensaje…"><button class="primary" id="sendChat">Enviar</button></div>
+    </div>
+  </div>
+
+  <div class="panel" id="mediaPanel">
+    <div class="panelHead"><b>📹 Video en vivo</b><div class="panelControls"><button class="close">×</button></div></div>
+    <div class="panelBody" style="display:flex;flex-direction:column">
+      <div id="videoGrid"></div>
+      <div style="display:flex;gap:6px;margin-top:8px"><button id="toggleCam">📹 Cámara</button><button id="toggleMic">🎙️ Micrófono</button></div>
+    </div>
+  </div>
+
   <div class="panel" id="calcPanel">
-    <div class="panelHead" id="calcHead"><b>🧮 Calculadora Gráfica Avanzada</b><div class="panelControls"><button onclick="toggleMaximize('calcPanel')">🗖</button><button class="close">×</button></div></div>
+    <div class="panelHead" id="calcHead"><b>🧮 Calculadora gráfica avanzada</b><div class="panelControls"><button onclick="toggleMaximize('calcPanel')">🗖</button><button class="close">×</button></div></div>
     <div class="panelToolbar">
-      <button onclick="window.open('https://www.desmos.com/calculator?lang=es', '_blank')" class="primary">🌐 Pantalla Completa</button>
+      <button onclick="window.open('https://www.desmos.com/calculator?lang=es', '_blank')" class="primary">🌐 Nueva Pestaña</button>
       <button onclick="startPanelCrop('calcPanel')" class="good">📸 Recortar Gráfica</button>
     </div>
     <div class="panelBody" style="padding:0">
@@ -192,12 +151,11 @@ body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}bo
     <div class="resize-handle" id="calcResizer"></div>
   </div>
 
-  <!-- Dola AI -->
   <div class="panel" id="dolaPanel">
-    <div class="panelHead" id="dolaHead"><b>🤖 Dola AI (Asistente de Clase)</b><div class="panelControls"><button onclick="toggleMaximize('dolaPanel')">🗖</button><button class="close">×</button></div></div>
+    <div class="panelHead" id="dolaHead"><b>🤖 Dola AI</b><div class="panelControls"><button onclick="toggleMaximize('dolaPanel')">🗖</button><button class="close">×</button></div></div>
     <div class="panelToolbar">
-      <button onclick="window.open('https://www.cici.com', '_blank')" class="primary">🌐 Pantalla Completa</button>
-      <button onclick="startPanelCrop('dolaPanel')" class="good" title="Recorta respuestas de la IA y pégalas">📸 Recortar Respuesta</button>
+      <button onclick="window.open('https://www.cici.com', '_blank')" class="primary">🌐 Nueva Pestaña</button>
+      <button onclick="startPanelCrop('dolaPanel')" class="good" title="Captura y recorta una respuesta de la IA">📸 Recortar IA</button>
     </div>
     <div class="panelBody" style="padding:0">
       <iframe src="https://www.cici.com" style="width:100%;height:100%;border:0;display:block;background:#fff"></iframe>
@@ -206,18 +164,15 @@ body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}bo
     <div class="resize-handle" id="dolaResizer"></div>
   </div>
 
-  <!-- Lector PDF -->
   <div class="panel" id="pdfPanel">
-    <div class="panelHead" id="pdfHead"><b>📄 Lector de PDF</b><div class="panelControls"><button onclick="toggleMaximize('pdfPanel')">🗖</button><button class="close">×</button></div></div>
-    <div class="panelToolbar" style="justify-content:space-between">
-      <div>
-        <button onclick="document.getElementById('pdfInput').click()" class="primary">📂 Abrir</button>
-        <button id="pdfPrev" style="margin-left:10px">◀</button><span style="color:#fff; padding:0 10px;">Pág <b id="pdfPage">0</b></span><button id="pdfNext">▶</button>
-      </div>
-      <div>
-        <button id="pdfZoomOut">−</button><button id="pdfZoomIn">+</button>
-        <button onclick="startPanelCrop('pdfPanel')" class="good" style="margin-left:10px">✂️ Recortar</button>
-      </div>
+    <div class="panelHead" id="pdfHead"><b>📄 Visor PDF</b><div class="panelControls"><button onclick="toggleMaximize('pdfPanel')">🗖</button><button class="close">×</button></div></div>
+    <div class="panelToolbar">
+      <input id="pdfInput" type="file" accept="application/pdf" style="display:none">
+      <button onclick="$('pdfInput').click()" class="primary">📂 Abrir Archivo</button>
+      <span style="flex-grow:1;text-align:center">Pág <b id="pdfPage">0 / 0</b></span>
+      <button id="pdfPrev">◀</button><button id="pdfNext">▶</button>
+      <button id="pdfZoomOut">−</button><button id="pdfZoomIn">+</button>
+      <button onclick="startPanelCrop('pdfPanel')" class="good" style="margin-left:auto">✂️ Recortar</button>
     </div>
     <div class="panelBody" style="background:#29334a;display:flex;align-items:flex-start;justify-content:center;padding:10px">
       <canvas id="pdfCanvas"></canvas>
@@ -226,18 +181,20 @@ body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}bo
     <div class="resize-handle" id="pdfResizer"></div>
   </div>
 
-  <!-- Galería Persistente -->
   <div class="panel" id="galleryPanel">
     <div class="panelHead" id="galleryHead"><b>📁 Mis Ejercicios Guardados</b><div class="panelControls"><button onclick="toggleMaximize('galleryPanel')">🗖</button><button class="close">×</button></div></div>
-    <div class="panelBody" style="display:flex;flex-direction:column; padding:0;">
-      <div class="galleryGrid" id="galleryGridContainer"></div>
+    <div class="panelBody" style="display:flex;flex-direction:column">
+      <div style="margin-bottom:10px;display:flex;gap:5px;flex-wrap:wrap">
+        <input id="imageInput" type="file" accept="image/*" style="display:none">
+        <button class="primary" onclick="$('imageInput').click()" style="flex:1">Subir Imagen Local</button>
+      </div>
+      <div class="galleryGrid" id="galleryGrid"></div>
     </div>
     <div class="resize-handle" id="galleryResizer"></div>
   </div>
 
-  <!-- Biblioteca de Fórmulas -->
   <div class="panel" id="formulaPanel">
-    <div class="panelHead" id="formulaHead"><b>∑ Gran Biblioteca Matemática</b><div class="panelControls"><button onclick="toggleMaximize('formulaPanel')">🗖</button><button class="close">×</button></div></div>
+    <div class="panelHead" id="formulaHead"><b>∑ Biblioteca Matemática</b><div class="panelControls"><button onclick="toggleMaximize('formulaPanel')">🗖</button><button class="close">×</button></div></div>
     <div class="panelBody" style="display:flex;flex-direction:column">
       <select id="formulaCat" style="width:100%;margin-bottom:8px;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:9px;padding:9px"></select>
       <input id="formulaSearch" type="search" placeholder="🔎 Buscar fórmula..." style="width:100%;margin-bottom:8px;background:#0b1120;color:#fff;border:1px solid #31405e;border-radius:9px;padding:9px;outline:none">
@@ -246,322 +203,300 @@ body.fs #toolbar{opacity:0;transform:translate(-50%,20px);pointer-events:none}bo
     <div class="resize-handle" id="formulaResizer"></div>
   </div>
 
-  <!-- Estampador General (Capa segura de recorte) -->
-  <div class="panel" id="stamper">
-    <div id="stamperHead">🖐️ Arrastrar para Mover</div>
-    <div id="stamperBody">
+  <!-- Estampador General -->
+  <div class="panel" id="stamper" style="width:400px; height:300px;">
+    <div class="panelHead" id="stamperHead">🖐️ Arrastrar para Mover</div>
+    <div class="panelBody" id="stamperBody">
         <img id="stampImg" src="">
         <div class="cropOverlay" id="stampCropOverlay"><div class="cropBox" id="stampCropBox"></div></div>
         <div class="stampResize" id="stampResizer"></div>
     </div>
     <div id="stamperControls">
-        <button onclick="startStampCrop()" class="primary">✂️ Recortar</button>
-        <button onclick="saveStampToGallery()" style="background:#f59e0b;color:#fff" title="Guardar permanentemente en la PC">💾 Guardar</button>
+        <button onclick="startPanelCrop('stamper')" style="background:#8b5cf6">✂️ Recortar</button>
+        <button onclick="saveStampToGallery()" style="background:#f59e0b" title="Guardar permanente en la galería">💾 Guardar</button>
         <button onclick="applyStamp()" class="good">✅ Pegar</button>
-        <button onclick="document.getElementById('stamper').style.display='none'" class="danger">❌</button>
+        <button onclick="$('stamper').style.display='none'" class="danger">❌</button>
     </div>
   </div>
 
-  <div id="fullscreenHint">Pantalla completa · Esc para salir</div>
+  <div id="fullscreenHint">Pantalla completa · Esc para salir · doble clic para volver</div>
   <div id="toast"></div>
+</div>
+
+<div id="login">
+  <div class="loginCard">
+    <div class="logo">∑ MathBoard Pro</div>
+    <div class="sub">Pizarra matemática profesional · Super Star</div>
+    <div class="roleGrid">
+      <button id="studentRole">👨‍🎓 Soy estudiante</button>
+      <button id="teacherRole">👨‍🏫 Soy profesor</button>
+    </div>
+    <div class="loginForm" id="studentForm">
+      <input id="studentName" placeholder="Tu nombre">
+      <input id="roomInput" inputmode="numeric" maxlength="4" placeholder="Código de 4 dígitos" style="margin-top:8px">
+      <button class="primary" id="joinBtn" style="width:100%;margin-top:10px">Entrar al aula</button>
+      <div class="hint">Pedile al profesor el código del aula.</div><div class="error" id="studentError"></div>
+    </div>
+    <div class="loginForm" id="teacherForm">
+      <input id="teacherName" placeholder="Nombre del profesor">
+      <input id="teacherPin" type="password" placeholder="PIN de acceso" style="margin-top:8px">
+      <button class="primary" id="createBtn" style="width:100%;margin-top:10px">Crear aula</button>
+      <div class="hint">El aula funciona directamente entre navegadores con PeerJS.</div><div class="error" id="teacherError"></div>
+    </div>
+  </div>
 </div>
 
 <script>
 'use strict';
 const $=id=>document.getElementById(id);
-const board=$('board'), wrap=$('boardWrap');
-// Alpha = false para grabación MP4 perfecta
-const ctx=board.getContext('2d',{alpha:false, desynchronized:true});
+const board=$('board'), bg=$('bgCanvas'), preview=$('preview'), wrap=$('boardWrap');
+// Alpha:false y desynchronized aseguran máximo rendimiento y grabación MP4 perfecta
+const ctx=board.getContext('2d',{alpha:false, desynchronized:true}), bctx=bg.getContext('2d'), pctx=preview.getContext('2d');
 const state={
- role:null,name:'',room:'',peer:null,connections:new Map(),stream:null,mic:true,
- canDraw:true,tool:'pen',color:'#0f172a',size:5, scale:1,
- drawing:false, start:null, lastMid:null, points:[], history:[],
- pdf:null, pdfPage:1, pdfScale:2.0, recording:false, recorder:null, chunks:[], recLoop:null,
- gallery:[]
+ role:null,name:'',room:'',peer:null,connections:new Map(),stream:null,video:true,mic:true,
+ canDraw:true,tool:'pen',color:'#111827',size:5,dpr:1,
+ scale:1,ox:0,oy:0,drawing:false,start:null,last:null,points:[],
+ history:[],future:[],remoteCursors:new Map(),
+ pdf:null,pdfPage:1,pdfScale:1.5,recording:false,recorder:null,chunks:[],recLoop:null,
+ gallery:[], bitmap:null
 };
 
-// ======= INTERFAZ DE LOGIN Y NAVEGACIÓN =======
-function resetLogin() {
-    $('roleSelection').style.display = 'grid';
-    $('studentForm').style.display = 'none';
-    $('teacherForm').style.display = 'none';
-}
-$('studentRole').onclick = () => { $('roleSelection').style.display='none'; $('studentForm').style.display='block'; };
-$('teacherRole').onclick = () => { $('roleSelection').style.display='none'; $('teacherForm').style.display='block'; };
-$('createBtn').onclick = createRoom;
-$('joinBtn').onclick = joinRoom;
-$('logoutBtn').onclick = logoutSession;
-
-function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),2000)}
-function status(s,ok=true){$('statusText').textContent=s;$('statusDot').className='dotStatus '+(ok?'ok':'bad')}
-function showPanel(id){document.querySelectorAll('.panel').forEach(p=>{if(p.id!==id&&p.id!=='stamper')p.style.display='none'});let p=$(id);p.style.display=p.style.display==='flex'?'none':'flex'}
-
-// ======= MOTOR DE RENDIMIENTO GRÁFICO =======
-function drawGridDirect(targetCtx) {
-    const w = board.width, h = board.height;
-    targetCtx.fillStyle = '#ffffff'; targetCtx.fillRect(0,0,w,h);
-    targetCtx.strokeStyle = 'rgba(0,0,0,0.05)'; targetCtx.lineWidth = 1.5;
-    targetCtx.beginPath();
-    for(let x=0;x<w;x+=35){targetCtx.moveTo(x,0);targetCtx.lineTo(x,h);}
-    for(let y=0;y<h;y+=35){targetCtx.moveTo(0,y);targetCtx.lineTo(w,y);}
-    targetCtx.stroke();
-}
-
-function initCanvas() {
-    board.width = window.innerWidth; board.height = window.innerHeight;
-    drawGridDirect(ctx);
-}
-function resizeCanvas() {
-    const temp = board.toDataURL();
-    board.width = window.innerWidth; board.height = window.innerHeight;
-    drawGridDirect(ctx);
-    const img = new Image(); img.onload = () => { ctx.drawImage(img, 0, 0); }; img.src = temp;
-}
-initCanvas();
-window.addEventListener('resize', resizeCanvas, { passive: true });
-
-function clearCanvas() {
-    if(!confirm('¿Limpiar absolutamente todo de la pizarra?')) return;
-    drawGridDirect(ctx);
-    if(typeof saveState === 'function') saveState(); 
-    broadcastData({ type:'clear' });
-}
-$('clearBtn').onclick = clearCanvas;
-
-function saveState(){
-    try{ if(state.history.length > 20) state.history.shift(); state.history.push(board.toDataURL('image/png')); localStorage.setItem('mathboard_backup', state.history[state.history.length-1]); }catch(e){}
-}
-function restoreState(){
-    try{ const u=localStorage.getItem('mathboard_backup'); if(u){ const im=new Image(); im.onload=()=>{drawGridDirect(ctx); ctx.drawImage(im,0,0);}; im.src=u; state.history.push(u); } }catch(e){}
-}
-
-// ======= MOTOR DE DIBUJO FLUIDO =======
+// =================== MOTOR DE RENDIMIENTO RAF Y RED MULTIJUGADOR ===================
 let renderQueue = [];
 let isRendering = false;
+let broadcastQueue = [];
 
 function processRenderQueue() {
     if(renderQueue.length === 0) { isRendering = false; return; }
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    
+    // El dibujo interno (Infinito) se hace en un bitmap oculto
+    const c = state.bitmap || document.createElement('canvas');
+    if(!state.bitmap) { c.width = wrap.clientWidth; c.height = wrap.clientHeight; state.bitmap = c; }
+    const x = c.getContext('2d');
+    x.lineCap = 'round'; x.lineJoin = 'round';
+    
     const batch = renderQueue.splice(0, renderQueue.length);
-    for(let i=0; i<batch.length; i++) {
-        let pt = batch[i];
-        if(pt.type==='stroke'){
-            ctx.beginPath(); ctx.moveTo(pt.lx, pt.ly); ctx.quadraticCurveTo(pt.cx, pt.cy, pt.nx, pt.ny);
-            ctx.lineWidth = pt.s;
-            if(pt.tool==='eraser'){ ctx.globalCompositeOperation='source-over'; ctx.strokeStyle='#ffffff'; ctx.globalAlpha=1; }
-            else { ctx.globalCompositeOperation='source-over'; ctx.strokeStyle=pt.c; ctx.globalAlpha=pt.tool==='marker'?0.38:0.92; }
-            ctx.stroke();
-        } else if(pt.type==='clear'){ drawGridDirect(ctx);
-        } else if(pt.type==='image'){ const im=new Image(); im.onload=()=>{ctx.globalAlpha=1; ctx.globalCompositeOperation='source-over'; ctx.drawImage(im,pt.x,pt.y,pt.w,pt.h)}; im.src=pt.src;
-        } else if(pt.type==='shape'){ drawShapeExact(ctx, pt.shape, pt.x1, pt.y1, pt.x2, pt.y2, pt.color, pt.size); }
+    for(let pt of batch) {
+        if(pt.type === 'stroke') {
+            x.beginPath(); x.moveTo(pt.lx, pt.ly); x.quadraticCurveTo(pt.cx, pt.cy, pt.nx, pt.ny);
+            x.lineWidth = pt.s;
+            if(pt.tool === 'eraser') {
+                x.globalCompositeOperation = 'destination-out'; x.strokeStyle = '#000'; x.globalAlpha = 1;
+            } else {
+                x.globalCompositeOperation = 'source-over'; x.strokeStyle = pt.c; x.globalAlpha = pt.tool === 'marker' ? 0.38 : 1;
+            }
+            x.stroke();
+        } else if (pt.type === 'shape') {
+            x.strokeStyle = pt.c; x.lineWidth = pt.s; x.lineCap = 'round'; x.lineJoin = 'round'; x.beginPath();
+            if(pt.shape==='line'||pt.shape==='arrow'){
+                x.moveTo(pt.a.x,pt.a.y); x.lineTo(pt.b.x,pt.b.y); x.stroke();
+                if(pt.shape==='arrow'){
+                    const ang=Math.atan2(pt.b.y-pt.a.y,pt.b.x-pt.a.x), h=Math.max(15,pt.s*3);
+                    x.beginPath();x.moveTo(pt.b.x,pt.b.y);x.lineTo(pt.b.x-h*Math.cos(ang-0.5),pt.b.y-h*Math.sin(ang-0.5));x.moveTo(pt.b.x,pt.b.y);x.lineTo(pt.b.x-h*Math.cos(ang+0.5),pt.b.y-h*Math.sin(ang+0.5));x.stroke();
+                }
+            } else if (pt.shape==='rect') { x.strokeRect(Math.min(pt.a.x,pt.b.x), Math.min(pt.a.y,pt.b.y), Math.abs(pt.b.x-pt.a.x), Math.abs(pt.b.y-pt.a.y));
+            } else if (pt.shape==='circle') { const rad = Math.hypot(pt.b.x-pt.a.x, pt.b.y-pt.a.y); x.arc(pt.a.x, pt.a.y, rad, 0, 2*Math.PI); x.stroke(); }
+        } else if (pt.type === 'image') {
+            const im = new Image();
+            im.onload = () => { x.globalCompositeOperation='source-over'; x.globalAlpha=1; x.drawImage(im, pt.x, pt.y, pt.w, pt.h); render(); };
+            im.src = pt.src;
+        } else if (pt.type === 'clear') {
+            x.clearRect(0,0,c.width,c.height);
+        }
     }
+    render(); // Reflejar en la pizarra principal con zoom y pan
     requestAnimationFrame(processRenderQueue);
 }
 
-function queueRender(data) { renderQueue.push(data); if(!isRendering) { isRendering = true; requestAnimationFrame(processRenderQueue); } }
-
-function drawShapeExact(targetCtx, type, x1, y1, x2, y2, color, size) {
-    targetCtx.save(); targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round'; targetCtx.globalCompositeOperation = 'source-over'; targetCtx.strokeStyle = color; targetCtx.lineWidth = size; targetCtx.globalAlpha = 0.92;
-    const w = x2 - x1, h = y2 - y1; targetCtx.beginPath();
-    if (type === 'line' || type === 'arrow') { targetCtx.moveTo(x1, y1); targetCtx.lineTo(x2, y2); targetCtx.stroke(); if (type === 'arrow') { const ang=Math.atan2(y2-y1,x2-x1), head=Math.max(15,size*3); targetCtx.beginPath();targetCtx.moveTo(x2,y2);targetCtx.lineTo(x2-head*Math.cos(ang-0.5),y2-head*Math.sin(ang-0.5));targetCtx.moveTo(x2,y2);targetCtx.lineTo(x2-head*Math.cos(ang+0.5),y2-head*Math.sin(ang+0.5));targetCtx.stroke(); }
-    } else if (type === 'rect') { targetCtx.strokeRect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(w), Math.abs(h)); } else if (type === 'circle') { const r = Math.hypot(w, h); targetCtx.arc(x1, y1, r, 0, 2*Math.PI); targetCtx.stroke(); }
-    targetCtx.restore();
+function queueRender(data) {
+    renderQueue.push(data);
+    if(!isRendering) { isRendering = true; requestAnimationFrame(processRenderQueue); }
 }
 
-function pointerPos(e){const r=wrap.getBoundingClientRect(); return {x:e.clientX-r.left, y:e.clientY-r.top};}
-let smoothedP = 0.5;
+function broadcastLoop() {
+    if(broadcastQueue.length > 0 && state.connections.size > 0) {
+        const batch = { type: 'batch', data: broadcastQueue };
+        state.connections.forEach(conn => { if(conn.open) conn.send(batch); });
+        broadcastQueue = [];
+    }
+    requestAnimationFrame(broadcastLoop);
+}
+broadcastLoop();
+
+function broadcastData(data) { 
+    data.peerId = state.peer ? state.peer.id : 'local';
+    data.role = state.role === 'teacher' ? 'Profesor' : 'Alumno';
+    if(data.type === 'stroke' || data.type === 'cursor' || data.type === 'shape') broadcastQueue.push(data);
+    else state.connections.forEach(conn => { if (conn.open) conn.send(data); }); 
+}
+
+// =================== DIBUJO E INFINITE CANVAS ===================
+function toast(s){$('toast').textContent=s;$('toast').classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>$('toast').classList.remove('show'),1800)}
+function status(s,ok=true){$('statusText').textContent=s;$('statusDot').className='dotStatus '+(ok?'ok':'bad')}
+function showPanel(id){document.querySelectorAll('.panel').forEach(p=>{if(p.id!==id&&p.id!=='stamper')p.style.display='none'});let p=$(id);p.style.display=p.style.display==='flex'?'none':'flex'}
+
+function resize(){
+ state.dpr=1; const r=wrap.getBoundingClientRect(), w=Math.max(1,Math.floor(r.width)), h=Math.max(1,Math.floor(r.height));
+ [board,bg,preview].forEach(c=>{c.width=w;c.height=h;});
+ drawGrid(); render();
+}
+function drawGrid(){
+ const w=wrap.clientWidth, h=wrap.clientHeight; bctx.setTransform(1,0,0,1,0,0);
+ bctx.fillStyle='#ffffff'; bctx.fillRect(0,0,w,h);
+ const step=35*state.scale, ox=mod(state.ox,step), oy=mod(state.oy,step);
+ bctx.strokeStyle='rgba(0,0,0,0.05)'; bctx.lineWidth=1.5;
+ for(let x=ox;x<w;x+=step){bctx.beginPath();bctx.moveTo(x,0);bctx.lineTo(x,h);bctx.stroke()}
+ for(let y=oy;y<h;y+=step){bctx.beginPath();bctx.moveTo(0,y);bctx.lineTo(w,y);bctx.stroke()}
+}
+function mod(a,b){return ((a%b)+b)%b}
+function screenToWorld(x,y){return{x:(x-state.ox)/state.scale,y:(y-state.oy)/state.scale}}
+function worldToScreen(x,y){return{x:x*state.scale+state.ox,y:y*state.scale+state.oy}}
+function clearPreview(){pctx.clearRect(0,0,preview.width,preview.height)}
+
+function render(){
+ const r=wrap.getBoundingClientRect(); ctx.clearRect(0,0,r.width,r.height);
+ if(state.bitmap){ ctx.save(); ctx.translate(state.ox,state.oy); ctx.scale(state.scale,state.scale); ctx.drawImage(state.bitmap,0,0); ctx.restore(); }
+ $('zoomText').textContent=Math.round(state.scale*100)+'%';
+}
+function snapshot(){
+    state.history.push(state.bitmap?state.bitmap.toDataURL('image/png'):'');
+    if(state.history.length>25)state.history.shift(); state.future=[]; saveLocal();
+}
+function saveLocal(){ clearTimeout(state.saveTimer); state.saveTimer=setTimeout(()=>{try{localStorage.setItem('mathboard_board',state.bitmap?state.bitmap.toDataURL('image/jpeg',0.6):'');}catch(e){}},250) }
+function restoreLocal(){
+    try{const u=localStorage.getItem('mathboard_board');if(u){const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=wrap.clientWidth;c.height=wrap.clientHeight;c.getContext('2d').drawImage(im,0,0);state.bitmap=c;render();};im.src=u;}}catch(e){}
+    try{const g=localStorage.getItem('mathboard_gallery');if(g){state.gallery=JSON.parse(g);updateGalleryGrid();}}catch(e){}
+}
+
+function pointerPos(e){const r=wrap.getBoundingClientRect();return screenToWorld(e.clientX-r.left,e.clientY-r.top)}
 
 board.addEventListener('pointerdown',e=>{
  if(!state.canDraw||e.button===2)return;
  state.drawing=true; try{board.setPointerCapture(e.pointerId);}catch(er){}
- state.start=pointerPos(e); state.lastMid=state.start;
- smoothedP = e.pointerType==='pen'?e.pressure:0.5;
+ state.start=pointerPos(e); state.last=state.start;
+ state.smoothedP = e.pointerType==='pen'?e.pressure:0.5;
 });
 board.addEventListener('pointermove',e=>{
- if(!state.drawing)return;
  const p=pointerPos(e);
+ broadcastData({type:'cursor', x:(e.clientX-wrap.offsetLeft)/wrap.clientWidth, y:(e.clientY-wrap.offsetTop)/wrap.clientHeight, name:state.name});
+ if(!state.drawing)return;
  const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
  
  if(['line','arrow','rect','circle'].includes(state.tool)){
-    ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,board.width,board.height); drawGridDirect(ctx);
-    if(state.history.length>0){ const im=new Image(); im.src=state.history[state.history.length-1]; ctx.drawImage(im,0,0); }
-    drawShapeExact(ctx, state.tool, state.start.x, state.start.y, p.x, p.y, state.color, state.size);
-    state.lastMid = p; return;
+    clearPreview();
+    pctx.save(); pctx.strokeStyle=state.color; pctx.lineWidth=state.size; pctx.lineCap='round'; pctx.lineJoin='round'; pctx.setLineDash([6,5]); pctx.beginPath();
+    let sp1=worldToScreen(state.start.x, state.start.y), sp2=worldToScreen(p.x, p.y);
+    if(state.tool==='line'||state.tool==='arrow'){ pctx.moveTo(sp1.x,sp1.y); pctx.lineTo(sp2.x,sp2.y); }
+    else if(state.tool==='rect') pctx.strokeRect(Math.min(sp1.x,sp2.x), Math.min(sp1.y,sp2.y), Math.abs(sp2.x-sp1.x), Math.abs(sp2.y-sp1.y));
+    else { const rad = Math.hypot(sp2.x-sp1.x, sp2.y-sp1.y); pctx.arc(sp1.x, sp1.y, rad, 0, 2*Math.PI); }
+    pctx.stroke(); pctx.restore();
+    state.last = p; return;
  }
 
  for(let i=0; i<events.length; i++){
     let ev=events[i], ep=pointerPos(ev);
     let rp = ev.pointerType==='pen'?ev.pressure:0.5; if(rp===0)rp=0.5;
-    smoothedP = smoothedP*0.6 + rp*0.4;
-    let pf = ev.pointerType==='pen' ? (0.3+(smoothedP*smoothedP)*1.2) : 1;
+    state.smoothedP = state.smoothedP*0.6 + rp*0.4;
+    let pf = ev.pointerType==='pen' ? (0.3+(state.smoothedP*state.smoothedP)*1.2) : 1;
     let bs = state.tool==='marker'?Math.max(12,state.size*2.2):state.size;
     let fs = state.tool==='eraser'?Math.max(30,state.size*6):bs*pf;
     fs = Math.round(fs*10)/10;
 
-    let midX=(state.lastMid.x+ep.x)*0.5, midY=(state.lastMid.y+ep.y)*0.5;
-    let strokeData = { type:'stroke', lx:state.lastMid.x, ly:state.lastMid.y, cx:state.lastMid.x, cy:state.lastMid.y, nx:midX, ny:midY, s:fs, tool:state.tool, c:state.color };
-    queueRender(strokeData);
+    let midX=(state.last.x+ep.x)*0.5, midY=(state.last.y+ep.y)*0.5;
     
-    strokeData.lx /= board.width; strokeData.ly /= board.height; strokeData.cx /= board.width; strokeData.cy /= board.height; strokeData.nx /= board.width; strokeData.ny /= board.height; strokeData.s /= board.width;
-    broadcastData(strokeData);
-    state.lastMid = {x:midX, y:midY};
+    let dt = { type:'stroke', lx:state.last.x, ly:state.last.y, cx:state.last.x, cy:state.last.y, nx:midX, ny:midY, s:fs, tool:state.tool, c:state.color };
+    queueRender(dt);
+    broadcastData(dt);
+    state.last = {x:midX, y:midY};
  }
 });
 board.addEventListener('pointerup',e=>{
  if(!state.drawing)return; state.drawing=false;
  if(['line','arrow','rect','circle'].includes(state.tool)){
-     let p=pointerPos(e); broadcastData({type:'shape', shape:state.tool, x1:state.start.x/board.width, y1:state.start.y/board.height, x2:p.x/board.width, y2:p.y/board.height, color:state.color, size:state.size/board.width});
+     clearPreview(); let p=pointerPos(e);
+     let dt = {type:'shape', shape:state.tool, a:state.start, b:p, c:state.color, s:state.size};
+     queueRender(dt); broadcastData(dt);
  }
  try{board.releasePointerCapture(e.pointerId);}catch(er){}
- saveState();
+ snapshot();
 });
+wrap.addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();const mx=e.clientX-wrap.offsetLeft, my=e.clientY-wrap.offsetTop, old=state.scale, factor=e.deltaY<0?1.1:0.9; state.scale=Math.max(0.25,Math.min(5,state.scale*factor)); state.ox=mx-(mx-state.ox)*state.scale/old; state.oy=my-(my-state.oy)*state.scale/old; drawGrid(); render();}},{passive:false});
+let pan=null;
+wrap.addEventListener('pointerdown',e=>{if(e.button===1||(e.altKey&&e.button===0)){pan={x:e.clientX,y:e.clientY,ox:state.ox,oy:state.oy};}});
+wrap.addEventListener('pointermove',e=>{if(pan){state.ox=pan.ox+e.clientX-pan.x; state.oy=pan.oy+e.clientY-pan.y; drawGrid(); render();}});
+wrap.addEventListener('pointerup',()=>pan=null); wrap.addEventListener('pointercancel',()=>pan=null); wrap.addEventListener('dblclick',()=>toggleFS());
 
 function setTool(t){state.tool=t;document.querySelectorAll('#toolbar .tool').forEach(x=>x.classList.remove('active'));$(t+'Btn').classList.add('active')}
 ['pen','marker','line','arrow','rect','circle','eraser'].forEach(t=>$(t+'Btn').onclick=()=>setTool(t));
 $('color').oninput=e=>{state.color=e.target.value; setTool('pen');}; $('size').onchange=e=>state.size=+e.target.value;
-$('undoBtn').onclick=()=>{if(!state.history.length)return; state.history.pop(); const prev = state.history.length?state.history[state.history.length-1]:null; if(prev){ const im=new Image(); im.onload=()=>{drawGridDirect(ctx); ctx.drawImage(im,0,0);}; im.src=prev; broadcastData({type:'clear'}); broadcastData({type:'image', src:prev, x:0, y:0, w:1, h:board.height/board.width}); } else { drawGridDirect(ctx); broadcastData({type:'clear'}); }};
-$('fullscreenBtn').onclick=async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen();else await document.exitFullscreen()}catch(e){}};
-document.addEventListener('fullscreenchange',()=>document.body.classList.toggle('fs',!!document.fullscreenElement));
+$('undoBtn').onclick=()=>{if(!state.history.length)return; state.future.push(state.bitmap?state.bitmap.toDataURL():''); loadData(state.history.pop()); broadcastData({type:'clear'}); if(state.history.length){ let im=new Image(); im.onload=()=>broadcastData({type:'image',src:im.src,x:0,y:0,w:wrap.clientWidth,h:wrap.clientHeight}); im.src=state.history[state.history.length-1]; } saveLocal();};
+$('redoBtn').onclick=()=>{if(!state.future.length)return; state.history.push(state.bitmap?state.bitmap.toDataURL():''); loadData(state.future.pop()); broadcastData({type:'clear'}); let im=new Image(); im.onload=()=>broadcastData({type:'image',src:im.src,x:0,y:0,w:wrap.clientWidth,h:wrap.clientHeight}); im.src=state.history[state.history.length-1]; saveLocal();};
+$('clearBtn').onclick=()=>{if(!confirm('¿Limpiar absoluto?'))return; snapshot(); queueRender({type:'clear'}); broadcastData({type:'clear'}); saveLocal();};
+$('zoomIn').onclick=()=>{state.scale=Math.min(5,state.scale+0.2); $('zoomText').textContent=Math.round(state.scale*100)+'%'; drawGrid(); render();};
+$('zoomOut').onclick=()=>{state.scale=Math.max(0.25,state.scale-0.2); $('zoomText').textContent=Math.round(state.scale*100)+'%'; drawGrid(); render();};
+$('zoomReset').onclick=()=>{state.scale=1; state.ox=0; state.oy=0; $('zoomText').textContent='100%'; drawGrid(); render();};
 
-// =================== BIBLIOTECA MATEMÁTICA ===================
+function loadData(url){if(!url){state.bitmap=null;render();return}const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=wrap.clientWidth;c.height=wrap.clientHeight;c.getContext('2d').drawImage(im,0,0);state.bitmap=c;render()};im.src=url}
+
+// =================== FÓRMULAS MATEMÁTICAS (+60) ===================
 const mathFormulas = {
-    "Aritmética":[["Porcentaje","P = (Parte / Total) · 100%"],["Regla de tres","x = (b · c) / a"],["Progresión Aritmética","aₙ = a₁ + (n - 1)d"],["Progresión Geométrica","aₙ = a₁ · r^(n-1)"]],
-    "Álgebra":[["Cuadrado de suma","(a+b)² = a² + 2ab + b²"],["Diferencia cuadrados","a² - b² = (a - b)(a + b)"],["Fórmula cuadrática","x = (-b ± √(b² - 4ac)) / (2a)"],["Logaritmo producto","log_b(x · y) = log_b(x) + log_b(y)"]],
-    "Geometría":[["Pitágoras","a² + b² = c²"],["Área triángulo","A = (b · h) / 2"],["Área círculo","A = π · r²"],["Volumen esfera","V = (4/3) · π · r³"]],
-    "G. Analítica":[["Distancia 2 puntos","d = √((x₂ - x₁)² + (y₂ - y₁)²)"],["Punto medio","M = ((x₁ + x₂)/2 , (y₁ + y₂)/2)"],["Pendiente recta","m = (y₂ - y₁) / (x₂ - x₁)"], ["Circunferencia", "(x - h)² + (y - k)² = r²"]],
-    "Trigonometría":[["Identidad Pitagórica","sin²x + cos²x = 1"],["Ley de senos","a/sin(A) = b/sin(B) = c/sin(C)"],["Ley de cosenos","c² = a² + b² - 2ab cos(C)"],["Seno doble", "sin(2x) = 2sin(x)cos(x)"]],
-    "Derivadas":[["Definición","f'(x) = lim(h→0) [f(x+h) - f(x)] / h"],["Potencia","d/dx [x^n] = n · x^(n-1)"],["Regla cadena","[f(g(x))]' = f'(g(x)) · g'(x)"], ["Cociente", "(f / g)' = (f'g - fg') / g²"]],
-    "Integrales":[["Potencia","∫ x^n dx = x^(n+1)/(n+1) + C"],["Regla Barrow","∫_a^b f(x)dx = F(b) - F(a)"],["Por partes","∫ u dv = u·v - ∫ v du"], ["Inverso", "∫ (1/x) dx = ln|x| + C"]],
+    "Aritmética":[["Regla de tres","x = (b · c) / a"],["Porcentaje","P = (Parte / Total) · 100%"],["Progresión Aritmética","aₙ = a₁ + (n - 1)d"],["Progresión Geométrica","aₙ = a₁ · r^(n-1)"]],
+    "Álgebra":[["Cuadrado de suma","(a+b)² = a² + 2ab + b²"],["Diferencia cuadrados","a² - b² = (a - b)(a + b)"],["Cuadrática","x = (-b ± √(b² - 4ac))/(2a)"],["Logaritmo producto","log_b(xy) = log_b(x) + log_b(y)"]],
+    "Geometría":[["Pitágoras","a² + b² = c²"],["Área triángulo","A = (b · h)/2"],["Área círculo","A = π · r²"],["Volumen esfera","V = (4/3)πr³"]],
+    "G. Analítica":[["Distancia 2 puntos","d = √((x₂ - x₁)² + (y₂ - y₁)²)"],["Punto medio","M = ((x₁+x₂)/2 , (y₁+y₂)/2)"],["Pendiente","m = (y₂ - y₁)/(x₂ - x₁)"], ["Circunferencia", "(x - h)² + (y - k)² = r²"]],
+    "Trigonometría":[["Identidad fundamental","sin²x + cos²x = 1"],["Ley de senos","a/sin A = b/sin B = c/sin C"],["Ley de cosenos","c² = a² + b² - 2ab cos(C)"],["Seno doble", "sin(2x) = 2sin(x)cos(x)"]],
+    "Derivadas":[["Definición","f'(x) = lim(h→0) [f(x+h) - f(x)]/h"],["Potencia","d/dx [x^n] = n x^(n-1)"],["Regla cadena","[f(g(x))]' = f'(g(x))g'(x)"], ["Cociente", "(f/g)' = (f'g - fg')/g²"]],
+    "Integrales ∫":[["Potencia","∫ x^n dx = x^(n+1)/(n+1) + C"],["Regla Barrow","∫_a^b f(x)dx = F(b) - F(a)"],["Por partes","∫ u dv = u·v - ∫ v du"], ["Inverso", "∫ (1/x) dx = ln|x| + C"]],
     "Estadística":[["Media","x̄ = Σxᵢ / n"],["Varianza poblacional","σ² = Σ(xᵢ - μ)² / N"],["Desviación estándar","σ = √σ²"]],
-    "Probabilidad":[["Clásica","P(A) = Favorables / Posibles"],["Teorema de Bayes","P(A|B) = [P(B|A)P(A)] / P(B)"],["Binomial","P(X=k) = C(n,k)p^k(1-p)^(n-k)"]],
-    "Topología":[["Característica Euler","χ = V - E + F = 2"],["Gauss-Bonnet","∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"]],
+    "Probabilidad":[["Clásica","P(A) = Favorables/Posibles"],["Teorema Bayes","P(A|B) = P(B|A)P(A)/P(B)"],["Distribución binomial","P(X=k) = C(n,k)p^k(1-p)^(n-k)"]],
+    "Topología":[["Característica Euler","χ = V - E + F = 2"],["Teorema Gauss-Bonnet","∫_M K dA + ∫_∂M k_g ds = 2πχ(M)"]],
     "Matrices":[["Determinante 2×2","det(A) = ad - bc"],["Inversa 2×2","A⁻¹ = (1/det(A)) [[d, -b], [-c, a]]"]],
     "Vectores":[["Módulo","||v|| = √(v₁² + v₂² + v₃²)"],["Producto escalar","u · v = u₁v₁ + u₂v₂ + u₃v₃"]],
-    "Complejos":[["Forma binómica","z = a + bi"],["Euler","e^(iπ) + 1 = 0"],["Moivre","[r(cosθ + isinθ)]ⁿ = rⁿ(cos nθ + isin nθ)"]],
-    "Física":[["Newton","F = m · a"],["Energía Cinética","E_k = (1/2)m · v²"],["Ley Ohm","V = I · R"]]
+    "Complejos":[["Forma binómica","z = a + bi"],["Identidad Euler","e^(iπ) + 1 = 0"],["Moivre","[r(cosθ + isinθ)]ⁿ = rⁿ(cos nθ + isin nθ)"]],
+    "Física":[["Newton","F = m · a"],["Energía Cinética","E_k = (1/2)m v²"],["Ley Ohm","V = I · R"]]
 };
 Object.keys(mathFormulas).forEach(k=>{let o=document.createElement('option');o.value=k;o.textContent=k;$('formulaCat').appendChild(o)});
+
 $('formulaCat').onchange=renderFormulas; $('formulaSearch').oninput=renderFormulas;
 function renderFormulas(){
     let cat=$('formulaCat').value, q=$('formulaSearch').value.toLowerCase();
     let a=mathFormulas[cat]||[]; if(q) a=a.filter(x=>x[0].toLowerCase().includes(q)||x[1].toLowerCase().includes(q));
-    $('formulaList').innerHTML=a.map(x=>`<div class="formula-card"><div class="formula-card-title">${esc(x[0])}</div><div class="formula-card-eq">${esc(x[1])}</div><div class="formula-card-actions"><button onclick="copyF('${btoa(x[1])}')">📋 Copiar</button><button class="good" onclick="stampF('${btoa(x[1])}')">✏️ Pegar en Pizarra</button></div></div>`).join('');
+    $('formulaList').innerHTML=a.map(x=>`<div class="formula"><b>${esc(x[0])}</b><code>${esc(x[1])}</code><div style="margin-top:5px;display:flex;gap:5px"><button class="primary" onclick="copyF('${btoa(x[1])}')">📋 Copiar</button><button class="good" onclick="stampF('${btoa(x[1])}')">✏️ Pizarra</button></div></div>`).join('');
 }
-renderFormulas();
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-window.copyF=async(b)=>{try{await navigator.clipboard.writeText(atob(b));toast('Fórmula copiada');}catch(e){}};
+window.copyF=async(b)=>{try{await navigator.clipboard.writeText(atob(b));toast('Copiado');}catch(e){}};
 window.stampF=(b)=>{
     let txt=atob(b); const tc=document.createElement('canvas'); const x=tc.getContext('2d'); x.font='bold 35px serif'; const m=x.measureText(txt);
-    tc.width=m.width+40; tc.height=80; x.font='bold 35px serif'; x.textBaseline='middle'; x.textAlign='center'; x.fillStyle=$('color').value||'#0f172a'; x.fillText(txt, tc.width/2, tc.height/2);
-    $('stampImg').src=tc.toDataURL(); $('stamperBody').style.width=tc.width+'px';$('stamperBody').style.height=tc.height+'px';
-    $('stamper').style.display='flex';$('formulaPanel').style.display='none';
+    tc.width=m.width+40; tc.height=80; x.font='bold 35px serif'; x.textBaseline='middle'; x.textAlign='center'; x.fillStyle=$('color').value; x.fillText(txt, tc.width/2, tc.height/2);
+    showStamper(tc.toDataURL(), tc.width, tc.height); $('formulaPanel').style.display='none';
 };
 
-// =================== GALERÍA PERSISTENTE ===================
-function loadGallery() { try { const stored = localStorage.getItem('mathboard_gallery'); if (stored) state.gallery = JSON.parse(stored); updateGalleryGrid(); } catch (e) {} }
-function updateGalleryGrid(){
-    if(!state.gallery.length){$('galleryGridContainer').innerHTML='<div style="grid-column:span 2;color:#888;text-align:center;padding:20px;font-size:14px">No hay capturas guardadas aún.<br><br>Usa el botón "💾 Guardar" en la herramienta de recorte para preservar ejercicios.</div>';return;}
-    $('galleryGridContainer').innerHTML=state.gallery.map((src,i)=>`<div class="galleryItem"><img src="${src}"><div class="galleryActions"><button class="primary" onclick="useGal(${i})">✏️ Usar</button><button class="danger" onclick="delGal(${i})" title="Eliminar">🗑️</button></div></div>`).join('');
-}
-window.useGal=(i)=>{ $('stampImg').src=state.gallery[i];$('stamper').style.display='flex'; $('galleryPanel').style.display='none'; let im=new Image(); im.onload=()=>{$('stamperBody').style.width=Math.min(im.width,400)+'px'; $('stamperBody').style.height=(im.height*parseFloat($('stamperBody').style.width)/im.width)+'px'; }; im.src=state.gallery[i]; };
-window.delGal=(i)=>{ if(confirm('¿Eliminar esta captura guardada permanentemente?')){state.gallery.splice(i,1); localStorage.setItem('mathboard_gallery',JSON.stringify(state.gallery)); updateGalleryGrid();} };
+// =================== PANELES Y VENTANAS ===================
+document.querySelectorAll('.close').forEach(b=>b.onclick=()=>b.closest('.panel').style.display='none');
+$('calcBtn').onclick=()=>showPanel('calcPanel');$('chatBtn').onclick=()=>showPanel('chatPanel');$('videoBtn').onclick=()=>showPanel('mediaPanel');$('roomBtn').onclick=()=>showPanel('roomPanel');$('pdfBtn').onclick=()=>showPanel('pdfPanel');$('galleryBtn').onclick=()=>showPanel('galleryPanel');$('formulaBtn').onclick=()=>showPanel('formulaPanel');$('dolaBtn').onclick=()=>showPanel('dolaPanel');
 
-window.saveStampToGallery=()=>{
-    const s=$('stampImg').src; if(!s)return;
-    let i=new Image(); i.onload=()=>{
-        let c=document.createElement('canvas'); let w=Math.min(i.width, 1000); c.width=w; c.height=i.height*(w/i.width);
-        let x=c.getContext('2d'); x.fillStyle='#fff'; x.fillRect(0,0,c.width,c.height); x.drawImage(i,0,0,c.width,c.height);
-        state.gallery.unshift(c.toDataURL('image/jpeg',0.6)); 
-        let saved=false; while(!saved&&state.gallery.length>0){ try{localStorage.setItem('mathboard_gallery',JSON.stringify(state.gallery)); saved=true;}catch(e){state.gallery.pop();} }
-        if(saved) toast("¡Captura guardada en Galería!"); updateGalleryGrid();
-    }; i.src=s;
-};
-
-// =================== CROP & STAMP ENGINE ===================
-window.applyStamp=()=>{
-    const im=$('stampImg'); if(!im.src)return;
-    const r=$('stamperBody').getBoundingClientRect(); const cx=r.left, cy=r.top, cw=r.width, ch=r.height;
-    ctx.globalCompositeOperation='source-over'; ctx.globalAlpha=1; ctx.drawImage(im, cx, cy, cw, ch);
-    broadcastData({type:'image', src:im.src, x:cx, y:cy, w:cw, h:ch}); $('stamper').style.display='none'; saveState();
-};
-function setupCrop(ovId, bxId, callback){
-    const ov=$(ovId), bx=$(bxId); let sx, sy, active=false;
-    const down=e=>{e.preventDefault(); active=true; const r=ov.getBoundingClientRect(); sx=e.clientX-r.left; sy=e.clientY-r.top; bx.style.left=sx+'px'; bx.style.top=sy+'px'; bx.style.width='0px'; bx.style.height='0px'; bx.style.display='block'; try{ov.setPointerCapture(e.pointerId);}catch(e){}};
-    const move=e=>{if(!active)return; const r=ov.getBoundingClientRect(); let cx=Math.max(0,Math.min(r.width,e.clientX-r.left)), cy=Math.max(0,Math.min(r.height,e.clientY-r.top)); bx.style.left=Math.min(cx,sx)+'px'; bx.style.top=Math.min(cy,sy)+'px'; bx.style.width=Math.abs(cx-sx)+'px'; bx.style.height=Math.abs(cy-sy)+'px';};
-    const up=e=>{if(!active)return; active=false; try{ov.releasePointerCapture(e.pointerId);}catch(e){} ov.style.display='none'; bx.style.display='none'; ov.removeEventListener('pointerdown',down); ov.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); let cw=parseFloat(bx.style.width), ch=parseFloat(bx.style.height); if(cw>10&&ch>10)callback({x:parseFloat(bx.style.left), y:parseFloat(bx.style.top), w:cw, h:ch});};
-    ov.addEventListener('pointerdown', down); ov.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
-}
-
-window.startStampCrop=()=>{ $('stampCropOverlay').style.display='block'; setupCrop('stampCropOverlay', 'stampCropBox', r=>{
-    const im=$('stampImg'); const cx=document.createElement('canvas'); cx.width=r.w; cx.height=r.h;
-    cx.getContext('2d').drawImage(im, r.x*(im.naturalWidth/$('stamperBody').clientWidth), r.y*(im.naturalHeight/$('stamperBody').clientHeight), r.w*(im.naturalWidth/$('stamperBody').clientWidth), r.h*(im.naturalHeight/$('stamperBody').clientHeight), 0,0,r.w,r.h);
-    im.src=cx.toDataURL(); $('stamperBody').style.width=Math.max(100,r.w)+'px';$('stamperBody').style.height=Math.max(50,r.h)+'px';
-});};
-
-window.startPanelCrop=(id)=>{
-    let p=$(id), ov=p.querySelector('.cropOverlay'), bx=p.querySelector('.cropBox'), tgt=id==='pdfPanel'?$('pdfCanvas'):p.querySelector('iframe');
-    if(!ov||!tgt)return; ov.style.display='block';
-    setupCrop(ov.id, bx.id, async r=>{
-        let sSrc;
-        if(id==='pdfPanel'){
-            const cx=document.createElement('canvas'); cx.width=r.w; cx.height=r.h;
-            cx.getContext('2d').drawImage(tgt, r.x*(tgt.width/tgt.clientWidth), r.y*(tgt.height/tgt.clientHeight), r.w*(tgt.width/tgt.clientWidth), r.h*(tgt.height/tgt.clientHeight), 0,0,r.w,r.h);
-            sSrc=cx.toDataURL();
-        } else {
-            try{
-                const stream = await navigator.mediaDevices.getDisplayMedia({video:{mediaSource:'window'}});
-                const vid = document.createElement('video'); vid.srcObject=stream;
-                await new Promise(res=>{vid.onloadedmetadata=()=>{vid.play();setTimeout(res,500);}});
-                const cx=document.createElement('canvas'); cx.width=vid.videoWidth; cx.height=vid.videoHeight;
-                cx.getContext('2d').drawImage(vid,0,0); stream.getTracks().forEach(t=>t.stop()); sSrc=cx.toDataURL('image/jpeg', 0.8);
-            }catch(e){toast('Captura de pantalla cancelada o bloqueada por el navegador.'); return;}
-        }
-        $('stampImg').src=sSrc; $('stamperBody').style.width=Math.max(150,r.w)+'px'; $('stamperBody').style.height=Math.max(80,r.h)+'px';$('stamper').style.display='flex'; p.style.display='none';
-    });
-};
-
-function loadImageIntoStamp(file) {
-    if (!file || !file.type || !file.type.startsWith('image/')) return;
-    const reader = new FileReader();
-    reader.onload = function(ev) {
-        const img = $('stampImg'); const source = new Image();
-        source.onload = function() {
-            let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
-            const ratio = Math.min(1, 900 / w, 650 / h); w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
-            img.onload = function() {
-                $('stamperBody').style.width = w + 'px'; $('stamperBody').style.height = h + 'px';$('stamper').style.display = 'flex';
-            };
-            img.src = ev.target.result;
-        }; source.src = ev.target.result;
-    }; reader.readAsDataURL(file);
-}
-['imageInput', 'cameraInput'].forEach(id => {
-    const input = $(id); if (input) input.addEventListener('change', function(e) { if (e.target.files[0]) { loadImageIntoStamp(e.target.files[0]); } e.target.value = ''; });
-});
-
-// =================== DRAG & MAXIMIZE ===================
 function disableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none'); }
 function enableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'auto'); }
 
-function makeDraggablePanel(panelId, headId) {
+function makeDraggable(panelId, headId) {
     const el=$(panelId), hd=$(headId); if(!el||!hd)return;
     let px, py;
     hd.addEventListener('pointerdown', e=>{
-        if(e.target.tagName==='BUTTON')return;
+        if(e.target.tagName==='BUTTON'||e.target.closest('.panelControls'))return;
         e.preventDefault(); px=e.clientX; py=e.clientY; disableIframes();
         const move = ev=>{ el.style.left=(el.offsetLeft+ev.clientX-px)+'px'; el.style.top=(el.offsetTop+ev.clientY-py)+'px'; px=ev.clientX; py=ev.clientY; };
-        const up = ()=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); enableIframes(); };
-        document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
+        const up = ()=>{ document.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); enableIframes(); };
+        document.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
     });
 }
-function makeResizablePanel(panelId, resId) {
+function makeResizable(panelId, resId) {
     const el=$(panelId), hd=$(resId); if(!el||!hd)return;
     let w, h, x, y;
     hd.addEventListener('pointerdown', e=>{
         e.preventDefault(); e.stopPropagation(); w=el.offsetWidth; h=el.offsetHeight; x=e.clientX; y=e.clientY; disableIframes();
-        const move = ev=>{ let nw=w+ev.clientX-x, nh=h+ev.clientY-y; if(nw>250)el.style.width=nw+'px'; if(nh>200){el.style.height=nh+'px'; el.style.maxHeight='none';} };
-        const up = ()=>{ document.removeEventListener('pointermove',move); document.removeEventListener('pointerup',up); enableIframes(); };
-        document.addEventListener('pointermove',move); document.addEventListener('pointerup',up);
+        const move = ev=>{ let nw=w+ev.clientX-x, nh=h+ev.clientY-y; if(nw>250)el.style.width=nw+'px'; if(nh>150){el.style.height=nh+'px'; el.style.maxHeight='none';} };
+        const up = ()=>{ document.removeEventListener('pointermove',move); window.removeEventListener('pointerup',up); enableIframes(); };
+        document.addEventListener('pointermove',move); window.addEventListener('pointerup',up);
     });
 }
 window.toggleMaximize = function(id) {
@@ -570,142 +505,187 @@ window.toggleMaximize = function(id) {
     else{ el.dataset.w=el.style.width||el.offsetWidth+'px'; el.dataset.h=el.style.height||el.offsetHeight+'px'; el.dataset.t=el.style.top||el.offsetTop+'px'; el.dataset.l=el.style.left||el.offsetLeft+'px'; el.style.width='100vw'; el.style.height='100vh'; el.style.top='0'; el.style.left='0'; el.style.maxHeight='none'; el.dataset.max='1'; }
 }
 
-['pdfPanel','dolaPanel','calcPanel','galleryPanel','formulaPanel','stamper'].forEach(p=>{ makeDraggablePanel(p, p==='stamper'?'stamperHead':p.replace('Panel','Head')); });
-['pdfPanel','dolaPanel','calcPanel','galleryPanel','formulaPanel','stamper'].forEach(p=>{ makeResizablePanel(p, p==='stamper'?'stampResizer':p.replace('Panel','Resizer')); });
+['pdf','dola','calc','gallery','formula'].forEach(p=>{ makeDraggable(p+'Panel', p+(p==='formula'||p==='calc'||p==='dola'||p==='gallery'?'Head':'Head')); makeResizable(p+'Panel', p+'Resizer'); });
+makeDraggable('stamper', 'stamperHead'); makeResizable('stamper', 'stampResizer');
 
-// Funciones de Paneles
-$('calcBtn').onclick=()=>showPanel('calcPanel');
-$('pdfBtn').onclick=()=>showPanel('pdfPanel');$('galleryBtn').onclick=()=>showPanel('galleryPanel');
-$('formulaBtn').onclick=()=>showPanel('formulaPanel');$('dolaBtn').onclick=()=>showPanel('dolaPanel');
+// =================== MOTOR DE RECORTE (LIBRE DE BUGS Y BARRA DE WINDOWS) ===================
+window.startPanelCrop = (id) => {
+    let p=$(id), ov=p.querySelector('.cropOverlay'), bx=p.querySelector('.cropBox');
+    let tgt=id==='pdfPanel'?$('pdfCanvas'):(id==='stamper'?$('stampImg'):p.querySelector('iframe'));
+    if(!ov||!tgt)return; ov.style.display='block';
+    let sx, sy, active=false;
+    const down = e => { e.preventDefault(); active=true; const r=ov.getBoundingClientRect(); sx=e.clientX-r.left; sy=e.clientY-r.top; bx.style.left=sx+'px'; bx.style.top=sy+'px'; bx.style.width='0px'; bx.style.height='0px'; bx.style.display='block'; try{ov.setPointerCapture(e.pointerId);}catch(e){} };
+    const move = e => { if(!active)return; const r=ov.getBoundingClientRect(); let cx=Math.max(0,Math.min(r.width,e.clientX-r.left)), cy=Math.max(0,Math.min(r.height,e.clientY-r.top)); bx.style.left=Math.min(cx,sx)+'px'; bx.style.top=Math.min(cy,sy)+'px'; bx.style.width=Math.abs(cx-sx)+'px'; bx.style.height=Math.abs(cy-sy)+'px'; };
+    const up = async e => {
+        if(!active)return; active=false; try{ov.releasePointerCapture(e.pointerId);}catch(e){} ov.style.display='none'; bx.style.display='none';
+        ov.removeEventListener('pointerdown', down); ov.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
+        let cw=parseFloat(bx.style.width), ch=parseFloat(bx.style.height), cl=parseFloat(bx.style.left), ct=parseFloat(bx.style.top);
+        if(cw>10&&ch>10) {
+            let sSrc;
+            if(id==='pdfPanel'||id==='stamper') {
+                const cx=document.createElement('canvas'); cx.width=cw; cx.height=ch;
+                const rW=tgt.naturalWidth||tgt.width, rH=tgt.naturalHeight||tgt.height;
+                const scX=rW/ov.clientWidth, scY=rH/ov.clientHeight;
+                cx.getContext('2d').drawImage(tgt, cl*scX, ct*scY, cw*scX, ch*scY, 0,0,cw,ch);
+                sSrc=cx.toDataURL(); p.style.display='none'; showStamper(sSrc, Math.max(100,cw), Math.max(50,ch));
+            } else {
+                try{
+                    const stream=await navigator.mediaDevices.getDisplayMedia({video:{mediaSource:'window'}});
+                    const vid=document.createElement('video'); vid.srcObject=stream;
+                    await new Promise(res=>{vid.onloadedmetadata=()=>{vid.play();setTimeout(res,500);}});
+                    const cx=document.createElement('canvas'); cx.width=vid.videoWidth; cx.height=vid.videoHeight;
+                    cx.getContext('2d').drawImage(vid,0,0); stream.getTracks().forEach(t=>t.stop());
+                    
+                    const rect=tgt.getBoundingClientRect(), scX=vid.videoWidth/window.innerWidth, scY=vid.videoHeight/window.innerHeight;
+                    const fx=document.createElement('canvas'); fx.width=cw*scX; fx.height=ch*scY;
+                    fx.getContext('2d').drawImage(cx, (rect.left+cl)*scX, (rect.top+ct)*scY, cw*scX, ch*scY, 0,0,fx.width,fx.height);
+                    sSrc=fx.toDataURL(); p.style.display='none'; showStamper(sSrc, Math.max(150,cw), Math.max(80,ch));
+                }catch(e){toast('Captura externa cancelada');}
+            }
+        }
+    };
+    ov.addEventListener('pointerdown', down); ov.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+};
 
-// =================== PDF ===================
+window.startStampCrop=()=>window.startPanelCrop('stamper');
+
+function showStamper(src, w, h){
+    $('stampImg').src=src; $('stamperBody').style.width=w+'px'; $('stamperBody').style.height=h+'px';$('stamper').style.display='flex';
+}
+
+window.applyStamp=()=>{
+    const im=$('stampImg'); if(!im.src)return;
+    const r=$('stamperBody').getBoundingClientRect();
+    const wp=screenToWorld(r.left, r.top);
+    queueRender({type:'image', src:im.src, x:wp.x, y:wp.y, w:r.width/state.scale, h:r.height/state.scale});
+    broadcastData({type:'image', src:im.src, x:wp.x, y:wp.y, w:r.width/state.scale, h:r.height/state.scale});
+    $('stamper').style.display='none'; snapshot();
+};
+
+window.saveStampToGallery=()=>{
+    const im=$('stampImg'); if(!im.src)return;
+    const cx=document.createElement('canvas'); const w=Math.min(im.naturalWidth, 800); cx.width=w; cx.height=im.naturalHeight*(w/im.naturalWidth);
+    cx.getContext('2d').fillStyle='#fff'; cx.getContext('2d').fillRect(0,0,cx.width,cx.height); cx.getContext('2d').drawImage(im,0,0,cx.width,cx.height);
+    state.gallery.unshift(cx.toDataURL('image/jpeg',0.65)); if(state.gallery.length>30)state.gallery.pop();
+    try{localStorage.setItem('mathboard_gallery',JSON.stringify(state.gallery)); toast('Guardado en Galería'); updateGalleryGrid();}catch(e){toast('Memoria llena');}
+};
+
+window.applyGal=(i)=>{
+    const src=state.gallery[i]; if(!src)return;
+    const im=new Image(); im.onload=()=>{ showStamper(src, Math.min(im.width,400), im.height*(Math.min(im.width,400)/im.width)); $('galleryPanel').style.display='none'; }; im.src=src;
+};
+window.delGal=(i)=>{ if(confirm('¿Eliminar?')){ state.gallery.splice(i,1); localStorage.setItem('mathboard_gallery',JSON.stringify(state.gallery)); updateGalleryGrid(); } };
+function updateGalleryGrid(){
+    if(!state.gallery.length){$('galleryGrid').innerHTML='<div style="grid-column:span 2;color:#888;text-align:center;padding:20px">No hay capturas. Usa "💾 Guardar" en un recorte.</div>';return;}
+    $('galleryGrid').innerHTML=state.gallery.map((s,i)=>`<div class="galleryItem"><img src="${s}"><div class="galleryActions"><button class="primary" onclick="applyGal(${i})">✏️ Usar</button><button class="danger" onclick="delGal(${i})">🗑️</button></div></div>`).join('');
+}
+$('imageInput').onchange=e=>{ [...e.target.files].forEach(f=>{ const rd=new FileReader(); rd.onload=()=>{ state.gallery.unshift(rd.result); if(state.gallery.length>30)state.gallery.pop(); localStorage.setItem('mathboard_gallery',JSON.stringify(state.gallery)); updateGalleryGrid(); }; rd.readAsDataURL(f); }); e.target.value=''; };
+
+// =================== COMPONENTES ADICIONALES ===================
 $('pdfInput').onchange=async e=>{const f=e.target.files[0];if(!f)return;const ab=await f.arrayBuffer();state.pdf=await pdfjsLib.getDocument({data:ab}).promise;state.pdfPage=1;renderPDF()};
-async function renderPDF(){if(!state.pdf)return;const p=await state.pdf.getPage(state.pdfPage),v=p.getViewport({scale:state.pdfScale});$('pdfCanvas').width=v.width;$('pdfCanvas').height=v.height;await p.render({canvasContext:$('pdfCanvas').getContext('2d'),viewport:v}).promise;$('pdfPage').textContent=state.pdfPage+' / '+state.pdf.numPages}
+async function renderPDF(){if(!state.pdf)return;const p=await state.pdf.getPage(state.pdfPage),v=p.getViewport({scale:state.pdfScale});$('pdfCanvas').width=v.width;$('pdfCanvas').height=v.height;await p.render({canvasContext:$('pdfCanvas').getContext('2d'),viewport:v}).promise;$('pdfPage').textContent=state.pdfPage+' / '+state.pdf.numPages;}
 $('pdfPrev').onclick=()=>{if(state.pdf&&state.pdfPage>1){state.pdfPage--;renderPDF()}};$('pdfNext').onclick=()=>{if(state.pdf&&state.pdfPage<state.pdf.numPages){state.pdfPage++;renderPDF()}};
-$('pdfZoomIn').onclick=()=>{state.pdfScale+=0.2;renderPDF()};$('pdfZoomOut').onclick=()=>{if(state.pdfScale>0.4){state.pdfScale-=0.2;renderPDF()}};
+$('pdfZoomIn').onclick=()=>{state.pdfScale+=0.2;renderPDF()};$('pdfZoomOut').onclick=()=>{if(state.pdfScale>0.5){state.pdfScale-=0.2;renderPDF()}};
 
-// =================== GRABACIÓN MP4 (MOTOR ANTI-DESFASE) ===================
 $('saveBtn').onclick=()=>{
  const r=wrap.getBoundingClientRect(), out=document.createElement('canvas'); out.width=r.width; out.height=r.height;
  const x=out.getContext('2d'); drawGridDirect(x); x.drawImage(board,0,0);
  const {jsPDF}=window.jspdf; const pdf=new jsPDF({orientation:r.width>r.height?'l':'p',unit:'px',format:[r.width,r.height]});
- pdf.addImage(out.toDataURL('image/jpeg',0.95),'JPEG',0,0,r.width,r.height); pdf.save('Clase_MathBoard.pdf'); toast('PDF guardado');
+ pdf.addImage(out.toDataURL('image/jpeg',0.95),'JPEG',0,0,r.width,r.height); pdf.save('MathBoard_Pro.pdf'); toast('PDF guardado');
 };
 
-$('recordBtn').onclick=async()=>{
- if(state.recording){state.recorder.stop();return}
- if(!state.stream){toast('Para grabar, el micrófono debe estar conectado');return}
- try{
-    const stream=board.captureStream(60); // 60 FPS garantizados
-    const cStream=new MediaStream([...stream.getVideoTracks(), ...state.stream.getAudioTracks()]);
-    let opt={mimeType:'video/webm;codecs=h264', videoBitsPerSecond:4000000};
-    if(!MediaRecorder.isTypeSupported(opt.mimeType)) opt.mimeType='video/webm;codecs=vp9';
-    if(!MediaRecorder.isTypeSupported(opt.mimeType)) opt.mimeType='video/webm';
-    
-    state.recorder=new MediaRecorder(cStream, opt); state.chunks=[];
-    state.recorder.ondataavailable=e=>{if(e.data.size>0)state.chunks.push(e.data);};
-    state.recorder.onstop=()=>{
-        cancelAnimationFrame(state.recLoop);
-        const b=new Blob(state.chunks,{type:'video/mp4'}), u=URL.createObjectURL(b), a=document.createElement('a');
-        a.href=u; a.download='Clase_MathBoard.mp4'; a.click(); setTimeout(()=>URL.revokeObjectURL(u),1000);
-        $('recordBtn').textContent='⏺️'; $('recordBtn').classList.remove('record-active'); state.recording=false; toast('Clase guardada en MP4');
-    };
-    state.recorder.start(); state.recording=true; $('recordBtn').textContent='⏹️'; $('recordBtn').classList.add('record-active'); toast('Grabando con audio sincronizado...');
-    
-    function keepAlive(){
-        if(!state.recording)return;
-        // Inyecta un micropixel para obligar a WebM a sincronizar audio y no cortar la grabación
-        ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,1,1);
-        state.recLoop=requestAnimationFrame(keepAlive);
-    }
-    keepAlive();
- }catch(e){toast('Tu navegador no soporta la grabación nativa')}
+$('recordBtn').onclick=()=>{
+ if(state.recording){ state.recorder.stop(); return; }
+ if(!state.stream){ toast("Activá el micrófono primero"); return; }
+ const cvsStream = board.captureStream(60);
+ const cStream = new MediaStream([...cvsStream.getVideoTracks(), ...state.stream.getAudioTracks()]);
+ let opt = {mimeType:'video/webm;codecs=h264', videoBitsPerSecond:4000000};
+ if(!MediaRecorder.isTypeSupported(opt.mimeType)) opt.mimeType='video/webm;codecs=vp9';
+ if(!MediaRecorder.isTypeSupported(opt.mimeType)) opt.mimeType='video/webm';
+ 
+ state.recorder=new MediaRecorder(cStream, opt); state.chunks=[];
+ state.recorder.ondataavailable=e=>{if(e.data.size>0)state.chunks.push(e.data);};
+ state.recorder.onstop=()=>{
+     cancelAnimationFrame(state.recLoop);
+     const b=new Blob(state.chunks,{type:'video/mp4'}), u=URL.createObjectURL(b), a=document.createElement('a');
+     a.href=u; a.download='Clase_MathBoard.mp4'; a.click(); URL.revokeObjectURL(u); state.chunks=[];
+     $('recordBtn').textContent='⏺️'; state.recording=false; $('recordBtn').classList.remove('record-active'); toast('Video guardado');
+ };
+ state.recorder.start(); state.recording=true; $('recordBtn').textContent='⏹️'; $('recordBtn').classList.add('record-active'); toast('Grabando en MP4 sincronizado...');
+ 
+ function keepAlive(){
+     if(!state.recording)return;
+     ctx.fillStyle=`rgba(255,255,255, ${Math.random()*0.01})`; ctx.fillRect(0,0,1,1);
+     state.recLoop = requestAnimationFrame(keepAlive);
+ }
+ keepAlive();
 };
 
-// =================== RED PEERJS ===================
-let broadcastLoopInterval = [];
-function broadcastLoopRAF() {
-    if(broadcastLoopInterval.length > 0 && connections.length > 0) {
-        const batch = { type: 'batch', data: broadcastLoopInterval };
-        connections.forEach(conn => { if(conn.open) conn.send(batch); });
-        broadcastLoopInterval = [];
-    }
-    requestAnimationFrame(broadcastLoopRAF);
-}
-broadcastLoopRAF();
-
-function broadcastData(data) { 
-    data.peerId = peer ? peer.id : 'local';
-    data.role = userRole;
-    if(data.type === 'stroke' || data.type === 'shape' || data.type === 'cursor') {
-        broadcastLoopInterval.push(data);
-    } else {
-        connections.forEach(conn => { if (conn.open) conn.send(data); }); 
-    }
-}
+function sendChat(){const v=$('chatInput').value.trim();if(!v)return;addMsg(state.name,v,true);broadcastData({type:'chat',name:state.name,text:v});$('chatInput').value=''}
+function addMsg(name,text,me=false){const d=document.createElement('div');d.className='msg'+(me?' me':'');d.innerHTML=`<div class="who">${esc(name)}</div><span class="bubble">${esc(text)}</span>`;$('chatMessages').appendChild(d);$('chatMessages').scrollTop=$('chatMessages').scrollHeight}
+$('sendChat').onclick=sendChat;$('chatInput').onkeydown=e=>{if(e.key==='Enter')sendChat()};
 
 function setupConn(c){
- c.on('open',()=>{
-     connections.push(c); status('Conectado'); $('peerCount').textContent=connections.length+' Alumnos';
-     if(userRole==='Profesor') c.send({type:'state', state:board.toDataURL('image/jpeg',0.6), canDraw:state.canDraw});
- });
- c.on('data',d=>handleData(d,c));
- c.on('close',()=>{connections.splice(connections.indexOf(c),1); $('peerCount').textContent=connections.length+' Alumnos';});
- c.on('error',()=>{connections.splice(connections.indexOf(c),1);});
+ c.on('open',()=>{state.connections.set(c.peer,c);status('Conectado');$('peerCount').textContent=state.connections.size+' alumnos';c.send({type:'hello',name:state.name,role:state.role,canDraw:state.canDraw,state:state.bitmap?state.bitmap.toDataURL('image/jpeg',0.6):''})});
+ c.on('data',d=>handleData(d,c)); c.on('close',()=>{state.connections.delete(c.peer);removeCursor(c.peer);$('peerCount').textContent=state.connections.size+' alumnos'}); c.on('error',()=>{state.connections.delete(c.peer);});
 }
-
 function handleData(d,c){
- if(d.type==='state'&&d.state){ restoreData(d.state); if(d.canDraw!==undefined)state.canDraw=d.canDraw; }
- if(d.type==='permission'){ state.canDraw=!!d.canDraw; toast(state.canDraw?'La pizarra está habilitada':'Solo lectura'); }
- if(d.type==='cursor') updateRemoteCursor(d);
- if(d.type==='stroke'||d.type==='clear'||d.type==='shape'||d.type==='image') queueRender(d);
- if(d.type==='batch'){ d.data.forEach(x=>queueRender(x)); }
- if(d.type==='logout'){ toast('El profesor cerró el aula'); setTimeout(()=>location.reload(),1000); }
+ if(d.type==='hello'){if(state.role==='teacher')c.send({type:'state',state:state.bitmap?state.bitmap.toDataURL('image/jpeg',0.6):'',canDraw:state.canDraw});}
+ if(d.type==='state'){if(d.state)restoreData(d.state); if(d.canDraw!==undefined)state.canDraw=d.canDraw;}
+ if(d.type==='permission'){state.canDraw=!!d.canDraw;toast(state.canDraw?'Puedes escribir':'Solo lectura')}
+ if(d.type==='cursor')updateRemoteCursor(d);
+ if(d.type==='stroke'||d.type==='clear'||d.type==='shape'||d.type==='image')queueRender(d);
+ if(d.type==='batch'){d.data.forEach(x=>queueRender(x));}
+ if(d.type==='chat')addMsg(d.name||'Alumno',d.text,false);
+ if(d.type==='logout'){toast('El profesor cerró la clase');setTimeout(()=>location.reload(),1000);}
 }
 
 async function createRoom(){
  const name=$('teacherName').value.trim()\vert{}\vert{}'Profesor'; const pin=$('teacherPin').value;
  if(pin!=='1977$'){$('teacherError').textContent='PIN incorrecto.';return}
- isAdmin=true; userRole='Profesor'; state.name=name; state.room=String(Math.floor(1000+Math.random()*9000));
- peer=new Peer('MathBoard-'+state.room, peerNetworkOptions);
- peer.on('open',async()=>{
-    $('login').style.display='none'; $('roomCode').textContent=state.room; status('Aula creada');$('roleText').textContent='Profesor · '+name;
-    document.querySelectorAll('.teacherOnly').forEach(x=>x.style.display='inline-flex');
-    $('teacherTools').style.display='flex';
-    resizeCanvas(); loadGallery(); await getMicrophone();
+ state.role='teacher';state.name=name;state.room=String(Math.floor(1000+Math.random()*9000));
+ state.peer=new Peer('MathBoard-'+state.room,peerNetworkOptions);
+ state.peer.on('open',async()=>{
+    $('login').style.display='none';$('roomCode').textContent=state.room; status('Aula creada'); $('teacherTools').style.display='flex';$('roleText').textContent='Profesor · '+name; resize(); await getMicrophone(); document.querySelectorAll('.teacherOnly').forEach(el=>el.style.display='inline-flex');
  });
- peer.on('connection',setupConn);
- peer.on('error',e=>{status('Conexión con error',false);toast(e.type||'Error de conexión')});
+ state.peer.on('connection',setupConn);
 }
-
 function joinRoom(){
- const name=$('studentName').value.trim()\vert{}\vert{}'Estudiante'; const room=$('roomInput').value.trim();
- if(!/^\d{4}$/.test(room)){$('studentError').textContent='Ingresá un código válido de 4 dígitos.';return}
- isAdmin=false; userRole='Alumno'; state.name=name; state.room=room;
- peer=new Peer(peerNetworkOptions);
- peer.on('open',()=>{
-    const c=peer.connect('MathBoard-'+room,{reliable:true}); setupConn(c);
-    $('login').style.display='none';$('roleText').textContent='Alumno · '+name; resizeCanvas(); status('Conectando…');
+ const name=$('studentName').value.trim()\vert{}\vert{}'Alumno'; const room=$('roomInput').value.trim();
+ if(!/^\d{4}$/.test(room)){$('studentError').textContent='Código inválido.';return}
+ state.role='student';state.name=name;state.room=room;state.peer=new Peer(peerNetworkOptions);
+ state.peer.on('open',async()=>{
+    const c=state.peer.connect('MathBoard-'+room,{reliable:true}); setupConn(c);
+    $('login').style.display='none';$('roleText').textContent='Alumno · '+name; resize(); status('Conectado'); await getMicrophone();
  });
- peer.on('error',()=>{$('studentError').textContent='No se pudo conectar. Verificá el código.'; status('Sin conexión',false)});
+ state.peer.on('error',()=>{$('studentError').textContent='No se encontró la clase.'});
+ state.peer.on('call',call=>{ if(state.stream)call.answer(state.stream); else call.answer(); call.on('stream',playAudio); });
 }
 
-function updateRemoteCursor(data) {
-    if (!data.peerId) return;
-    let cursor = document.getElementById('cursor-' + data.peerId);
-    if (!cursor) {
-        cursor = document.createElement('div'); cursor.id = 'cursor-' + data.peerId; cursor.className = 'remoteCursor';
-        cursor.innerHTML = `<div class="dot"></div><div class="name">${data.role}</div>`;
-        $('cursorLayer').appendChild(cursor);
+function updateRemoteCursor(d) {
+    if (!d.peerId) return;
+    let el = state.remoteCursors.get(d.peerId);
+    if (!el) {
+        el = document.createElement('div'); el.className = 'remoteCursor';
+        el.innerHTML = `<div class="dot"></div><div class="name">${esc(d.role)}</div>`;
+        $('cursorLayer').appendChild(el); state.remoteCursors.set(d.peerId, el);
     }
-    cursor.style.transform = `translate(${data.x * board.width}px, ${data.y * board.height}px)`;
-    cursor.querySelector('.dot').style.backgroundColor = data.color || '#3b82f6';
-    cursor.querySelector('.name').style.backgroundColor = data.role === 'Profesor' ? '#10b981' : '#2563eb';
-    clearTimeout(cursor.timeout); cursor.style.opacity = '1';
-    cursor.timeout = setTimeout(() => { cursor.style.opacity = '0'; }, 500);
+    const sp = worldToScreen(d.x * wrap.clientWidth, d.y * wrap.clientHeight);
+    el.style.transform = `translate(${sp.x}px, ${sp.y}px)`;
+    clearTimeout(el.t); el.style.opacity = '1';
+    el.t = setTimeout(() => el.style.opacity = '0', 800);
 }
+function removeCursor(id){const e=state.remoteCursors.get(id);if(e)e.remove();state.remoteCursors.delete(id)}
 
-restoreState();
+$('studentRole').onclick=()=>{$('studentForm').style.display='block';$('teacherForm').style.display='none'};$('teacherRole').onclick=()=>{$('teacherForm').style.display='block';$('studentForm').style.display='none'};
+$('joinBtn').onclick=joinRoom;$('createBtn').onclick=createRoom;
+$('copyRoom').onclick=()=>{navigator.clipboard.writeText(state.room); toast('Copiado');};
+$('permBtn').onclick=()=>{state.canDraw=!state.canDraw;$('permBtn').textContent=state.canDraw?'✍️ Todos escriben':'🔒 Solo profesor';broadcastData({type:'permission',canDraw:state.canDraw})};
+$('logoutBtn').onclick=logoutSession;
+
+function playAudio(stream) { const audio=new Audio(); audio.srcObject=stream; audio.autoplay=true; document.body.appendChild(audio); audio.play().catch(()=>{const btn=document.createElement('button');btn.className="audio-unlock-btn";btn.innerHTML="🔊 Escuchar clase";btn.onclick=()=>{audio.play();btn.remove();};document.body.appendChild(btn);}); }
+
+renderFormulas(); restoreLocal();
 </script>
 </body>
 </html>
