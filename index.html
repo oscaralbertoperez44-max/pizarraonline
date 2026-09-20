@@ -77,10 +77,9 @@
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
         
-        #pdf-panel, #gemini-panel { top: 80px; left: 30px; width: 520px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
-        #pdf-render-container, #gemini-render-container { position: relative; overflow: auto; max-height: 65vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; }
+        #pdf-panel, #gemini-panel { top: 80px; left: 30px; width: 450px; display: none; max-height: 85vh; overflow: hidden; position: relative; }
+        #pdf-render-container { position: relative; overflow: auto; max-height: 60vh; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
-        
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
@@ -93,9 +92,8 @@
         .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
         .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
-        /* Capas Recorte / Estampado */
-        #crop-overlay, #gemini-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
-        #crop-box, #gemini-crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
+        #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.15); }
+        #crop-box { position: absolute; border: 2px solid #3b82f6; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6); background: transparent; pointer-events: none; display: none; }
         
         #stamper { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; }
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; }
@@ -267,19 +265,19 @@
         <div class="resize-handle resize-handle-pdf" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Gemini Exclusivo para el Profesor -->
+    <!-- Ventana Flotante de Gemini (Solo Profesor) -->
     <div id="gemini-panel" class="floating-panel">
         <div class="panel-header" id="gemini-header">
-            <span>🤖 Asistente Gemini</span>
+            <span>🤖 Asistente Gemini (Profesor)</span>
             <button onclick="toggleGeminiMinimize()" style="padding: 2px 6px; background: transparent; box-shadow:none;">_</button>
         </div>
         <div class="pdf-controls">
-            <button onclick="window.open('https://gemini.google.com', '_blank')" style="background:#2563eb;">🌐 Abrir Pestaña</button>
-            <button id="btn-crop-gemini" onclick="toggleGeminiCropMode()" style="background:#8b5cf6;">✂️ Recortar Interfaz</button>
+            <button onclick="window.open('https://gemini.google.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Abrir en Pestaña</button>
+            <button onclick="document.getElementById('geminiImageInput').click()" style="background:#10b981;">📥 Subir Captura de Gemini</button>
+            <input type="file" id="geminiImageInput" class="hidden-file" accept="image/*">
         </div>
-        <div id="gemini-render-container">
-            <iframe id="gemini-frame" src="https://gemini.google.com" style="width:100%; height:450px; border:none; background:#fff;"></iframe>
-            <div id="gemini-crop-overlay"><div id="gemini-crop-box"></div></div>
+        <div style="padding:15px; text-align:center; color:#cbd5e1; font-size:0.85rem; background:#1e293b; line-height:1.4;">
+            💡 Consulta tus dudas en Gemini, guarda una captura de pantalla y súbela con <b>"Subir Captura"</b> para pegarla al instante en la pizarra de la clase.
         </div>
         <div class="resize-handle resize-handle-pdf" id="gemini-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
@@ -301,7 +299,7 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
-        <!-- Opciones exclusivas de Profesor (Incluye Botón Gemini) -->
+        <!-- Opciones exclusivas de Profesor (Incluye Botón Gemini 🤖) -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
             <button onclick="toggleFormulasPanel()" title="Fórmulas Matemáticas">🧮</button>
@@ -799,10 +797,13 @@
             };
             reader.readAsDataURL(file);
         }
-        ['imageInput', 'cameraInput'].forEach(id => {
+        ['imageInput', 'cameraInput', 'geminiImageInput'].forEach(id => {
             const input = document.getElementById(id);
             if (input) input.addEventListener('change', function(e) {
-                if (e.target.files[0]) loadImageIntoStamp(e.target.files[0]);
+                if (e.target.files[0]) {
+                    loadImageIntoStamp(e.target.files[0]);
+                    if(id === 'geminiImageInput') toggleGeminiMinimize();
+                }
                 e.target.value = '';
             });
         });
@@ -891,7 +892,7 @@
             pdfCropStart = null;
         });
 
-        // Visor Gemini del Profesor
+        // Visor Gemini
         const geminiPanel = document.getElementById('gemini-panel');
         function toggleGeminiPanel() {
             geminiPanel.style.display = geminiPanel.style.display === 'none' || geminiPanel.style.display === '' ? 'flex' : 'none';
@@ -899,40 +900,6 @@
         function toggleGeminiMinimize() {
             geminiPanel.style.display = 'none';
         }
-
-        let cropModeGemini = false;
-        function toggleGeminiCropMode() {
-            cropModeGemini = !cropModeGemini;
-            const overlay = document.getElementById('gemini-crop-overlay');
-            overlay.style.display = cropModeGemini ? 'block' : 'none';
-        }
-
-        let geminiCropStart = null, geminiCropBox = document.getElementById('gemini-crop-box');
-        document.getElementById('gemini-crop-overlay').addEventListener('pointerdown', e => {
-            const rect = e.target.getBoundingClientRect();
-            geminiCropStart = { x: e.clientX - rect.left, y: e.clientY - rect.top };
-            geminiCropBox.style.left = geminiCropStart.x + 'px'; geminiCropBox.style.top = geminiCropStart.y + 'px';
-            geminiCropBox.style.width = '0px'; geminiCropBox.style.height = '0px'; geminiCropBox.style.display = 'block'; e.preventDefault();
-        });
-        window.addEventListener('pointermove', e => {
-            if(!geminiCropStart || !cropModeGemini) return;
-            const rect = document.getElementById('gemini-crop-overlay').getBoundingClientRect();
-            const x = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
-            const y = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
-            geminiCropBox.style.left = Math.min(x, geminiCropStart.x) + 'px'; geminiCropBox.style.top = Math.min(y, geminiCropStart.y) + 'px';
-            geminiCropBox.style.width = Math.abs(x - geminiCropStart.x) + 'px'; geminiCropBox.style.height = Math.abs(y - geminiCropStart.y) + 'px';
-        });
-        window.addEventListener('pointerup', e => {
-            if(!geminiCropStart || !cropModeGemini) return;
-            const cssW = parseFloat(geminiCropBox.style.width), cssH = parseFloat(geminiCropBox.style.height);
-            if(cssW > 15 && cssH > 15) {
-                // Nota: por restricciones de seguridad CORS de iframes externos, generamos una captura o aviso si aplica, o se usa html2canvas/alternativa. 
-                // Como alternativa robusta, tomamos un pantallazo del contenedor si es posible o permitimos subir/pegar.
-                alert("Para recortar desde Gemini de forma segura debido a políticas del navegador, utiliza el botón 'Abrir Pestaña' y sube una captura con el botón 🖼️ de la barra.");
-            }
-            geminiCropStart = null;
-            toggleGeminiCropMode();
-        });
 
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
