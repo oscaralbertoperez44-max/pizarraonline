@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Clases de matemática Online</title>
+    <title>MathBoard Pro — Pizarra Matemática Profesional</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -138,9 +138,7 @@
         #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel, #video-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: absolute; }
         
         #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
-        
-        /* Ajuste para que el PDF escale automáticamente al estirar el panel */
-        #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; width: 100%; height: auto; object-fit: contain;}
+        #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
         #dola-panel { width: 750px; height: 550px; }
         #calc-panel { width: 680px; height: 600px; }
@@ -165,18 +163,9 @@
         #stamp-crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.3); pointer-events: none; display: none; }
 
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px; -webkit-user-drag: none; image-rendering: high-quality; }
-        
-        /* Controles de Redimensión Genéricos */
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
         .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
-        
-        /* Sistema Multi-Direccional para Esquinas */
-        .resize-corner { position: absolute; width: 25px; height: 25px; z-index: 99; touch-action: none; background: transparent; }
-        .nw-resize { top: -5px; left: -5px; cursor: nw-resize; }
-        .ne-resize { top: -5px; right: -5px; cursor: ne-resize; }
-        .sw-resize { bottom: -5px; left: -5px; cursor: sw-resize; }
-        .se-resize { bottom: -5px; right: -5px; cursor: se-resize; }
         
         .stamper-toolbar { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 12px; display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
         
@@ -192,21 +181,6 @@
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none; image-rendering: high-quality;}
-
-        /* Estilo para la herramienta de texto en vivo */
-        .canvas-text-input {
-            position: absolute;
-            z-index: 9999;
-            background: rgba(255, 255, 255, 0.1);
-            border: 2px dashed #3b82f6;
-            backdrop-filter: blur(4px);
-            font-family: 'Segoe UI', sans-serif;
-            font-weight: bold;
-            outline: none;
-            padding: 2px 8px;
-            border-radius: 6px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
 
         /* === BARRA UNIFICADA - Zona Segura Inferior === */
         #main-toolbar {
@@ -254,40 +228,90 @@
             .hide-mobile { display: none !important; }
         }
     </style>
+
+<style id="mathboard-optimization-layer">
+/* ===== MathBoard Pro — Capa de optimización sin romper la interfaz original ===== */
+:root{
+  --mb-accent:#3b82f6; --mb-success:#10b981; --mb-bg:rgba(15,23,42,.96);
+}
+body.mb-fullscreen-mode #main-toolbar{
+  opacity:0 !important; transform:translate(-50%,110%) !important;
+  pointer-events:none !important;
+}
+body.mb-fullscreen-mode #main-toolbar.mb-toolbar-reveal{
+  opacity:1 !important; transform:translate(-50%,0) !important;
+  pointer-events:auto !important;
+}
+#mb-status{
+  position:fixed; top:14px; left:50%; transform:translateX(-50%);
+  z-index:10001; display:none; align-items:center; gap:8px;
+  padding:7px 12px; border:1px solid rgba(255,255,255,.12);
+  border-radius:999px; background:rgba(15,23,42,.9); color:#fff;
+  font:600 12px/1 Segoe UI,sans-serif; box-shadow:0 8px 25px rgba(0,0,0,.25);
+  backdrop-filter:blur(10px); pointer-events:none;
+}
+#mb-status.visible{display:flex}
+#mb-status .dot{width:8px;height:8px;border-radius:50%;background:var(--mb-success)}
+#mb-status.warn .dot{background:#f59e0b}
+#mb-status.error .dot{background:#ef4444}
+#mb-reveal{
+  position:fixed; left:50%; bottom:10px; transform:translateX(-50%);
+  z-index:10002; display:none; border:1px solid rgba(255,255,255,.15);
+  border-radius:999px; background:rgba(15,23,42,.92); color:#fff;
+  padding:7px 13px; box-shadow:0 8px 25px rgba(0,0,0,.3);
+}
+body.mb-fullscreen-mode #mb-reveal{display:block}
+#main-toolbar.mb-compact{
+  max-width:min(96vw,1180px);
+}
+.mb-toast{
+  position:fixed; right:18px; top:18px; z-index:10003;
+  max-width:330px; padding:10px 14px; border-radius:10px;
+  background:rgba(15,23,42,.96); color:#fff; border:1px solid rgba(255,255,255,.12);
+  box-shadow:0 12px 30px rgba(0,0,0,.3); font-size:13px;
+  animation:mbToastIn .2s ease-out;
+}
+@keyframes mbToastIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+@media (max-width:700px){
+  #mb-status{top:8px;font-size:11px}
+  #mb-reveal{bottom:6px}
+}
+</style>
+
 </head>
 <body class="theme-grid">
 
     <div id="login-overlay">
-        <!-- Citas Matemáticas Periféricas -->
+        <!-- Citas Matemáticas Periféricas (Anillo 360 sin tapar el centro) -->
+        
+        <!-- Izquierda -->
         <div class="math-quote" style="top: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas es su libertad.<span class="mq-icon">❞</span><span class="mq-author">— Georg Cantor</span></div>
         <div class="math-quote" style="top: 25%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>El universo está escrito en lenguaje matemático.<span class="mq-icon">❞</span><span class="mq-author">— Galileo Galilei</span></div>
         <div class="math-quote" style="top: 45%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática es la reina de las ciencias.<span class="mq-icon">❞</span><span class="mq-author">— Carl F. Gauss</span></div>
         <div class="math-quote" style="top: 65%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática pura es la poesía de las ideas lógicas.<span class="mq-icon">❞</span><span class="mq-author">— Albert Einstein</span></div>
         <div class="math-quote" style="bottom: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>No hay rama de la matemática que no pueda aplicarse.<span class="mq-icon">❞</span><span class="mq-author">— Nikolai Lobachevsky</span></div>
+
+        <!-- Derecha -->
         <div class="math-quote" style="top: 5%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Donde hay materia, hay geometría.<span class="mq-icon">❞</span><span class="mq-author">— Johannes Kepler</span></div>
         <div class="math-quote" style="top: 25%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática es la música de la razón.<span class="mq-icon">❞</span><span class="mq-author">— J.J. Sylvester</span></div>
         <div class="math-quote" style="top: 45%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Dios usó hermosas matemáticas al crear el mundo.<span class="mq-icon">❞</span><span class="mq-author">— Paul Dirac</span></div>
         <div class="math-quote" style="top: 65%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Un matemático es una máquina para transformar café en teoremas.<span class="mq-icon">❞</span><span class="mq-author">— Paul Erdős</span></div>
         <div class="math-quote" style="bottom: 5%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas radica en su belleza.<span class="mq-icon">❞</span><span class="mq-author">— G.H. Hardy</span></div>
+
+        <!-- Arriba Centro-Márgenes -->
         <div class="math-quote" style="top: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>Los números gobiernan el universo.<span class="mq-icon">❞</span><span class="mq-author">— Pitágoras</span></div>
         <div class="math-quote" style="top: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>La matemática es la ciencia del orden y la medida.<span class="mq-icon">❞</span><span class="mq-author">— René Descartes</span></div>
+        
+        <!-- Abajo Centro-Márgenes -->
         <div class="math-quote" style="bottom: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>En matemáticas te acostumbras a las cosas.<span class="mq-icon">❞</span><span class="mq-author">— John von Neumann</span></div>
         <div class="math-quote" style="bottom: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>Podemos ver poco del futuro, pero lo suficiente para hacer.<span class="mq-icon">❞</span><span class="mq-author">— Alan Turing</span></div>
+        
         <div class="math-quote" style="top: 15%; left: 20%; width: 15vw;"><span class="mq-icon">❝</span>Conozco los números, luego existo.<span class="mq-icon">❞</span><span class="mq-author">— Euler</span></div>
         <div class="math-quote" style="bottom: 15%; right: 20%; width: 15vw;"><span class="mq-icon">❝</span>El infinito es un suelo fecundo para la mente.<span class="mq-icon">❞</span><span class="mq-author">— Hilbert</span></div>
-        <div class="math-quote" style="top: 10%; left: 42%; width: 16vw;"><span class="mq-icon">❝</span>Las matemáticas son la creación más bella del espíritu humano.<span class="mq-icon">❞</span><span class="mq-author">— Stefan Banach</span></div>
-        <div class="math-quote" style="top: 86%; left: 42%; width: 16vw;"><span class="mq-icon">❝</span>La matemática es la llave y la puerta de las ciencias.<span class="mq-icon">❞</span><span class="mq-author">— Roger Bacon</span></div>
-        <div class="math-quote" style="top: 50%; left: 12%; width: 15vw;"><span class="mq-icon">❝</span>Un matemático no es completamente tal, si no tiene algo de poeta.<span class="mq-icon">❞</span><span class="mq-author">— Karl Weierstrass</span></div>
-        <div class="math-quote" style="top: 50%; right: 12%; width: 15vw;"><span class="mq-icon">❝</span>Las matemáticas son la gimnasia del espíritu.<span class="mq-icon">❞</span><span class="mq-author">— Isócrates</span></div>
+
 
         <div class="login-box">
-            <div class="login-title">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="38" height="26" style="vertical-align: text-bottom; margin-right: 6px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.8);">
-                    <rect width="900" height="600" fill="#74ACDF"/>
-                    <rect y="200" width="900" height="200" fill="#FFFFFF"/>
-                    <circle cx="450" cy="300" r="45" fill="#F6B40E"/>
-                </svg>Clases de Matemática Online
-            </div>
+            <div class="login-title">📐 MathBoard Pro</div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
             <div id="role-selection">
                 <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
@@ -349,37 +373,36 @@
                 <button onclick="toggleVideoMinimize()" title="Minimizar">_</button>
             </div>
         </div>
+        <!-- Controles de Video -->
         <div id="video-controls-area" class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
             <div class="hide-student flex-container" style="gap:5px;">
                 <input type="text" id="video-search-input" placeholder="Buscar tema en YouTube (ej: Integrales)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="searchMathVideo()" style="background:#8b5cf6; min-width:90px;">🔍 Buscar</button>
             </div>
+            <!-- Transmisor P2P y Captura/Favoritos -->
             <div class="hide-student flex-container" style="gap:5px; align-items:center;">
                 <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="saveVideoLink()" style="background:#f59e0b; min-width:40px; padding: 6px;" title="Guardar a favoritos">⭐</button>
                 <button onclick="toggleVideoBookmarks()" style="background:#4b5563; min-width:40px; padding: 6px;" title="Ver favoritos">📁</button>
-                <button onclick="captureVideoScreen()" style="background:#8b5cf6; min-width:40px; padding: 6px;" title="Capturar escena del video">📸</button>
+                <button onclick="captureVideoScreen()" style="background:#8b5cf6; min-width:40px; padding: 6px;" title="Capturar escena del video (Selecciona la pestaña actual)">📸</button>
                 <button onclick="loadVideoLocal()" style="background:#4b5563; min-width:80px;" title="Ver video solo tú">👀 Solo Yo</button>
-                <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:80px;" title="Carga el video y lo abre a los alumnos">📡 Todos</button>
-                <button onclick="stopAndCloseVideo()" style="background:#dc2626; min-width:70px;" title="Detener y cerrar el video">🛑 Parar</button>
+                <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:80px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Todos</button>
+                <button onclick="stopAndCloseVideo()" style="background:#dc2626; min-width:70px;" title="Detener y cerrar el video a todos">🛑 Parar</button>
             </div>
-            <div id="video-bookmarks-container" style="display:none; max-height:150px; overflow-y:auto; background:#1a1a1a; border-radius:8px; padding:10px; margin-top:5px; gap:8px; flex-direction:column;" class="hide-student"></div>
+            <!-- Contenedor de Favoritos Desplegable -->
+            <div id="video-bookmarks-container" style="display:none; max-height:150px; overflow-y:auto; background:#1a1a1a; border-radius:8px; padding:10px; margin-top:5px; gap:8px; flex-direction:column;" class="hide-student">
+            </div>
         </div>
         <div id="video-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0 !important; background:#000;">
             <iframe id="video-frame" src="" style="width:100%; height:100%; flex-grow:1; border:none; background:#000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
-        <div id="video-footer" style="height: 15px; background: #222; cursor: move; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-top: 1px solid #444; width: 100%; display: flex; justify-content: center; align-items: center;" title="Arrastrar desde aquí"><div style="width: 40px; height: 4px; background: #555; border-radius: 2px;"></div></div>
-        
-        <div class="resize-corner nw-resize" data-dir="nw"></div>
-        <div class="resize-corner ne-resize" data-dir="ne"></div>
-        <div class="resize-corner sw-resize" data-dir="sw"></div>
-        <div class="resize-corner se-resize" data-dir="se"></div>
+        <div class="resize-handle resize-handle-panel" id="video-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
     <!-- Gestor de Archivos y Buscador de PDFs -->
     <div id="resources-panel" class="floating-panel">
         <div class="panel-header" id="resources-header">
-            <span>📚 Buscador de PDFs, Exámenes y Parciales</span>
+            <span>📚 Gestor de Archivos & Buscador PDF</span>
             <div class="panel-controls-header">
                 <button onclick="toggleMaximize('resources-panel')" title="Pantalla Completa">🗖</button>
                 <button onclick="toggleResourcesPanel()" title="Minimizar">_</button>
@@ -387,8 +410,8 @@
         </div>
         <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
             <div style="display:flex; gap:5px;">
-                <input type="text" id="pdf-search-input" placeholder="Buscar tema, exámenes o parciales..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
-                <button onclick="searchWebPdf()" style="background:#8b5cf6; min-width:90px;" title="Busca PDFs en la web">🔍 Buscar</button>
+                <input type="text" id="pdf-search-input" placeholder="Buscar tema (ej: Álgebra Lineal)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
+                <button onclick="searchWebPdf()" style="background:#8b5cf6; min-width:90px;" title="Busca PDFs matemáticos en la web">🔍 Buscar</button>
             </div>
             <div style="display:flex; gap:5px;">
                 <input type="text" id="pdf-url-input" placeholder="Pega el link directo del PDF aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
@@ -422,39 +445,13 @@
                 <button onclick="zoomOut()" style="min-width:30px;">➖</button>
                 <button onclick="zoomIn()" style="min-width:30px;">➕</button>
             </div>
-            
-            <button id="btn-read-pdf" onclick="openReaderModal()" class="hide-student" style="background:#f59e0b; padding: 6px 12px; border-radius: 8px;" title="Leer documento en voz alta">🔊 Leer</button>
-            
             <button id="btn-sync-pdf" onclick="togglePdfSync()" class="hide-student" style="background:#4b5563; padding: 6px 12px; border-radius: 8px;">👀 Local</button>
             <button id="btn-crop-pdf" onclick="togglePdfCropMode()" style="background:#8b5cf6; padding: 6px 12px; border-radius: 8px;">✂️ Recortar</button>
         </div>
         <div id="pdf-render-container">
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
-            
-            <!-- Modal Lector Inteligente Superpuesto -->
-            <div id="reader-overlay" style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15, 23, 42, 0.95); display:none; z-index:20; padding:15px; flex-direction:column; gap:10px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="color:#60a5fa; font-weight:bold; font-size:0.9rem;">🔊 Selecciona el texto que deseas escuchar</span>
-                    <button onclick="document.getElementById('reader-overlay').style.display='none'; window.speechSynthesis.cancel();" style="background:#dc2626; padding:4px 10px; border-radius:6px; color:white; border:none; cursor:pointer;">❌</button>
-                </div>
-                <div style="display:flex; gap:5px;">
-                     <span style="color:#ccc; font-size:0.8rem; align-self:center;">Voz:</span>
-                     <select id="voice-select" style="flex:1; background:#111; color:#fff; padding:6px; border-radius:6px; border:1px solid #444; font-size:0.85rem; outline:none;"></select>
-                </div>
-                <textarea id="reader-text" style="flex:1; width:100%; background:#f8fafc; color:#0f172a; padding:12px; font-size:1.1rem; border-radius:8px; border:none; resize:none; box-sizing:border-box; line-height:1.5; outline:none;"></textarea>
-                <div style="display:flex; gap:10px; justify-content:center;">
-                    <button onclick="readSelectedOrAll()" style="background:#10b981; padding:8px 20px; font-size:1rem; border-radius:8px; font-weight:bold;">▶️ Iniciar Lectura</button>
-                    <button onclick="window.speechSynthesis.cancel()" style="background:#f59e0b; padding:8px 20px; font-size:1rem; border-radius:8px; font-weight:bold;">⏹️ Parar</button>
-                </div>
-            </div>
         </div>
-        
-        <div class="resize-corner nw-resize" data-dir="nw"></div>
-        <div class="resize-corner ne-resize" data-dir="ne"></div>
-        <div class="resize-corner sw-resize" data-dir="sw"></div>
-        <div class="resize-corner se-resize" data-dir="se"></div>
-        
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
@@ -499,10 +496,6 @@
             <div id="stamp-crop-overlay">
                 <div id="stamp-crop-box"></div>
             </div>
-            <div class="resize-corner nw-resize" data-dir="nw"></div>
-            <div class="resize-corner ne-resize" data-dir="ne"></div>
-            <div class="resize-corner sw-resize" data-dir="sw"></div>
-            <div class="resize-corner se-resize" data-dir="se"></div>
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
@@ -539,23 +532,21 @@
             <div class="toolbar-divider"></div>
         </div>
 
-        <!-- Opciones Universales de Dibujo con Atajos de Teclado -->
-        <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
-        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
-        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
-        <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
-        <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
-        <button type="button" id="btn-snap" title="Regla Magnética (Ejes y ángulos perfectos) [Shift]">📐</button>
-        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo [R]" class="hide-mobile">▭</button>
-        <button type="button" id="mw-circle" title="Círculo [C]" class="hide-mobile">○</button>
-        <button type="button" id="mw-eraser" title="Borrador Real [E]">🧼</button>
-        <button type="button" id="mw-laser" title="Puntero Láser [L]">🎯</button>
-        <button type="button" id="mw-text" title="Escribir Texto [T]" class="hide-mobile" style="font-weight:bold; font-size:1.1rem;">T</button>
+        <!-- Opciones Universales de Dibujo -->
+        <button type="button" id="mw-pen" class="active" title="Fibrón Fino">🖋️</button>
+        <button type="button" id="mw-pencil" title="Lápiz Real">✏️</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
+        <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
+        <button type="button" id="mw-arrow" title="Flecha" class="hide-mobile">➜</button>
+        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo" class="hide-mobile">▭</button>
+        <button type="button" id="mw-circle" title="Círculo" class="hide-mobile">○</button>
+        <button type="button" id="mw-eraser" title="Borrador Real">🧼</button>
+        <button type="button" id="mw-laser" title="Puntero Láser">🎯</button>
         
         <div class="toolbar-divider"></div>
         
         <input id="mw-color" type="color" value="#0f172a" title="Color de Tinta">
-        <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor del Trazo / Tamaño de Fuente">
+        <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor del Trazo">
         
         <div class="toolbar-divider"></div>
         
@@ -567,8 +558,8 @@
         <!-- Chip de Participantes -->
         <div id="participants-chip" style="display:none;" title="Usuarios conectados"></div>
 
-        <button type="button" id="mw-undo" title="Deshacer último trazo [Z]">↩️</button>
-        <button type="button" id="mw-clear" onclick="clearCanvas()" title="Limpiar Pizarra Absoluto [Supr]" class="danger-btn">🗑️</button>
+        <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
+        <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
@@ -579,25 +570,15 @@
     </div>
 
 <script>
-        // === POLYFILL UNIVERSAL DE PANTALLA COMPLETA ===
+        // Súper Script Unificado y Seguro
         window.toggleFullScreen = function() {
-            try {
-                let doc = window.document;
-                let docEl = doc.documentElement;
-                let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
-                let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
-                
-                if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
-                    requestFullScreen.call(docEl);
-                } else {
-                    cancelFullScreen.call(doc);
-                }
-            } catch (err) {
-                console.error("Tu navegador no soporta pantalla completa por código:", err);
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => console.log(err));
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
             }
         };
 
-        // Red original y estable de PeerJS
         const peerNetworkOptions = { 
             config: { 
                 'iceServers': [ 
@@ -607,17 +588,9 @@
                 ] 
             } 
         };
-        
         let isAdmin = false; 
         let peer, connections = [], localStream = null;
         let audioContext, audioDestination;
-        // Exponer referencias dinámicas para módulos de optimización externos.
-        Object.defineProperties(window, {
-            peer: { configurable:true, get:()=>peer },
-            connections: { configurable:true, get:()=>connections },
-            localStream: { configurable:true, get:()=>localStream },
-            mediaRecorder: { configurable:true, get:()=>mediaRecorder, set:v=>{ mediaRecorder=v; } }
-        });
         let userRole = 'Alumno'; 
         let myName = 'Usuario';
         let roomUsers = {};
@@ -641,18 +614,12 @@
         document.getElementById('roomIdInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
 
         async function getMicrophone() {
-            try {
-                window.AudioContext = window.AudioContext || window.webkitAudioContext;
-                audioContext = new AudioContext();
-                audioDestination = audioContext.createMediaStreamDestination();
-            } catch(e) {}
-
             if (!navigator.mediaDevices) return false;
             try { 
                 localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
-                if(audioContext && audioDestination) {
-                    audioContext.createMediaStreamSource(localStream).connect(audioDestination);
-                }
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                audioDestination = audioContext.createMediaStreamDestination();
+                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
                 return true; 
             } catch(e) { return false; }
         }
@@ -665,7 +632,6 @@
             btn.innerText = "🔊 Activar Audio de la Clase";
             btn.onclick = () => {
                 document.querySelectorAll('audio').forEach(a => a.play().catch(e=>console.log(e)));
-                if(audioContext && audioContext.state === 'suspended') audioContext.resume();
                 btn.remove();
             };
             document.body.appendChild(btn);
@@ -682,14 +648,6 @@
             }
             if (audioEl.srcObject !== stream) {
                 audioEl.srcObject = stream;
-                
-                // Mezclar audio remoto para la grabación
-                if (audioContext && audioDestination) {
-                    try {
-                        const remoteSource = audioContext.createMediaStreamSource(stream);
-                        remoteSource.connect(audioDestination);
-                    } catch(e) {}
-                }
             }
             audioEl.play().catch(err => {
                 console.warn("Autoplay bloqueado para", peerId, err);
@@ -937,11 +895,10 @@
             }
         }
 
-        // LIMPIAR PIZARRA GLOBAL
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-            if(typeof window.saveState === 'function') window.saveState();
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(0, 0, canvas.width, canvas.height); 
+            if(typeof window.saveState === 'function') window.saveState(); 
             broadcastData({ type:'clear' });
         }
         window.clearCanvas = clearCanvas;
@@ -1152,7 +1109,6 @@
                         
                         if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
                         if(panelIdToMinimize === 'video') toggleVideoMinimize();
-                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
                     }, 800); 
                 };
             } catch (err) {
@@ -1162,7 +1118,6 @@
         
         window.captureCalcScreen = () => captureScreenSource('calc');
         window.captureVideoScreen = () => captureScreenSource('video');
-        window.captureDolaScreen = () => captureScreenSource('dola');
 
         // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
         let sessionResources = [];
@@ -1171,8 +1126,8 @@
 
         function searchWebPdf() {
             const q = document.getElementById('pdf-search-input').value.trim();
-            if(!q) return alert("Escribe un tema, examen o parcial para buscar (Ej: Parcial de Álgebra, Examen final Análisis Matemático)");
-            const query = `${q} filetype:pdf AND (matemática OR álgebra OR cálculo OR estadística OR probabilidad OR geometría OR examen OR parcial)`;
+            if(!q) return alert("Escribe un tema para buscar (Ej: Funciones, Estadística, Geometría)");
+            const query = `${q} filetype:pdf AND (matemática OR álgebra OR cálculo OR estadística OR probabilidad OR geometría)`;
             window.open(`https://www.google.com/search?q=${encodeURIComponent(query)}`, '_blank');
         }
         window.searchWebPdf = searchWebPdf;
@@ -1304,7 +1259,7 @@
                     };
                     img.src = res.data;
                 };
-                source.src = res.data;
+                source.src = ev.target.result;
                 toggleResourcesPanel();
             } else if (res.type === 'pdf') {
                 currentPdfData = res.data;
@@ -1552,81 +1507,11 @@
             stampCropMode = false; sStartX = undefined;
         });
 
-        // Visor PDF Original con Sistema de Lectura TTS
+        // Visor PDF Original
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
-        
-        let ttsVoices = [];
-
-        function populateTTSVoices() {
-            ttsVoices = window.speechSynthesis.getVoices();
-            const voiceSelect = document.getElementById('voice-select');
-            if(!voiceSelect) return;
-            voiceSelect.innerHTML = '';
-            
-            let esVoices = ttsVoices.filter(v => v.lang.startsWith('es'));
-            if(esVoices.length === 0) esVoices = ttsVoices.slice(0, 3);
-            
-            esVoices.slice(0, 5).forEach((v, i) => {
-                let opt = document.createElement('option');
-                opt.value = i;
-                opt.textContent = `${v.name} (${v.lang})`;
-                voiceSelect.appendChild(opt);
-            });
-        }
-        if (typeof window.speechSynthesis !== 'undefined') {
-            window.speechSynthesis.onvoiceschanged = populateTTSVoices;
-        }
-
-        async function openReaderModal() {
-            if (!pdfDoc) return alert("Primero abre un PDF.");
-            try {
-                const page = await pdfDoc.getPage(pageNum);
-                const textContent = await page.getTextContent();
-                const textItems = textContent.items.map(item => item.str).join(' ');
-                
-                if (!textItems.trim()) {
-                    return alert("Este PDF no contiene texto digital (parece una imagen escaneada).");
-                }
-
-                document.getElementById('reader-text').value = textItems;
-                document.getElementById('reader-overlay').style.display = 'flex';
-                if(ttsVoices.length === 0) populateTTSVoices();
-            } catch (err) {
-                console.error("Error al extraer texto:", err);
-            }
-        }
-        window.openReaderModal = openReaderModal;
-
-        function readSelectedOrAll() {
-            const textarea = document.getElementById('reader-text');
-            let textToRead = textarea.value;
-            
-            if (textarea.selectionStart !== textarea.selectionEnd) {
-                textToRead = textToRead.substring(textarea.selectionStart, textarea.selectionEnd);
-            }
-            
-            if (!textToRead.trim()) return;
-
-            window.speechSynthesis.cancel(); 
-
-            const utterance = new SpeechSynthesisUtterance(textToRead);
-            const voiceSelect = document.getElementById('voice-select');
-            const selectedIndex = voiceSelect.value;
-            
-            let esVoices = ttsVoices.filter(v => v.lang.startsWith('es'));
-            if(esVoices.length === 0) esVoices = ttsVoices.slice(0, 3);
-            
-            if (esVoices[selectedIndex]) {
-                utterance.voice = esVoices[selectedIndex];
-            }
-
-            utterance.rate = 0.95;
-            window.speechSynthesis.speak(utterance);
-        }
-        window.readSelectedOrAll = readSelectedOrAll;
 
         const pdfInput = document.getElementById('pdfInput');
         if (pdfInput) pdfInput.addEventListener('change', async function(e) {
@@ -1665,7 +1550,6 @@
 
         function prevPage() { 
             if (!pdfDoc || pageNum <= 1) return; 
-            window.speechSynthesis.cancel();
             pageNum--; 
             renderPage(pageNum); 
             if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') broadcastData({ type: 'pdf_page', page: pageNum });
@@ -1673,7 +1557,6 @@
         window.prevPage = prevPage;
         function nextPage() { 
             if (!pdfDoc || pageNum >= pdfDoc.numPages) return; 
-            window.speechSynthesis.cancel();
             pageNum++; 
             renderPage(pageNum); 
             if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') broadcastData({ type: 'pdf_page', page: pageNum });
@@ -1788,6 +1671,57 @@
         window.toggleDolaPanel = toggleDolaPanel;
         function toggleDolaMinimize() { dolaPanel.style.display = 'none'; }
         window.toggleDolaMinimize = toggleDolaMinimize;
+        
+        async function captureScreenSource(panelIdToMinimize) {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, preferCurrentTab: true });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    setTimeout(() => {
+                        const canvasCap = document.createElement('canvas');
+                        canvasCap.width = video.videoWidth; 
+                        canvasCap.height = video.videoHeight;
+                        
+                        const ctxCap = canvasCap.getContext('2d', { alpha: false });
+                        ctxCap.imageSmoothingEnabled = true;
+                        ctxCap.imageSmoothingQuality = 'high';
+                        ctxCap.drawImage(video, 0, 0, canvasCap.width, canvasCap.height);
+                        
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        const img = document.getElementById('stamp-img');
+                        img.src = canvasCap.toDataURL('image/png', 1.0); 
+                        
+                        const maxDisplayW = 800;
+                        const maxDisplayH = 600;
+                        const ratio = Math.min(1, maxDisplayW / canvasCap.width, maxDisplayH / canvasCap.height);
+                        
+                        const finalW = canvasCap.width * ratio;
+                        const finalH = canvasCap.height * ratio;
+                        
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = finalW + 'px';
+                        sc.style.height = finalH + 'px';
+                        
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
+                        stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
+                        stamper.style.display = 'block';
+                        
+                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
+                        if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
+                        if(panelIdToMinimize === 'video') toggleVideoMinimize();
+                    }, 800); 
+                };
+            } catch (err) {
+                alert("La captura fue cancelada o tu navegador no lo permite.");
+            }
+        }
+        
+        window.captureDolaScreen = () => captureScreenSource('dola');
+        window.captureCalcScreen = () => captureScreenSource('calc');
 
         function toggleCalcPanel() {
             const panel = document.getElementById('calc-panel');
@@ -1817,7 +1751,7 @@
                     };
                     img.src = ev.target.result;
                 };
-                source.src = ev.target.result; 
+                source.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -1864,39 +1798,21 @@
         window.saveAsPDF = saveAsPDF;
 
         // ================= GRABACIÓN AVANZADA MP4 =================
-        let mediaRecorder; 
-        let recordedChunks = []; 
-        let isRecording = false;
+        let mediaRecorder; let recordedChunks = []; let isRecording = false;
         let recordingLoop;
-        
-        let compositeCanvas = document.createElement('canvas');
-        let compositeCtx = compositeCanvas.getContext('2d', { alpha: false });
 
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
         window.toggleRecording = toggleRecording;
         
         function startRecording() {
-            if (audioContext && audioContext.state === 'suspended') {
-                audioContext.resume();
-            }
-
-            let audioTracks = [];
-            
-            if (audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
-                audioTracks = audioDestination.stream.getAudioTracks();
-            } else if (localStream && localStream.getAudioTracks().length > 0) {
-                audioTracks = localStream.getAudioTracks();
+            if (!audioDestination) { alert("Audio no inicializado."); return; }
+            const canvasStream = canvas.captureStream(60);
+            let combinedStream;
+            if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
+                combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
             } else {
-                console.warn("Grabando sin audio: Verifica los permisos del micrófono.");
+                combinedStream = canvasStream;
             }
-
-            isRecording = true;
-            document.getElementById('btn-record').classList.add('record-active');
-            
-            keepRecordingAlive(); 
-            
-            const canvasStream = compositeCanvas.captureStream(30);
-            const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioTracks ]);
             
             const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
@@ -1907,48 +1823,29 @@
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const actualMime = mediaRecorder?.mimeType || options.mimeType || 'video/webm';
-                const safeType = actualMime.split(';')[0] || 'video/webm';
-                const ext = safeType.includes('mp4') ? 'mp4' : 'webm';
-                const blob = new Blob(recordedChunks, { type: safeType });
+                cancelAnimationFrame(recordingLoop); 
+                const recordingMime = mediaRecorder?.mimeType || 'video/webm';
+                 const blob = new Blob(recordedChunks, { type: recordingMime });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'Clase_MathBoard.' + ext;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                setTimeout(() => URL.revokeObjectURL(url), 1000);
-                recordedChunks = [];
+                const a = document.createElement('a'); a.href = url; a.download = `Clase_MathBoard_${new Date().toISOString().replace(/[:.]/g,'-')}.${recordingMime.includes('mp4') ? 'mp4' : 'webm'}`; a.click();
+                URL.revokeObjectURL(url); recordedChunks = [];
             };
-            mediaRecorder.start(); 
-        }
+            mediaRecorder.start(); isRecording = true;
+            document.getElementById('btn-record').classList.add('record-active');
 
-        function keepRecordingAlive() {
-            if (!isRecording) return;
-            
-            if (compositeCanvas.width !== canvas.width || compositeCanvas.height !== canvas.height) {
-                compositeCanvas.width = canvas.width;
-                compositeCanvas.height = canvas.height;
+            function keepRecordingAlive() {
+                if (!isRecording) return;
+                const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
+                c.fillStyle = '#ffffff';
+                c.fillRect(0, 0, 1, 1);
+                recordingLoop = requestAnimationFrame(keepRecordingAlive);
             }
-            
-            const isChalk = document.body.classList.contains('theme-chalkboard');
-            compositeCtx.fillStyle = isChalk ? '#1e5631' : '#ffffff';
-            compositeCtx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
-            
-            compositeCtx.drawImage(canvas, 0, 0);
-            
-            recordingLoop = requestAnimationFrame(keepRecordingAlive);
+            keepRecordingAlive();
         }
         
-        function stopRecording() {
-            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
-                isRecording = false;
-                return;
-            }
-            mediaRecorder.stop();
+        function stopRecording() { 
+            mediaRecorder.stop(); 
             isRecording = false; 
-            cancelAnimationFrame(recordingLoop); 
             document.getElementById('btn-record').classList.remove('record-active'); 
         }
 
@@ -2109,17 +2006,11 @@
                 applyTheme(data.theme);
                 return;
             }
-            
-            // LIMPIAR PIZARRA DESDE RED
             if (data.type === 'clear') { 
-                const b = document.getElementById('board');
-                if (b) {
-                    const c = b.getContext('2d');
-                    c.clearRect(0, 0, b.width, b.height);
-                }
+                const mCtx = document.getElementById('board').getContext('2d');
+                mCtx.clearRect(0, 0, canvas.width, canvas.height); 
                 return; 
             }
-            
             if (data.type === 'logout') {
                 alert("El profesor ha finalizado y cerrado la sesión.");
                 window.location.reload();
@@ -2147,28 +2038,6 @@
                 }
                 updateRemoteCursor(data);
                 return; 
-            }
-
-            // Sincronización Remota de Texto
-            if (data.type === 'text') {
-                const mCtx = document.getElementById('board').getContext('2d');
-                const realX = data.x * canvas.width;
-                const realY = data.y * canvas.width;
-                const realSize = data.fontSize * canvas.width;
-                
-                mCtx.save();
-                mCtx.globalCompositeOperation = 'source-over';
-                mCtx.globalAlpha = 1;
-                mCtx.font = `bold ${realSize}px 'Segoe UI', sans-serif`;
-                mCtx.fillStyle = data.color;
-                mCtx.textBaseline = 'middle';
-                if (document.body.classList.contains('theme-chalkboard')) {
-                    mCtx.shadowBlur = 1;
-                    mCtx.shadowColor = data.color;
-                }
-                mCtx.fillText(data.text, realX, realY);
-                mCtx.restore();
-                return;
             }
             
             if (data.type === 'start') { 
@@ -2382,7 +2251,7 @@
                    e.target.classList.contains('resize-handle') ||
                    e.target.classList.contains('f-tab') ||
                    e.target.classList.contains('f-cat')) return;
-                    
+                   
                 e.preventDefault(); 
                 pos3 = e.clientX; pos4 = e.clientY; 
                 startTop = element.offsetTop;
@@ -2435,96 +2304,48 @@
             window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
         }
 
-        // Sistema especial para estirar desde las 4 esquinas
-        function makePanelCornersResizable(panelId) {
+        function toggleMaximize(panelId) {
             const panel = document.getElementById(panelId);
-            if(!panel) return;
-            const corners = panel.querySelectorAll('.resize-corner');
-            corners.forEach(corner => {
-                let isR = false, sW, sH, sX, sY, sTop, sLeft;
-                const dir = corner.getAttribute('data-dir');
-                corner.addEventListener('pointerdown', e => {
-                    e.preventDefault(); e.stopPropagation();
-                    isR = true;
-                    sW = panel.offsetWidth; sH = panel.offsetHeight;
-                    sX = e.clientX; sY = e.clientY;
-                    sTop = panel.offsetTop; sLeft = panel.offsetLeft;
-                    disableIframes();
-                });
-                window.addEventListener('pointermove', e => {
-                    if(!isR) return;
-                    let dx = e.clientX - sX;
-                    let dy = e.clientY - sY;
-                    let newW = sW, newH = sH, newTop = sTop, newLeft = sLeft;
-                    
-                    if(dir.includes('e')) newW = sW + dx;
-                    if(dir.includes('s')) newH = sH + dy;
-                    if(dir.includes('w')) { newW = sW - dx; newLeft = sLeft + dx; }
-                    if(dir.includes('n')) { newH = sH - dy; newTop = sTop + dy; }
-                    
-                    if(newW > 280) { panel.style.width = newW + 'px'; panel.style.left = newLeft + 'px'; }
-                    if(newH > 220) { 
-                        panel.style.height = newH + 'px'; panel.style.top = newTop + 'px'; 
-                        panel.style.maxHeight = 'none';
-                        const container = panel.querySelector('div[id$="-render-container"]');
-                        if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
-                    }
-                });
-                window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
-            });
+            if (!panel) return;
+            if (panel.dataset.maximized === 'true') {
+                panel.style.width = panel.dataset.w;
+                panel.style.height = panel.dataset.h;
+                panel.style.top = panel.dataset.t;
+                panel.style.left = panel.dataset.l;
+                panel.dataset.maximized = 'false';
+            } else {
+                panel.dataset.w = panel.style.width || panel.offsetWidth + 'px';
+                panel.dataset.h = panel.style.height || panel.offsetHeight + 'px';
+                panel.dataset.t = panel.style.top || panel.offsetTop + 'px';
+                panel.dataset.l = panel.style.left || panel.offsetLeft + 'px';
+                
+                panel.style.width = '100vw';
+                panel.style.height = '100vh';
+                panel.style.top = '0px';
+                panel.style.left = '0px';
+                panel.style.maxHeight = 'none';
+                const container = panel.querySelector('div[id$="-render-container"]');
+                if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
+                panel.dataset.maximized = 'true';
+            }
         }
+        window.toggleMaximize = toggleMaximize;
 
         makeDraggable(document.getElementById('pdf-panel'), document.getElementById('pdf-header'));
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
         makeDraggable(document.getElementById('resources-panel'), document.getElementById('resources-header'));
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-header'));
-        makeDraggable(document.getElementById('video-panel'), document.getElementById('video-footer'));
-        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
+        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
-        
-        makePanelCornersResizable('video-panel');
-        makePanelCornersResizable('pdf-panel');
-
-        // Sistema especial para estirar el recorte desde las 4 esquinas independientemente
-        const stamper = document.getElementById('stamper');
-        const stamperContent = document.getElementById('stamper-content');
-        if(stamper && stamperContent) {
-            const corners = stamper.querySelectorAll('.resize-corner');
-            corners.forEach(corner => {
-                let isR = false, sW, sH, sX, sY, sTop, sLeft;
-                const dir = corner.getAttribute('data-dir');
-                corner.addEventListener('pointerdown', e => {
-                    e.preventDefault(); e.stopPropagation();
-                    isR = true;
-                    sW = stamperContent.offsetWidth; sH = stamperContent.offsetHeight;
-                    sX = e.clientX; sY = e.clientY;
-                    sTop = stamper.offsetTop; sLeft = stamper.offsetLeft;
-                    disableIframes();
-                });
-                window.addEventListener('pointermove', e => {
-                    if(!isR) return;
-                    let dx = e.clientX - sX;
-                    let dy = e.clientY - sY;
-                    let newW = sW, newH = sH, newTop = sTop, newLeft = sLeft;
-                    
-                    if(dir.includes('e')) newW = sW + dx;
-                    if(dir.includes('s')) newH = sH + dy;
-                    if(dir.includes('w')) { newW = sW - dx; newLeft = sLeft + dx; }
-                    if(dir.includes('n')) { newH = sH - dy; newTop = sTop + dy; }
-                    
-                    if(newW > 50) { stamperContent.style.width = newW + 'px'; stamper.style.left = newLeft + 'px'; }
-                    if(newH > 50) { stamperContent.style.height = newH + 'px'; stamper.style.top = newTop + 'px'; }
-                });
-                window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
-            });
-        }
+        makePanelResizable('video-panel', 'video-resize-handle');
 
         const resizeHandleStamper = document.getElementById('resize-handle');
+        const stamperContent = document.getElementById('stamper-content');
         let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
         
         resizeHandleStamper.addEventListener('pointerdown', (e) => {
@@ -2576,8 +2397,6 @@ window.isLaserFadingGlobal = false;
   let lastRenderedSize = mwSize;
   
   let shapeStartX = 0, shapeStartY = 0;
-  window.isSnapEnabled = false;
-  window.strokeSnapAxis = null; // Candado para bloquear el eje elegido
 
   window.drawLaserFadeGlobal = function() {
       const now = Date.now();
@@ -2632,7 +2451,7 @@ window.isLaserFadingGlobal = false;
 
   function setMode(mode){
     mwMode = mode;
-    ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
+    ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
       const b=document.getElementById(id);
       if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
@@ -2640,9 +2459,6 @@ window.isLaserFadingGlobal = false;
     if (mode === 'laser') {
         laserCanvas.style.pointerEvents = 'auto'; 
         laserCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="%23ef4444"/><circle cx="16" cy="16" r="14" fill="%23ef4444" fill-opacity="0.3"/></svg>\') 16 16, crosshair';
-    } else if (mode === 'text') {
-        laserCanvas.style.pointerEvents = 'none';
-        board.style.cursor = 'text';
     } else {
         laserCanvas.style.pointerEvents = 'none';
         board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>\') 12 12, crosshair !important';
@@ -2650,83 +2466,25 @@ window.isLaserFadingGlobal = false;
   }
   
   function start(ev){
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
     ev.preventDefault();
-
-    // --- INICIO HERRAMIENTA TEXTO ---
-    if (mwMode === 'text') {
-        if (document.getElementById('canvas-temp-text')) return;
-        const p = pos(ev);
-        
-        const input = document.createElement('input');
-        input.type = 'text';
-        input.id = 'canvas-temp-text';
-        input.className = 'canvas-text-input';
-        input.placeholder = "Escribe aquí...";
-        
-        const fontSize = Math.max(16, mwSize * 5); 
-        const inkColor = document.getElementById('mw-color').value;
-        
-        input.style.fontSize = fontSize + 'px';
-        input.style.color = inkColor;
-        input.style.left = p.x + 'px';
-        input.style.top = (p.y - fontSize/2) + 'px';
-
-        document.getElementById('canvas-container').appendChild(input);
-        setTimeout(() => input.focus(), 10);
-
-        function finalizeText() {
-            const val = input.value;
-            if (val.trim() !== '') {
-                mCtx.save();
-                mCtx.globalCompositeOperation = 'source-over';
-                mCtx.font = `bold ${fontSize}px 'Segoe UI', sans-serif`;
-                mCtx.fillStyle = inkColor;
-                mCtx.textBaseline = 'middle';
-                if (document.body.classList.contains('theme-chalkboard')) {
-                    mCtx.shadowBlur = 1; mCtx.shadowColor = inkColor;
-                }
-                mCtx.fillText(val, p.x + 6, p.y + 2);
-                mCtx.restore();
-
-                if (typeof broadcastData === 'function') {
-                    broadcastData({
-                        type: 'text', text: val,
-                        x: (p.x + 6) / canvas.width, y: (p.y + 2) / canvas.width,
-                        color: inkColor, fontSize: fontSize / canvas.width
-                    });
-                }
-            }
-            input.remove();
-        }
-
-        input.addEventListener('blur', finalizeText);
-        input.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') finalizeText();
-            if (e.key === 'Escape') input.remove();
-        });
-
-        return;
-    }
-    // --- FIN HERRAMIENTA TEXTO ---
-
     if (mwMode !== 'laser') saveState();
 
     mwDrawing = true;
     const p = pos(ev);
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
-    shapeStartX = p.x; shapeStartY = p.y; 
-    window.strokeSnapAxis = null; // Reiniciar eje al apoyar el lápiz
     
     smoothedSpeed = 0;
     lastRenderedSize = mwSize;
 
-    if (mwMode === 'laser') {
+    if (['line','arrow','rect','circle'].includes(mwMode)) {
+        shapeStartX = p.x; shapeStartY = p.y;
+    } else if (mwMode === 'laser') {
         if (typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
         }
-    } else if (!['line','arrow','rect','circle'].includes(mwMode)) {
+    } else {
         if (typeof broadcastData === 'function') {
             broadcastData({ type:'start' });
         }
@@ -2754,25 +2512,6 @@ window.isLaserFadingGlobal = false;
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
-        
-        // --- LÓGICA MAGNÉTICA PARA FORMAS GEOMÉTRICAS ---
-        if (window.isSnapEnabled || ev.shiftKey) {
-            let dx = p.x - shapeStartX;
-            let dy = p.y - shapeStartY;
-            
-            if (mwMode === 'line' || mwMode === 'arrow') {
-                let angle = Math.atan2(dy, dx);
-                let snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
-                let dist = Math.hypot(dx, dy);
-                p.x = shapeStartX + Math.cos(snapAngle) * dist;
-                p.y = shapeStartY + Math.sin(snapAngle) * dist;
-            } else if (mwMode === 'rect') {
-                let side = Math.max(Math.abs(dx), Math.abs(dy));
-                p.x = shapeStartX + Math.sign(dx) * side;
-                p.y = shapeStartY + Math.sign(dy) * side;
-            }
-        }
-
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
         drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
         mwLastPosX = p.x; mwLastPosY = p.y;
@@ -2807,26 +2546,6 @@ window.isLaserFadingGlobal = false;
     for (let i=0; i<events.length; i++) {
         let e = events[i];
         let p = pos(e);
-        
-        // --- LÓGICA MAGNÉTICA PARA DIBUJO CONTINUO (EJES SEGUROS) ---
-        if (window.isSnapEnabled || ev.shiftKey) {
-            if (!window.strokeSnapAxis) {
-                let dxCheck = Math.abs(p.x - shapeStartX);
-                let dyCheck = Math.abs(p.y - shapeStartY);
-                // Espera a moverse un poco para decidir la intención
-                if (dxCheck > 5 || dyCheck > 5) {
-                    window.strokeSnapAxis = (dxCheck > dyCheck) ? 'horizontal' : 'vertical';
-                }
-            }
-            if (window.strokeSnapAxis === 'horizontal') {
-                p.y = shapeStartY;
-            } else if (window.strokeSnapAxis === 'vertical') {
-                p.x = shapeStartX;
-            } else {
-                p.x = shapeStartX;
-                p.y = shapeStartY;
-            }
-        }
         
         let dx = p.x - mwLastPosX;
         let dy = p.y - mwLastPosY;
@@ -2927,7 +2646,7 @@ window.isLaserFadingGlobal = false;
     }
     try{ 
         if(mwMode === 'laser') laserCanvas.releasePointerCapture(ev.pointerId);
-        else board.setPointerCapture(ev.pointerId); 
+        else board.releasePointerCapture(ev.pointerId); 
     }catch(e){}
   }
 
@@ -2943,7 +2662,7 @@ window.isLaserFadingGlobal = false;
   laserCanvas.addEventListener('pointercancel', end, {passive:false});
   laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
 
-  ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
+  ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
       const btn = document.getElementById(id);
       if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
@@ -2963,55 +2682,8 @@ window.isLaserFadingGlobal = false;
     }
   });
 
-  // --- BOTÓN LIMPIAR (REPARADO Y AISLADO) ---
-  const btnClear = document.getElementById('mw-clear');
-  if (btnClear) {
-      btnClear.onclick = () => {
-          if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-          saveState();
-          mCtx.clearRect(0, 0, board.width, board.height);
-          if (typeof broadcastData === 'function') broadcastData({ type:'clear' });
-      };
-  }
-
-  // --- BOTÓN MAGNÉTICO ---
-  const btnSnap = document.getElementById('btn-snap');
-  if (btnSnap) {
-      btnSnap.addEventListener('click', () => {
-          window.isSnapEnabled = !window.isSnapEnabled;
-          btnSnap.style.background = window.isSnapEnabled ? '#10b981' : '#334155';
-          btnSnap.style.outline = window.isSnapEnabled ? '2px solid #3b82f6' : 'none';
-      });
-  }
-
-  // --- ATAJOS DE TECLADO INTELIGENTES ---
-  window.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
-      if (e.ctrlKey || e.altKey || e.metaKey) return;
-
-      const key = e.key.toLowerCase();
-      switch (key) {
-          case 'p': setMode('pen'); break;
-          case 'b': setMode('pencil'); break;
-          case 'm': setMode('marker'); break;
-          case 'e': setMode('eraser'); break;
-          case 't': setMode('text'); break;
-          case 'l': setMode('laser'); break;
-          case 'r': setMode('rect'); break;
-          case 'c': setMode('circle'); break;
-          case 'a': setMode('arrow'); break;
-          case 'i': setMode('line'); break;
-          case 'z': 
-              const btnUndo = document.getElementById('mw-undo');
-              if (btnUndo) btnUndo.click();
-              break;
-          case 'delete':
-          case 'backspace':
-              const bClear = document.getElementById('mw-clear');
-              if (bClear) bClear.click();
-              break;
-      }
-  });
+  const clearBtn = document.getElementById('mw-clear');
+  clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
 })();
 </script>
 
@@ -3030,22 +2702,30 @@ document.addEventListener('keydown', function(e) {
 </script>
 
 
-<script>
-/* =========================================================
-   MATHBOARD PRO — CAPA DE ROBUSTEZ Y OPTIMIZACIÓN v3
-   No reemplaza el motor original: lo protege y mejora.
-   ========================================================= */
+<script id="mathboard-optimization-engine">
+/* ==========================================================================
+   MathBoard Pro — Optimization Engine
+   Mantiene el motor original y añade:
+   • recuperación automática de sesión/pizarra
+   • historial ampliado y redo
+   • atajos de teclado
+   • pantalla completa realmente limpia
+   • estado de conexión visible
+   • reconexión P2P más robusta
+   • limpieza de recursos y prevención de listeners duplicados
+   • comandos de accesibilidad/uso rápido
+   ========================================================================== */
 (() => {
   'use strict';
 
   const MB = {
-    version: '3.0.0',
-    autosaveKey: 'mathboard_pro_recovery_v3',
-    settingsKey: 'mathboard_pro_settings_v3',
-    maxHistory: 12,
-    saveTimer: null,
-    statusTimer: null,
-    roomSweepTimer: null
+    version:'2.1-optimized',
+    autosaveKey:'mathboard_pro_autosave_v2',
+    historyKey:'mathboard_pro_history_v2',
+    historyMax:18,
+    autosaveTimer:null,
+    redoStack:[],
+    toastTimer:null
   };
   window.MathBoardPro = MB;
 
@@ -3053,337 +2733,248 @@ document.addEventListener('keydown', function(e) {
   const board = $('board');
   if (!board) return;
 
-  /* ---------- Estado visual / recuperación ---------- */
-  function safeStorageSet(key, value) {
-    try { localStorage.setItem(key, value); return true; } catch (_) { return false; }
+  function toast(message, type='ok', ms=2200){
+    let el=document.querySelector('.mb-toast');
+    if(!el){ el=document.createElement('div'); el.className='mb-toast'; document.body.appendChild(el); }
+    el.textContent=message;
+    el.style.borderColor=type==='error'?'rgba(239,68,68,.5)':type==='warn'?'rgba(245,158,11,.5)':'rgba(16,185,129,.35)';
+    clearTimeout(MB.toastTimer);
+    MB.toastTimer=setTimeout(()=>el.remove(),ms);
   }
-  function safeStorageGet(key) {
-    try { return localStorage.getItem(key); } catch (_) { return null; }
-  }
+  window.mbToast=toast;
 
-  function showStatus(message, good = true, ms = 2200) {
-    let el = $('mb3-status');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'mb3-status';
-      el.style.cssText =
-        'position:fixed;top:14px;left:50%;transform:translateX(-50%);' +
-        'z-index:100001;padding:8px 14px;border-radius:999px;' +
-        'background:rgba(15,23,42,.94);color:#fff;font:600 13px Segoe UI,sans-serif;' +
-        'box-shadow:0 8px 25px rgba(0,0,0,.25);opacity:0;pointer-events:none;' +
-        'transition:opacity .18s ease;backdrop-filter:blur(8px);';
-      document.body.appendChild(el);
-    }
-    el.textContent = message;
-    el.style.border = '1px solid ' + (good ? '#10b981' : '#ef4444');
-    el.style.opacity = '1';
-    clearTimeout(MB.statusTimer);
-    MB.statusTimer = setTimeout(() => el.style.opacity = '0', ms);
+  // ---------- Estado ligero y recuperación ----------
+  function getCanvasSnapshot(){
+    try { return board.toDataURL('image/webp', .82); }
+    catch(e){ try{return board.toDataURL('image/png');}catch(_){return null;} }
   }
-
-  function snapshotCanvas() {
-    try {
-      return board.toDataURL('image/webp', .78);
-    } catch (_) {
-      try { return board.toDataURL('image/png'); } catch (e) { return null; }
+  function saveAutosave(){
+    const src=getCanvasSnapshot();
+    if(!src) return;
+    try{
+      const payload={
+        v:MB.version, t:Date.now(), src,
+        theme:['theme-grid','theme-whiteboard','theme-chalkboard']
+          .find(x=>document.body.classList.contains(x)) || 'theme-grid',
+        timer: typeof classStartTime==='number' ? classStartTime : null
+      };
+      localStorage.setItem(MB.autosaveKey, JSON.stringify(payload));
+      showStatus('Guardado local automático');
+    }catch(e){
+      // localStorage can fail on private/full storage; don't interrupt class.
     }
   }
-
-  function saveRecovery(reason = 'auto') {
-    const data = snapshotCanvas();
-    if (!data) return;
-    const payload = {
-      v: MB.version,
-      at: Date.now(),
-      reason,
-      width: board.width,
-      height: board.height,
-      theme: ['theme-grid','theme-whiteboard','theme-chalkboard']
-        .find(x => document.body.classList.contains(x)) || 'theme-grid',
-      image: data
-    };
-    safeStorageSet(MB.autosaveKey, JSON.stringify(payload));
+  function showStatus(text, type='ok'){
+    let st=$('mb-status');
+    if(!st){
+      st=document.createElement('div'); st.id='mb-status';
+      st.innerHTML='<span class="dot"></span><span></span>';
+      document.body.appendChild(st);
+    }
+    st.querySelector('span:last-child').textContent=text;
+    st.className='visible'+(type==='warn'?' warn':type==='error'?' error':'');
+    clearTimeout(st._timer);
+    st._timer=setTimeout(()=>st.classList.remove('visible'),1800);
   }
-
-  function scheduleRecoverySave() {
-    clearTimeout(MB.saveTimer);
-    MB.saveTimer = setTimeout(() => saveRecovery('debounced'), 900);
-  }
-
-  function recoverIfUseful() {
-    const raw = safeStorageGet(MB.autosaveKey);
-    if (!raw) return;
-    try {
-      const d = JSON.parse(raw);
-      if (!d.image || !d.at || Date.now() - d.at > 7 * 86400000) return;
-      if (!confirm('MathBoard encontró una pizarra guardada recientemente. ¿Querés recuperarla?')) return;
-      const img = new Image();
-      img.onload = () => {
-        const c = board.getContext('2d');
-        c.save();
-        c.globalCompositeOperation = 'source-over';
-        c.globalAlpha = 1;
+  function recoverAutosave(){
+    try{
+      const raw=localStorage.getItem(MB.autosaveKey);
+      if(!raw) return;
+      const p=JSON.parse(raw);
+      if(!p?.src || Date.now()-p.t>1000*60*60*24*7) return;
+      const ask=confirm('MathBoard Pro encontró una pizarra guardada recientemente. ¿Deseas recuperarla?');
+      if(!ask) return;
+      const img=new Image();
+      img.onload=()=>{
+        const c=board.getContext('2d');
         c.clearRect(0,0,board.width,board.height);
         c.drawImage(img,0,0,board.width,board.height);
-        c.restore();
-        if (d.theme && typeof window.applyTheme === 'function') window.applyTheme(d.theme);
-        showStatus('Pizarra recuperada ✓');
+        if(p.theme && typeof applyTheme==='function') applyTheme(p.theme);
+        toast('Pizarra recuperada correctamente');
       };
-      img.src = d.image;
-    } catch (_) {}
+      img.src=p.src;
+    }catch(e){}
   }
-
-  /* ---------- Historial robusto + redo ---------- */
-  if (!window.mbRedo) window.mbRedo = [];
-  function getUndo() { return Array.isArray(window.mwUndo) ? window.mwUndo : (window.mwUndo = []); }
-
-  function pushRedoSnapshot() {
-    const data = snapshotCanvas();
-    if (!data) return;
-    window.mbRedo.push(data);
-    if (window.mbRedo.length > MB.maxHistory) window.mbRedo.shift();
+  // Debounced autosave: no bloquea el trazo.
+  let saveQueued=false;
+  function queueAutosave(){
+    if(saveQueued) return;
+    saveQueued=true;
+    setTimeout(()=>{
+      saveQueued=false; saveAutosave();
+    },1800);
   }
+  window.addEventListener('beforeunload',saveAutosave);
+  document.addEventListener('visibilitychange',()=>{ if(document.hidden) saveAutosave(); });
 
-  function restoreSnapshot(data) {
-    if (!data) return;
-    const img = new Image();
-    img.onload = () => {
-      const c = board.getContext('2d');
-      c.save();
-      c.globalCompositeOperation = 'source-over';
-      c.globalAlpha = 1;
+  // ---------- Historial ampliado + redo ----------
+  function pushHistory(){
+    try{
+      const snap=board.toDataURL('image/png');
+      let h=MB._history || [];
+      h.push(snap);
+      if(h.length>MB.historyMax) h=h.slice(-MB.historyMax);
+      MB._history=h; MB.redoStack=[];
+    }catch(e){}
+  }
+  function restoreSnapshot(src){
+    if(!src) return;
+    const img=new Image();
+    img.onload=()=>{
+      const c=board.getContext('2d');
+      c.save(); c.globalCompositeOperation='source-over'; c.globalAlpha=1;
       c.clearRect(0,0,board.width,board.height);
-      c.drawImage(img,0,0,board.width,board.height);
-      c.restore();
-      scheduleRecoverySave();
+      c.drawImage(img,0,0,board.width,board.height); c.restore();
+      queueAutosave();
     };
-    img.src = data;
+    img.src=src;
   }
-
-  function undo() {
-    const stack = getUndo();
-    if (!stack.length) return;
-    const current = snapshotCanvas();
-    if (current) window.mbRedo.push(current);
-    const previous = stack.pop();
-    restoreSnapshot(previous);
-    if (typeof window.broadcastData === 'function' && previous) {
-      window.broadcastData({type:'image', src:previous, x:0, y:0, w:1, h:board.height/Math.max(1,board.width)});
-    }
-    showStatus('Deshacer ↩');
+  function enhancedUndo(){
+    const h=MB._history;
+    if(!h || !h.length){ toast('No hay más acciones para deshacer','warn'); return; }
+    const current=getCanvasSnapshot();
+    if(current) MB.redoStack.push(current);
+    restoreSnapshot(h.pop());
   }
-
-  function redo() {
-    if (!window.mbRedo.length) return;
-    const current = snapshotCanvas();
-    if (current) getUndo().push(current);
-    const next = window.mbRedo.pop();
-    restoreSnapshot(next);
-    if (typeof window.broadcastData === 'function' && next) {
-      window.broadcastData({type:'image', src:next, x:0, y:0, w:1, h:board.height/Math.max(1,board.width)});
-    }
-    showStatus('Rehacer ↪');
+  function enhancedRedo(){
+    const r=MB.redoStack;
+    if(!r.length){ toast('No hay acciones para rehacer','warn'); return; }
+    const current=getCanvasSnapshot();
+    if(current) (MB._history ||= []).push(current);
+    restoreSnapshot(r.pop());
   }
-  window.mbUndoPro = undo;
-  window.mbRedoPro = redo;
+  window.mbUndo=enhancedUndo;
+  window.mbRedo=enhancedRedo;
 
-  /* ---------- Pantalla completa limpia ---------- */
-  const style = document.createElement('style');
-  style.textContent = `
-    body.mb-clean-fullscreen #main-toolbar{opacity:0;pointer-events:none;transform:translate(-50%,20px);transition:.18s}
-    body.mb-clean-fullscreen #mb3-reveal{display:flex}
-    #mb3-reveal{display:none;position:fixed;right:14px;bottom:14px;z-index:100000;
-      width:46px;height:46px;border:0;border-radius:50%;align-items:center;justify-content:center;
-      background:rgba(15,23,42,.92);color:#fff;box-shadow:0 8px 25px rgba(0,0,0,.3);font-size:20px}
-    body.mb-clean-fullscreen .floating-panel{max-width:96vw;max-height:90vh}
-  `;
-  document.head.appendChild(style);
-
-  const reveal = document.createElement('button');
-  reveal.id = 'mb3-reveal';
-  reveal.type = 'button';
-  reveal.title = 'Mostrar herramientas';
-  reveal.textContent = '☰';
-  reveal.onclick = () => {
-    const tb = $('main-toolbar');
-    if (tb) { tb.style.opacity = '1'; tb.style.pointerEvents = 'auto'; tb.style.transform = 'translateX(-50%)'; }
+  // Capture snapshots before each drawing operation while retaining original engine.
+  const originalSaveState=window.saveState;
+  window.saveState=function(){
+    pushHistory();
+    if(typeof originalSaveState==='function') originalSaveState();
   };
+
+  // Patch the original clear button behavior only by adding autosave after clear.
+  const clearBtn=$('mw-clear');
+  if(clearBtn) clearBtn.addEventListener('click',()=>setTimeout(queueAutosave,80));
+
+  // ---------- Redo button (new, non-invasive) ----------
+  const undo=$('mw-undo');
+  if(undo && !$('mw-redo')){
+    const redo=document.createElement('button');
+    redo.id='mw-redo'; redo.type='button'; redo.title='Rehacer último cambio';
+    redo.textContent='↪️'; redo.addEventListener('click',enhancedRedo);
+    undo.parentNode.insertBefore(redo,undo.nextSibling);
+  }
+
+  // ---------- Fullscreen clean mode ----------
+  const reveal=document.createElement('button');
+  reveal.id='mb-reveal'; reveal.textContent='☰ Mostrar herramientas';
+  reveal.addEventListener('click',()=>{
+    const tb=$('main-toolbar');
+    tb?.classList.toggle('mb-toolbar-reveal');
+    reveal.textContent=tb?.classList.contains('mb-toolbar-reveal')?'✕ Ocultar herramientas':'☰ Mostrar herramientas';
+  });
   document.body.appendChild(reveal);
 
-  function syncFullscreenUI() {
-    const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
-    document.body.classList.toggle('mb-clean-fullscreen', full);
+  function fullscreenUI(){
+    const on=!!document.fullscreenElement;
+    document.body.classList.toggle('mb-fullscreen-mode',on);
+    if(!on) $('main-toolbar')?.classList.remove('mb-toolbar-reveal');
   }
-  document.addEventListener('fullscreenchange', syncFullscreenUI);
-  document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
-
-  const originalFS = window.toggleFullScreen;
-  window.toggleFullScreen = function() {
-    try {
-      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
-        const el = document.documentElement;
-        const fn = el.requestFullscreen || el.webkitRequestFullscreen;
-        if (fn) {
-          Promise.resolve(fn.call(el)).then(syncFullscreenUI).catch(() => {
-            if (originalFS) originalFS();
-          });
-        } else if (originalFS) originalFS();
-      } else {
-        const fn = document.exitFullscreen || document.webkitExitFullscreen;
-        if (fn) Promise.resolve(fn.call(document)).then(syncFullscreenUI);
-      }
-    } catch (_) {
-      if (originalFS) originalFS();
-    }
+  document.addEventListener('fullscreenchange',fullscreenUI);
+  const originalFS=window.toggleFullScreen;
+  window.toggleFullScreen=function(){
+    try{ return originalFS ? originalFS() : document.documentElement.requestFullscreen(); }
+    finally{ setTimeout(fullscreenUI,100); }
   };
 
-  /* ---------- Red: limpieza de conexiones muertas ---------- */
-  function sweepConnections() {
-    if (!Array.isArray(window.connections)) return;
-    const before = window.connections.length;
-    window.connections = window.connections.filter(c => c && (c.open || c.readyState === 'open'));
-    if (window.connections.length !== before && typeof window.renderParticipants === 'function') {
-      try { window.renderParticipants(); } catch (_) {}
+  // ---------- Keyboard shortcuts ----------
+  document.addEventListener('keydown',e=>{
+    const tag=(e.target?.tagName||'').toLowerCase();
+    if(tag==='input'||tag==='textarea'||e.target?.isContentEditable) return;
+
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='z'){
+      e.preventDefault(); enhancedUndo(); return;
     }
-  }
-  MB.roomSweepTimer = setInterval(sweepConnections, 5000);
-
-  /* ---------- Seguridad de PeerJS: handlers de reconexión ---------- */
-  function attachPeerGuards() {
-    const p = window.peer;
-    if (!p || p.__mb3guard) return;
-    p.__mb3guard = true;
-    const setOnline = () => showStatus('Conexión de clase activa ✓');
-    const setOffline = () => showStatus('Conexión interrumpida — reconectando…', false, 3500);
-    try {
-      p.on('open', setOnline);
-      p.on('disconnected', () => {
-        setOffline();
-        try { p.reconnect(); } catch (_) {}
-      });
-      p.on('close', () => showStatus('Clase desconectada', false, 3500));
-      p.on('error', err => {
-        if (err && ['network','server-error','socket-error','socket-closed'].includes(err.type)) setOffline();
-      });
-    } catch (_) {}
-  }
-
-  const peerWatcher = setInterval(() => {
-    attachPeerGuards();
-    if (window.peer && window.connections) {
-      window.connections.forEach(conn => {
-        if (!conn || conn.__mb3guard) return;
-        conn.__mb3guard = true;
-        try {
-          conn.on('close', sweepConnections);
-          conn.on('error', () => sweepConnections());
-        } catch (_) {}
-      });
+    if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='y'){
+      e.preventDefault(); enhancedRedo(); return;
     }
-  }, 1200);
-
-  /* ---------- Botón redo ---------- */
-  const undoBtn = $('mw-undo');
-  if (undoBtn && !$('mb3-redo')) {
-    const redoBtn = document.createElement('button');
-    redoBtn.id = 'mb3-redo';
-    redoBtn.type = 'button';
-    redoBtn.title = 'Rehacer (Ctrl/Cmd+Y)';
-    redoBtn.textContent = '↪️';
-    redoBtn.onclick = redo;
-    undoBtn.insertAdjacentElement('afterend', redoBtn);
-  }
-
-  /* ---------- Atajos profesionales ---------- */
-  window.addEventListener('keydown', e => {
-    const tag = e.target?.tagName;
-    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target?.isContentEditable) return;
-
-    const mod = e.ctrlKey || e.metaKey;
-    if (mod && e.key.toLowerCase() === 'z') {
-      e.preventDefault();
-      if (e.shiftKey) redo(); else undo();
+    if(e.key==='Escape'){
+      document.querySelectorAll('.floating-panel').forEach(p=>{
+        if(p.id!=='ui-panel' && p.style.display==='flex') p.style.display='none';
+      });
       return;
     }
-    if (mod && e.key.toLowerCase() === 'y') {
-      e.preventDefault(); redo(); return;
-    }
-    if (e.key === 'Escape') {
-      document.querySelectorAll('.floating-panel').forEach(p => {
-        if (p.id !== 'stamper') p.style.display = 'none';
-      });
-    }
-    if (e.key === 'f' && !mod) {
-      e.preventDefault();
-      window.toggleFullScreen();
-    }
-  });
-
-  /* ---------- Auto recuperación sin interferir con el dibujo ---------- */
-  board.addEventListener('pointerup', scheduleRecoverySave, {passive:true});
-  board.addEventListener('pointercancel', scheduleRecoverySave, {passive:true});
-  window.addEventListener('beforeunload', () => saveRecovery('exit'));
-  document.addEventListener('visibilitychange', () => {
-    if (document.hidden) saveRecovery('background');
-  });
-
-  /* ---------- Mejor manejo de cierre de micrófono ---------- */
-  window.addEventListener('pagehide', () => {
-    try {
-      if (window.localStream) window.localStream.getTracks().forEach(t => t.stop());
-    } catch (_) {}
-    try {
-      if (window.mediaRecorder && window.mediaRecorder.state !== 'inactive') window.mediaRecorder.stop();
-    } catch (_) {}
-  });
-
-  /* ---------- Estado persistente de tema ---------- */
-  const themeButtons = $('btn-theme');
-  if (themeButtons) themeButtons.addEventListener('click', () => {
-    const theme = ['theme-grid','theme-whiteboard','theme-chalkboard']
-      .find(x => document.body.classList.contains(x));
-    if (theme) safeStorageSet(MB.settingsKey, JSON.stringify({theme,at:Date.now()}));
-  });
-
-  /* ---------- Reparación de URLs de YouTube ---------- */
-  const oldYT = window.extractYouTubeEmbedUrl;
-  if (oldYT) {
-    window.extractYouTubeEmbedUrl = function(url) {
-      try {
-        const u = new URL(String(url).trim());
-        let id = '';
-        if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
-        else if (u.hostname.includes('youtube.com')) {
-          if (u.pathname === '/watch') id = u.searchParams.get('v') || '';
-          else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/')[2] || '';
-          else if (u.pathname.startsWith('/embed/')) return u.toString();
-        }
-        id = (id || '').split('/')[0];
-        if (!/^[A-Za-z0-9_-]{6,20}$/.test(id)) return oldYT(url);
-        return 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
-      } catch (_) {
-        return oldYT(url);
-      }
+    const map={
+      '1':'pen','2':'pencil','3':'marker','4':'line','5':'arrow',
+      '6':'rect','7':'circle','8':'eraser','9':'laser'
     };
+    if(map[e.key]){
+      const b=$('mw-'+map[e.key]);
+      if(b){ b.click(); toast('Herramienta: '+b.title); }
+    }
+    if(e.key.toLowerCase()==='f') window.toggleFullScreen?.();
+    if(e.key.toLowerCase()==='m') window.toggleMic?.();
+    if(e.key.toLowerCase()==='t') window.toggleTheme?.();
+  });
+
+  // ---------- Connection quality indicator ----------
+  function updateConnectionIndicator(){
+    if(!window.peer) return;
+    const open=Array.isArray(window.connections)?window.connections.filter(c=>c.open).length:
+      (typeof connections!=='undefined' ? connections.filter(c=>c.open).length : 0);
+    showStatus(isAdmin ? `Clase activa · ${open} conectado${open===1?'':'s'}` : 'Conectado a la clase');
+  }
+  setInterval(updateConnectionIndicator,7000);
+
+  // ---------- P2P lifecycle hardening ----------
+  function attachPeerGuards(){
+    const p=window.peer;
+    if(!p || p.__mbGuarded) return;
+    p.__mbGuarded=true;
+    p.on('disconnected',()=>showStatus('Conexión P2P interrumpida','warn'));
+    p.on('open',()=>showStatus('Conexión P2P establecida'));
+    p.on('error',err=>{
+      if(err?.type==='network' || err?.type==='server-error')
+        showStatus('Red inestable — intentando mantener la clase','warn');
+    });
+  }
+  const peerTimer=setInterval(()=>{
+    if(window.peer){ attachPeerGuards(); clearInterval(peerTimer); }
+  },1000);
+
+  // Avoid browser memory leaks from stale remote audio nodes.
+  const oldLogout=window.logoutSession;
+  window.addEventListener('pagehide',()=>{
+    document.querySelectorAll('audio[id^="audio-"]').forEach(a=>{
+      try{a.pause(); a.srcObject=null; a.remove();}catch(e){}
+    });
+  });
+
+  // ---------- Quality-of-life: double click toolbar = compact ----------
+  const tb=$('main-toolbar');
+  if(tb){
+    tb.classList.add('mb-compact');
+    tb.addEventListener('dblclick',e=>{
+      if(e.target===tb) tb.classList.toggle('mb-compact');
+    });
   }
 
-  /* ---------- API de diagnóstico ---------- */
-  window.MathBoardDiagnostics = () => ({
-    version: MB.version,
-    canvas: {width: board.width, height: board.height},
-    fullscreen: !!(document.fullscreenElement || document.webkitFullscreenElement),
-    peer: !!window.peer,
-    connections: Array.isArray(window.connections) ? window.connections.filter(c => c?.open).length : 0,
-    storage: (() => { try { const k='__mb3'; localStorage.setItem(k,'1'); localStorage.removeItem(k); return true; } catch (_) { return false; } })(),
-    mediaRecorder: typeof MediaRecorder !== 'undefined',
-    pdf: typeof window.pdfjsLib !== 'undefined'
+  // ---------- Save after meaningful board interactions ----------
+  ['pointerup','pointercancel'].forEach(ev=>board.addEventListener(ev,queueAutosave,{passive:true}));
+
+  // Recover after the original app has initialized its canvas.
+  setTimeout(recoverAutosave,1200);
+
+  // Expose a simple diagnostics panel in console for maintenance.
+  window.MathBoardDiagnostics=()=>({
+    version:MB.version,
+    canvas:`${board.width}x${board.height}`,
+    fullscreen:!!document.fullscreenElement,
+    peerConnected:!!window.peer,
+    connections:typeof connections!=='undefined'?connections.filter(c=>c.open).length:0,
+    localStorageAvailable:(()=>{try{localStorage.setItem('_mb','1');localStorage.removeItem('_mb');return true}catch(e){return false}})()
   });
-
-  /* Exponer referencias útiles del motor original sin reemplazarlo. */
-  window.mbScheduleRecovery = scheduleRecoverySave;
-
-  setTimeout(recoverIfUseful, 900);
-  showStatus('MathBoard Pro listo ✓', true, 1500);
 })();
 </script>
 
