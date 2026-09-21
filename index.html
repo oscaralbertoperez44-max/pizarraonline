@@ -86,7 +86,7 @@
         /* Pantalla de Inicio Premium con Citas en Blanco */
         #login-overlay { 
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background-color: rgba(30, 86, 49, 0.98); /* Verde Pizarrón Premium */
+            background-color: rgba(30, 86, 49, 0.98); 
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' opacity='0.1'%3E%3Cg fill='%23ffffff' font-family='Georgia, serif' font-style='italic'%3E%3Ctext x='15%25' y='25%25' font-size='36'%3E%E2%88%AB e%5E%7B-x%C2%B2%7D dx = %E2%88%9A%CF%80%3C/text%3E%3Ctext x='70%25' y='20%25' font-size='36'%3E%E2%88%87 \u00D7 E = -%E2%88%82B/%E2%88%82t%3C/text%3E%3Ctext x='35%25' y='75%25' font-size='36'%3Ee%5E%7Bi%CF%80%7D + 1 = 0%3C/text%3E%3Ctext x='5%25' y='80%25' font-size='36'%3EE = mc%C2%B2%3C/text%3E%3Ctext x='65%25' y='85%25' font-size='36'%3E%E2%88%91 n = n(n+1)/2%3C/text%3E%3Ctext x='80%25' y='60%25' font-size='36'%3Ea%C2%B2 + b%C2%B2 = c%C2%B2%3C/text%3E%3Ctext x='40%25' y='15%25' font-size='36'%3Ex = (-b %C2%B1 %E2%88%9A(b%C2%B2-4ac))/2a%3C/text%3E%3C/g%3E%3C/svg%3E");
             background-size: cover;
             z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); transition: opacity 0.5s; 
@@ -100,7 +100,7 @@
             font-style: italic;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
             pointer-events: none;
-            max-width: 260px;
+            max-width: 280px;
             text-align: center;
             z-index: 1;
             line-height: 1.4;
@@ -134,14 +134,13 @@
         
         #ui-panel { top: 20px; left: 20px; padding: 20px; text-align: center; background: rgba(15, 23, 42, 0.95); border: 1px solid #3b82f6; border-radius: 16px; transition: opacity 1s ease; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
         
-        /* FIX: Todos los paneles ahora son position: absolute para permitir arrastre libre */
         #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel, #video-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: absolute; }
         
         #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
         #dola-panel { width: 750px; height: 550px; }
-        #calc-panel { width: 600px; height: 500px; }
+        #calc-panel { width: 650px; height: 600px; }
         #resources-panel { width: 450px; height: 500px; }
         #video-panel { width: 650px; height: 480px; }
         
@@ -161,7 +160,6 @@
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); touch-action: none; }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
-        /* FIX: Stamper ahora es absolute */
         #stamper { position: absolute; display: none; z-index: 80; touch-action: none; background: transparent; border: none; box-shadow: none; cursor: move; }
         #stamper-header { background: rgba(15, 23, 42, 0.95); padding: 8px; cursor: move; text-align: center; border-radius: 12px 12px 0 0; border: 1px solid #3b82f6; border-bottom: none; font-weight: bold; font-size: 0.85rem; color: #60a5fa; pointer-events: none;}
         #stamper-content { position: relative; border: 3px dashed #10b981; background: transparent; box-shadow: 0 15px 40px rgba(0,0,0,0.6); min-width: 100px; min-height: 50px; border-radius: 0 0 12px 12px; }
@@ -183,23 +181,7 @@
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         .hidden-file { display: none; }
-        #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
-        #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
-        .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
-        .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
-        .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
-        .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
-        #formula-grid-container{display:grid;grid-template-columns:1fr;gap:8px;padding-bottom:10px;}
-        .formula-card{padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);}
-        .formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;}
-        .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
-        .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
-        .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
-        
-        #formulas-panel{overscroll-behavior:contain;}
-        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
-
         /* Estilo de las Galerías y Recursos */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
@@ -225,10 +207,11 @@
         
         /* Lista de Participantes (Avatares) */
         #participants-chip {
-            display: flex; align-items: center; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px; gap: 4px;
+            display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px; gap: 4px; max-width: 250px;
         }
+        #participants-chip::-webkit-scrollbar { display: none; }
         .user-avatar {
-            width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #1e293b; margin-left: -8px; cursor: default; transition: transform 0.2s;
+            width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #1e293b; margin-left: -8px; cursor: default; transition: transform 0.2s; flex-shrink: 0;
         }
         .user-avatar:hover { transform: translateY(-2px); z-index: 20 !important; }
         .user-avatar:first-child { margin-left: 0; }
@@ -254,7 +237,7 @@
 <body class="theme-grid">
 
     <div id="login-overlay">
-        <!-- Citas Matemáticas Flotantes -->
+        <!-- Citas Matemáticas Flotantes Ampliadas -->
         <div class="math-quote" style="top: 8%; left: 4%;"><span style="font-size:2rem;">❝</span>La esencia de las matemáticas<br>es su libertad.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Georg Cantor</span></div>
         <div class="math-quote" style="top: 15%; right: 4%;"><span style="font-size:2rem;">❝</span>Donde hay materia,<br>hay geometría.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Johannes Kepler</span></div>
         <div class="math-quote" style="bottom: 12%; left: 4%;"><span style="font-size:2rem;">❝</span>El universo está escrito en<br>lenguaje matemático.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Galileo Galilei</span></div>
@@ -263,6 +246,10 @@
         <div class="math-quote" style="top: 45%; right: 2%;"><span style="font-size:2rem;">❝</span>Dios usó hermosas matemáticas<br>al crear el mundo.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Paul Dirac</span></div>
         <div class="math-quote" style="top: 5%; left: 35%; width:30%;"><span style="font-size:2rem;">❝</span>Los números gobiernan el universo.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Pitágoras</span></div>
         <div class="math-quote" style="bottom: 5%; left: 35%; width:30%;"><span style="font-size:2rem;">❝</span>En matemáticas te acostumbras<br>a las cosas.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— John von Neumann</span></div>
+        <div class="math-quote" style="top: 25%; left: 30%; width:40%;"><span style="font-size:2rem;">❝</span>La matemática pura es la poesía<br>de las ideas lógicas.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Albert Einstein</span></div>
+        <div class="math-quote" style="top: 70%; left: 30%; width:40%;"><span style="font-size:2rem;">❝</span>Un matemático es una máquina para<br>transformar café en teoremas.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Paul Erdős</span></div>
+        <div class="math-quote" style="bottom: 30%; right: 10%;"><span style="font-size:2rem;">❝</span>Podemos ver poco del futuro, pero lo<br>suficiente para darnos cuenta de que<br>hay mucho que hacer.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Alan Turing</span></div>
+        <div class="math-quote" style="top: 28%; right: 12%;"><span style="font-size:2rem;">❝</span>La matemática es la ciencia<br>del orden y la medida.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— René Descartes</span></div>
 
         <div class="login-box">
             <div class="login-title">📐 MathBoard Pro</div>
@@ -321,17 +308,18 @@
         <div class="panel-header" id="video-header">
             <span>📺 Cine Educativo (Video Sincronizado)</span>
             <div class="panel-controls-header">
-                <button onclick="toggleMaximize('video-panel')" title="Pantalla Completa">🗖</button>
+                <button onclick="toggleVideoControls()" title="Mostrar/Ocultar Buscador">⚙️</button>
+                <button onclick="document.getElementById('video-frame').requestFullscreen().catch(e=>console.log(e))" title="Pantalla Completa Nativa">⛶</button>
+                <button onclick="toggleMaximize('video-panel')" title="Expandir Panel">🗖</button>
                 <button onclick="toggleVideoMinimize()" title="Minimizar">_</button>
             </div>
         </div>
-        <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
-            <!-- Buscador YouTube Matemático -->
+        <!-- Controles de Video (Se ocultan automáticamente al compartir) -->
+        <div id="video-controls-area" class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
             <div class="hide-student flex-container" style="gap:5px;">
                 <input type="text" id="video-search-input" placeholder="Buscar tema en YouTube (ej: Integrales)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="searchMathVideo()" style="background:#8b5cf6; min-width:90px;">🔍 Buscar</button>
             </div>
-            <!-- Transmisor P2P y Favoritos -->
             <div class="hide-student flex-container" style="gap:5px; align-items:center;">
                 <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="saveVideoLink()" style="background:#f59e0b; min-width:40px; padding: 6px;" title="Guardar a favoritos">⭐</button>
@@ -339,11 +327,10 @@
                 <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:90px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Compartir</button>
                 <button onclick="stopAndCloseVideo()" style="background:#dc2626; min-width:80px;" title="Detener y cerrar el video a todos">🛑 Parar</button>
             </div>
-            <!-- Contenedor de Favoritos Desplegable -->
             <div id="video-bookmarks-container" style="display:none; max-height:150px; overflow-y:auto; background:#1a1a1a; border-radius:8px; padding:10px; margin-top:5px; gap:8px; flex-direction:column;" class="hide-student">
             </div>
         </div>
-        <div id="video-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0; background:#000;">
+        <div id="video-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0 !important; background:#000;">
             <iframe id="video-frame" src="" style="width:100%; height:100%; flex-grow:1; border:none; background:#000;" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="video-resize-handle" title="Arrastra para redimensionar"></div>
@@ -405,7 +392,7 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI (Exclusivo Profesor) -->
+    <!-- Visor Dola AI -->
     <div id="dola-panel" class="floating-panel">
         <div class="panel-header" id="dola-header">
             <span>🤖 Dola AI (Asistente Inteligente)</span>
@@ -459,9 +446,9 @@
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
-        <!-- Opciones Universales Extras (Profesor y Alumno) -->
+        <!-- Opciones Universales Extras -->
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
-        <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
+        <button onclick="toggleCalcPanel()" title="Calculadora Gráfica NumWorks y GeoGebra">🖩</button>
         <button onclick="toggleResourcesPanel()" title="Buscador Académico y Archivos de Clase" style="background:#8b5cf6;">📚</button>
         <div class="toolbar-divider"></div>
 
@@ -482,7 +469,7 @@
             <div class="toolbar-divider"></div>
         </div>
 
-        <!-- Opciones Universales de Dibujo (Todos) -->
+        <!-- Opciones Universales de Dibujo -->
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino">🖋️</button>
         <button type="button" id="mw-pencil" title="Lápiz Real">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
@@ -500,7 +487,9 @@
         
         <div class="toolbar-divider"></div>
         
-        <!-- Botón Selector de Pizarra -->
+        <!-- Cronómetro y Temas -->
+        <div id="class-timer" style="display:none; color: #fff; font-family: monospace; font-size: 1.1rem; font-weight: bold; background: #10b981; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Tiempo de clase (Profe: Clic para reiniciar)" onclick="resetTimer()">⏱️ 00:00</div>
+        
         <button type="button" id="btn-theme" onclick="toggleTheme()" title="Cambiar Fondo (Cuadrícula / Blanca Lisa / Tiza)" style="background:#14b8a6;">🌐</button>
         
         <!-- Chip de Participantes -->
@@ -544,6 +533,10 @@
         let roomUsers = {};
         window.studentsCanShare = false;
         
+        // Timer Variables
+        let classStartTime = null;
+        let timerInterval = null;
+
         let savedCaptures = [];
         try {
             const stored = localStorage.getItem('mathboard_gallery');
@@ -568,6 +561,7 @@
             } catch(e) { return false; }
         }
 
+        // ================= SISTEMA DE AUDIO EN MALLA =================
         function unlockAudio() {
             if(document.getElementById('unlock-btn')) return;
             const btn = document.createElement('button');
@@ -661,6 +655,27 @@
         window.toggleTheme = toggleTheme;
         window.applyTheme = applyTheme;
 
+        // ================= TEMPORIZADOR DE CLASE =================
+        function startTimer(startTime) {
+            classStartTime = startTime || Date.now();
+            if(timerInterval) clearInterval(timerInterval);
+            document.getElementById('class-timer').style.display = 'block';
+            timerInterval = setInterval(() => {
+                const diff = Math.floor((Date.now() - classStartTime) / 1000);
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const s = String(diff % 60).padStart(2, '0');
+                document.getElementById('class-timer').innerText = `⏱️ ${m}:${s}`;
+            }, 1000);
+        }
+
+        window.resetTimer = function() {
+            if(!isAdmin) return;
+            classStartTime = Date.now();
+            broadcastData({ type: 'sync_timer', startTime: classStartTime });
+            startTimer(classStartTime);
+        };
+
+        // ================= SISTEMA DE PARTICIPANTES =================
         function renderParticipants() {
             const chip = document.getElementById('participants-chip');
             if(!chip) return;
@@ -677,7 +692,7 @@
             }
 
             chip.style.display = 'flex';
-            let html = '';
+            let html = '<span style="font-size:1.2rem; margin-right:5px; cursor:default;" title="Usuarios Conectados">👥</span>';
             
             const usersArr = Object.keys(roomUsers).map(id => ({ id, ...roomUsers[id] })).sort((a,b) => a.role === 'Profesor' ? -1 : 1);
             
@@ -826,13 +841,7 @@
         }
         window.clearCanvas = clearCanvas;
 
-        // ================= GESTOR DE VIDEOS Y FAVORITOS =================
-        let savedVideoLinks = [];
-        try {
-            const stored = localStorage.getItem('mathboard_video_links');
-            if(stored) savedVideoLinks = JSON.parse(stored);
-        } catch(e) {}
-
+        // ================= GESTOR DE VIDEOS =================
         function toggleVideoPanel() {
             const p = document.getElementById('video-panel');
             p.style.display = p.style.display === 'none' || p.style.display === '' ? 'flex' : 'none';
@@ -840,6 +849,13 @@
         window.toggleVideoPanel = toggleVideoPanel;
         function toggleVideoMinimize() { document.getElementById('video-panel').style.display = 'none'; }
         window.toggleVideoMinimize = toggleVideoMinimize;
+        
+        window.toggleVideoControls = function() {
+            const el = document.getElementById('video-controls-area');
+            if(el) {
+                el.style.display = el.style.display === 'none' ? 'flex' : 'none';
+            }
+        };
 
         function searchMathVideo() {
             const q = document.getElementById('video-search-input').value.trim();
@@ -869,6 +885,10 @@
             document.getElementById('video-frame').src = embedUrl;
             document.getElementById('video-url-input').value = '';
             
+            // Ocultar controles al compartir para maximizar vista
+            const ctrlArea = document.getElementById('video-controls-area');
+            if(ctrlArea) ctrlArea.style.display = 'none';
+            
             if (typeof broadcastData === 'function') {
                 broadcastData({ type: 'video_share', url: embedUrl });
             }
@@ -879,11 +899,22 @@
         function stopAndCloseVideo() {
             document.getElementById('video-frame').src = '';
             document.getElementById('video-panel').style.display = 'none';
+            
+            // Restaurar controles si se ocultaron
+            const ctrlArea = document.getElementById('video-controls-area');
+            if(ctrlArea) ctrlArea.style.display = 'flex';
+            
             if (typeof broadcastData === 'function') {
                 broadcastData({ type: 'video_stop' });
             }
         }
         window.stopAndCloseVideo = stopAndCloseVideo;
+
+        let savedVideoLinks = [];
+        try {
+            const stored = localStorage.getItem('mathboard_video_links');
+            if(stored) savedVideoLinks = JSON.parse(stored);
+        } catch(e) {}
 
         function saveVideoLink() {
             const rawUrl = document.getElementById('video-url-input').value.trim();
@@ -1739,6 +1770,10 @@
         }
 
         function processRemoteCommand(data) {
+            if (data.type === 'sync_timer') {
+                startTimer(data.startTime);
+                return;
+            }
             if (data.userName && data.peerId && data.type !== 'logout') {
                 roomUsers[data.peerId] = { name: data.userName, role: data.role };
             }
@@ -1811,11 +1846,15 @@
             if (data.type === 'video_share') {
                 document.getElementById('video-frame').src = data.url;
                 document.getElementById('video-panel').style.display = 'flex';
+                const ctrlArea = document.getElementById('video-controls-area');
+                if(ctrlArea) ctrlArea.style.display = 'none';
                 return;
             }
             if (data.type === 'video_stop') {
                 document.getElementById('video-frame').src = '';
                 document.getElementById('video-panel').style.display = 'none';
+                const ctrlArea = document.getElementById('video-controls-area');
+                if(ctrlArea) ctrlArea.style.display = 'flex';
                 return;
             }
             if (data.type === 'theme') {
@@ -1955,6 +1994,9 @@
                 renderParticipants();
                 setInterval(renderParticipants, 2000);
                 
+                classStartTime = Date.now();
+                startTimer(classStartTime);
+                
                 setTimeout(() => { 
                     const uiPanel = document.getElementById('ui-panel');
                     if(uiPanel) {
@@ -1973,6 +2015,7 @@
                     const currentTheme = ['theme-grid', 'theme-whiteboard', 'theme-chalkboard'].find(t => document.body.classList.contains(t)) || 'theme-grid';
                     conn.send({ type: 'theme', theme: currentTheme });
                     conn.send({ type: 'permissions', canShare: window.studentsCanShare });
+                    conn.send({ type: 'sync_timer', startTime: classStartTime });
                     
                     if (isPdfSynced && currentPdfData) {
                         conn.send({ type: 'pdf_share', data: currentPdfData, page: pageNum });
@@ -2053,6 +2096,7 @@
 
         function makeDraggable(element, handle) {
             let pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+            let startTop = 0, startLeft = 0;
             
             handle.addEventListener('pointerdown', dragMouseDown);
             
@@ -2064,8 +2108,9 @@
                    e.target.classList.contains('f-cat')) return;
                    
                 e.preventDefault(); 
-                pos3 = e.clientX; 
-                pos4 = e.clientY; 
+                pos3 = e.clientX; pos4 = e.clientY; 
+                startTop = element.offsetTop;
+                startLeft = element.offsetLeft;
                 disableIframes(); 
                 document.addEventListener('pointerup', closeDragElement); 
                 document.addEventListener('pointermove', elementDrag); 
@@ -2076,14 +2121,10 @@
                 pos2 = pos4 - e.clientY; 
                 pos3 = e.clientX; 
                 pos4 = e.clientY; 
-                
-                let currentTop = parseFloat(element.style.top);
-                let currentLeft = parseFloat(element.style.left);
-                if(isNaN(currentTop)) currentTop = element.offsetTop;
-                if(isNaN(currentLeft)) currentLeft = element.offsetLeft;
-                
-                element.style.top = (currentTop - pos2) + "px"; 
-                element.style.left = (currentLeft - pos1) + "px"; 
+                startTop -= pos2;
+                startLeft -= pos1;
+                element.style.top = startTop + "px"; 
+                element.style.left = startLeft + "px"; 
             }
             function closeDragElement() { 
                 document.removeEventListener('pointerup', closeDragElement); 
