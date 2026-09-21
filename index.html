@@ -138,7 +138,9 @@
         #pdf-panel, #dola-panel, #calc-panel, #gallery-panel, #resources-panel, #video-panel { top: 60px; left: 30px; width: 550px; display: none; max-height: 90vh; position: absolute; }
         
         #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
-        #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
+        
+        /* Ajuste para que el PDF escale automáticamente al estirar el panel */
+        #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; width: 100%; height: auto; object-fit: contain;}
         
         #dola-panel { width: 750px; height: 550px; }
         #calc-panel { width: 680px; height: 600px; }
@@ -370,7 +372,6 @@
         </div>
         <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
             <div style="display:flex; gap:5px;">
-                <!-- Placeholder actualizado -->
                 <input type="text" id="pdf-search-input" placeholder="Buscar tema, exámenes o parciales..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="searchWebPdf()" style="background:#8b5cf6; min-width:90px;" title="Busca PDFs en la web">🔍 Buscar</button>
             </div>
@@ -406,8 +407,8 @@
                 <button onclick="zoomOut()" style="min-width:30px;">➖</button>
                 <button onclick="zoomIn()" style="min-width:30px;">➕</button>
             </div>
-            <!-- Nuevo Botón Lector Text-to-Speech -->
-            <button id="btn-read-pdf" onclick="readPdfPage()" style="background:#f59e0b; padding: 6px 12px; border-radius: 8px;" title="Leer documento en voz alta">🔊 Leer</button>
+            
+            <button id="btn-read-pdf" onclick="openReaderModal()" class="hide-student" style="background:#f59e0b; padding: 6px 12px; border-radius: 8px;" title="Leer documento en voz alta">🔊 Leer</button>
             
             <button id="btn-sync-pdf" onclick="togglePdfSync()" class="hide-student" style="background:#4b5563; padding: 6px 12px; border-radius: 8px;">👀 Local</button>
             <button id="btn-crop-pdf" onclick="togglePdfCropMode()" style="background:#8b5cf6; padding: 6px 12px; border-radius: 8px;">✂️ Recortar</button>
@@ -415,9 +416,25 @@
         <div id="pdf-render-container">
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
+            
+            <!-- Modal Lector Inteligente Superpuesto -->
+            <div id="reader-overlay" style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15, 23, 42, 0.95); display:none; z-index:20; padding:15px; flex-direction:column; gap:10px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="color:#60a5fa; font-weight:bold; font-size:0.9rem;">🔊 Selecciona el texto que deseas escuchar</span>
+                    <button onclick="document.getElementById('reader-overlay').style.display='none'; window.speechSynthesis.cancel();" style="background:#dc2626; padding:4px 10px; border-radius:6px; color:white; border:none; cursor:pointer;">❌</button>
+                </div>
+                <div style="display:flex; gap:5px;">
+                     <span style="color:#ccc; font-size:0.8rem; align-self:center;">Voz:</span>
+                     <select id="voice-select" style="flex:1; background:#111; color:#fff; padding:6px; border-radius:6px; border:1px solid #444; font-size:0.85rem; outline:none;"></select>
+                </div>
+                <textarea id="reader-text" style="flex:1; width:100%; background:#f8fafc; color:#0f172a; padding:12px; font-size:1.1rem; border-radius:8px; border:none; resize:none; box-sizing:border-box; line-height:1.5; outline:none;"></textarea>
+                <div style="display:flex; gap:10px; justify-content:center;">
+                    <button onclick="readSelectedOrAll()" style="background:#10b981; padding:8px 20px; font-size:1rem; border-radius:8px; font-weight:bold;">▶️ Iniciar Lectura</button>
+                    <button onclick="window.speechSynthesis.cancel()" style="background:#f59e0b; padding:8px 20px; font-size:1rem; border-radius:8px; font-weight:bold;">⏹️ Parar</button>
+                </div>
+            </div>
         </div>
         
-        <!-- Esquinas para el redimensionamiento del PDF -->
         <div class="resize-corner nw-resize" data-dir="nw"></div>
         <div class="resize-corner ne-resize" data-dir="ne"></div>
         <div class="resize-corner sw-resize" data-dir="sw"></div>
@@ -467,6 +484,10 @@
             <div id="stamp-crop-overlay">
                 <div id="stamp-crop-box"></div>
             </div>
+            <div class="resize-corner nw-resize" data-dir="nw"></div>
+            <div class="resize-corner ne-resize" data-dir="ne"></div>
+            <div class="resize-corner sw-resize" data-dir="sw"></div>
+            <div class="resize-corner se-resize" data-dir="se"></div>
             <div class="resize-handle" id="resize-handle"></div>
         </div>
         <div class="stamper-toolbar">
@@ -1478,14 +1499,81 @@
             stampCropMode = false; sStartX = undefined;
         });
 
-        // Visor PDF Original con Voz Inteligente
+        // Visor PDF Original con Sistema de Lectura TTS
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
-        let isReadingPdf = false;
-        let pdfSpeechUtterance = null;
-        
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
+        
+        let ttsVoices = [];
+
+        function populateTTSVoices() {
+            ttsVoices = window.speechSynthesis.getVoices();
+            const voiceSelect = document.getElementById('voice-select');
+            if(!voiceSelect) return;
+            voiceSelect.innerHTML = '';
+            
+            let esVoices = ttsVoices.filter(v => v.lang.startsWith('es'));
+            if(esVoices.length === 0) esVoices = ttsVoices.slice(0, 3);
+            
+            esVoices.slice(0, 5).forEach((v, i) => {
+                let opt = document.createElement('option');
+                opt.value = i;
+                opt.textContent = `${v.name} (${v.lang})`;
+                voiceSelect.appendChild(opt);
+            });
+        }
+        if (typeof window.speechSynthesis !== 'undefined') {
+            window.speechSynthesis.onvoiceschanged = populateTTSVoices;
+        }
+
+        async function openReaderModal() {
+            if (!pdfDoc) return alert("Primero abre un PDF.");
+            try {
+                const page = await pdfDoc.getPage(pageNum);
+                const textContent = await page.getTextContent();
+                const textItems = textContent.items.map(item => item.str).join(' ');
+                
+                if (!textItems.trim()) {
+                    return alert("Este PDF no contiene texto digital (parece una imagen escaneada).");
+                }
+
+                document.getElementById('reader-text').value = textItems;
+                document.getElementById('reader-overlay').style.display = 'flex';
+                if(ttsVoices.length === 0) populateTTSVoices();
+            } catch (err) {
+                console.error("Error al extraer texto:", err);
+            }
+        }
+        window.openReaderModal = openReaderModal;
+
+        function readSelectedOrAll() {
+            const textarea = document.getElementById('reader-text');
+            let textToRead = textarea.value;
+            
+            if (textarea.selectionStart !== textarea.selectionEnd) {
+                textToRead = textToRead.substring(textarea.selectionStart, textarea.selectionEnd);
+            }
+            
+            if (!textToRead.trim()) return;
+
+            window.speechSynthesis.cancel(); 
+
+            const utterance = new SpeechSynthesisUtterance(textToRead);
+            const voiceSelect = document.getElementById('voice-select');
+            const selectedIndex = voiceSelect.value;
+            
+            let esVoices = ttsVoices.filter(v => v.lang.startsWith('es'));
+            if(esVoices.length === 0) esVoices = ttsVoices.slice(0, 3);
+            
+            if (esVoices[selectedIndex]) {
+                utterance.voice = esVoices[selectedIndex];
+            }
+
+            utterance.rate = 0.95;
+            window.speechSynthesis.speak(utterance);
+        }
+        window.readSelectedOrAll = readSelectedOrAll;
 
         const pdfInput = document.getElementById('pdfInput');
         if (pdfInput) pdfInput.addEventListener('change', async function(e) {
@@ -1522,51 +1610,9 @@
             document.getElementById('page-num').textContent = num;
         }
 
-        // Sistema Lector de Textos con IA Local
-        async function readPdfPage() {
-            if (!pdfDoc) return alert("Primero abre un PDF.");
-            if (isReadingPdf) {
-                window.speechSynthesis.cancel();
-                isReadingPdf = false;
-                document.getElementById('btn-read-pdf').innerText = '🔊 Leer';
-                return;
-            }
-            
-            try {
-                const btn = document.getElementById('btn-read-pdf');
-                btn.innerText = '⏳ Cargando...';
-                
-                const page = await pdfDoc.getPage(pageNum);
-                const textContent = await page.getTextContent();
-                const textItems = textContent.items.map(item => item.str).join(' ');
-                
-                if (!textItems.trim()) {
-                    btn.innerText = '🔊 Leer';
-                    return alert("Este PDF es una imagen escaneada, no contiene texto digital que se pueda leer.");
-                }
-
-                pdfSpeechUtterance = new SpeechSynthesisUtterance(textItems);
-                pdfSpeechUtterance.lang = 'es-AR';
-                pdfSpeechUtterance.rate = 0.95;
-                
-                pdfSpeechUtterance.onend = function() {
-                    isReadingPdf = false;
-                    if(document.getElementById('btn-read-pdf')) document.getElementById('btn-read-pdf').innerText = '🔊 Leer';
-                };
-
-                window.speechSynthesis.speak(pdfSpeechUtterance);
-                isReadingPdf = true;
-                btn.innerText = '⏹️ Parar';
-            } catch (err) {
-                console.error("Error al leer PDF", err);
-                document.getElementById('btn-read-pdf').innerText = '🔊 Leer';
-            }
-        }
-        window.readPdfPage = readPdfPage;
-
         function prevPage() { 
             if (!pdfDoc || pageNum <= 1) return; 
-            if (isReadingPdf) { window.speechSynthesis.cancel(); isReadingPdf = false; document.getElementById('btn-read-pdf').innerText = '🔊 Leer'; }
+            window.speechSynthesis.cancel();
             pageNum--; 
             renderPage(pageNum); 
             if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') broadcastData({ type: 'pdf_page', page: pageNum });
@@ -1574,7 +1620,7 @@
         window.prevPage = prevPage;
         function nextPage() { 
             if (!pdfDoc || pageNum >= pdfDoc.numPages) return; 
-            if (isReadingPdf) { window.speechSynthesis.cancel(); isReadingPdf = false; document.getElementById('btn-read-pdf').innerText = '🔊 Leer'; }
+            window.speechSynthesis.cancel();
             pageNum++; 
             renderPage(pageNum); 
             if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') broadcastData({ type: 'pdf_page', page: pageNum });
@@ -1815,7 +1861,7 @@
         }
         window.saveAsPDF = saveAsPDF;
 
-        // ================= GRABACIÓN AVANZADA MP4 (ARREGLADO PARA FONDOS OPACOS) =================
+        // ================= GRABACIÓN AVANZADA MP4 =================
         let mediaRecorder; 
         let recordedChunks = []; 
         let isRecording = false;
@@ -2409,23 +2455,53 @@
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
         makeDraggable(document.getElementById('resources-panel'), document.getElementById('resources-header'));
-        
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-header'));
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-footer'));
-        
-        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
+        makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
         
-        // Aplica el redimensionamiento de 4 esquinas al video y al lector de PDF
         makePanelCornersResizable('video-panel');
         makePanelCornersResizable('pdf-panel');
 
-        const resizeHandleStamper = document.getElementById('resize-handle');
+        // Sistema especial para estirar el recorte desde las 4 esquinas independientemente
+        const stamper = document.getElementById('stamper');
         const stamperContent = document.getElementById('stamper-content');
+        if(stamper && stamperContent) {
+            const corners = stamper.querySelectorAll('.resize-corner');
+            corners.forEach(corner => {
+                let isR = false, sW, sH, sX, sY, sTop, sLeft;
+                const dir = corner.getAttribute('data-dir');
+                corner.addEventListener('pointerdown', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    isR = true;
+                    sW = stamperContent.offsetWidth; sH = stamperContent.offsetHeight;
+                    sX = e.clientX; sY = e.clientY;
+                    sTop = stamper.offsetTop; sLeft = stamper.offsetLeft;
+                    disableIframes();
+                });
+                window.addEventListener('pointermove', e => {
+                    if(!isR) return;
+                    let dx = e.clientX - sX;
+                    let dy = e.clientY - sY;
+                    let newW = sW, newH = sH, newTop = sTop, newLeft = sLeft;
+                    
+                    if(dir.includes('e')) newW = sW + dx;
+                    if(dir.includes('s')) newH = sH + dy;
+                    if(dir.includes('w')) { newW = sW - dx; newLeft = sLeft + dx; }
+                    if(dir.includes('n')) { newH = sH - dy; newTop = sTop + dy; }
+                    
+                    if(newW > 50) { stamperContent.style.width = newW + 'px'; stamper.style.left = newLeft + 'px'; }
+                    if(newH > 50) { stamperContent.style.height = newH + 'px'; stamper.style.top = newTop + 'px'; }
+                });
+                window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
+            });
+        }
+
+        const resizeHandleStamper = document.getElementById('resize-handle');
         let isResizingStamp = false, startStampW, startStampH, startStampX, startStampY;
         
         resizeHandleStamper.addEventListener('pointerdown', (e) => {
@@ -2546,7 +2622,7 @@ window.isLaserFadingGlobal = false;
   }
   
   function start(ev){
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
     ev.preventDefault();
     if (mwMode !== 'laser') saveState();
 
