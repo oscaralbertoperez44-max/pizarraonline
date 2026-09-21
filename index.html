@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Matematica online Pro 🇦🇷 — Pizarra Matemática</title>
+    <title>MathBoard Pro — Pizarra Matemática Profesional</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -22,62 +22,94 @@
             overscroll-behavior: none;
         }
 
+        /* Sistema de Permisos Dinámicos */
         body.student-mode .hide-student { display: none !important; }
         body.student-mode.students-unlocked .hide-student.flex-container { display: flex !important; }
         body.student-mode.students-unlocked button.hide-student { display: inline-block !important; }
 
-        /* Temas */
+        /* TEMA 1: Cuadriculada (Original) */
         body.theme-grid #canvas-container {
             background-color: #ffffff;
-            background-image: linear-gradient(to right, rgba(0,0,0,0.05) 1.5px, transparent 1.5px), linear-gradient(to bottom, rgba(0,0,0,0.05) 1.5px, transparent 1.5px);
+            background-image: 
+                linear-gradient(to right, rgba(0,0,0,0.05) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, rgba(0,0,0,0.05) 1.5px, transparent 1.5px);
             background-size: 35px 35px;
             transition: background-color 0.5s ease;
         }
+
+        /* TEMA 2: Blanca Lisa */
         body.theme-whiteboard #canvas-container {
-            background-color: #ffffff; background-image: none; transition: background-color 0.5s ease;
+            background-color: #ffffff;
+            background-image: none;
+            transition: background-color 0.5s ease;
         }
+
+        /* TEMA 3: Pizarra Retro (Tiza Verde) */
         body.theme-chalkboard #canvas-container {
             background-color: #1e5631;
-            background-image: linear-gradient(to right, rgba(255,255,255,0.06) 1.5px, transparent 1.5px), linear-gradient(to bottom, rgba(255,255,255,0.06) 1.5px, transparent 1.5px);
-            background-size: 35px 35px; transition: background-color 0.5s ease;
+            background-image: 
+                linear-gradient(to right, rgba(255,255,255,0.06) 1.5px, transparent 1.5px),
+                linear-gradient(to bottom, rgba(255,255,255,0.06) 1.5px, transparent 1.5px);
+            background-size: 35px 35px;
+            transition: background-color 0.5s ease;
         }
         
         #canvas-container {
-            width: 100vw; height: 100vh; position: absolute; top: 0; left: 0; z-index: 1; overflow: hidden; 
+            width: 100vw; height: 100vh;
+            position: absolute; top: 0; left: 0; z-index: 1;
+            overflow: hidden; 
         }
+
         canvas#board {
-            display: block; touch-action: none; width: 100vw; height: 100vh; background-color: transparent !important;
-            transform: translateZ(0); backface-visibility: hidden; will-change: contents;
+            display: block; touch-action: none;
+            width: 100vw; height: 100vh; 
+            background-color: transparent !important;
+            transform: translateZ(0);
+            backface-visibility: hidden;
+            will-change: contents;
             cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>') 12 12, crosshair !important;
         }
 
         .remote-cursor {
-            position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9997; display: flex; flex-direction: column; align-items: center;
-            transition: opacity 0.1s linear; opacity: 0; transform-origin: top left; margin-left: -5px; margin-top: -5px; will-change: transform;
+            position: absolute; top: 0; left: 0; pointer-events: none; z-index: 9997;
+            display: flex; flex-direction: column; align-items: center;
+            transition: opacity 0.1s linear; opacity: 0; transform-origin: top left;
+            margin-left: -5px; margin-top: -5px; will-change: transform;
         }
         .remote-cursor .cursor-dot { width: 10px; height: 10px; border-radius: 50%; border: 2px solid white; box-shadow: 0 1px 4px rgba(0,0,0,0.5); transition: all 0.2s ease-out; }
         .remote-cursor .cursor-label {
             margin-top: 4px; color: white; font-size: 11px; padding: 3px 8px; border-radius: 10px; font-weight: bold;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 0.5px; white-space: nowrap;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.3); text-transform: uppercase; letter-spacing: 0.5px;
+            white-space: nowrap;
         }
 
         /* Pantalla de Inicio Premium con Citas en Anillo 360 */
         #login-overlay { 
-            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background-color: rgba(30, 86, 49, 0.98); 
+            position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
+            background-color: rgba(30, 86, 49, 0.98); 
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' opacity='0.12'%3E%3Cg fill='%23ffffff' font-family='Georgia, serif' font-style='italic'%3E%3Ctext x='15%25' y='25%25' font-size='40'%3E%E2%88%AB e%5E%7B-x%C2%B2%7D dx = %E2%88%9A%CF%80%3C/text%3E%3Ctext x='70%25' y='20%25' font-size='40'%3E%E2%88%87 \u00D7 E = -%E2%88%82B/%E2%88%82t%3C/text%3E%3Ctext x='35%25' y='75%25' font-size='40'%3Ee%5E%7Bi%CF%80%7D + 1 = 0%3C/text%3E%3Ctext x='5%25' y='80%25' font-size='40'%3EE = mc%C2%B2%3C/text%3E%3Ctext x='65%25' y='85%25' font-size='40'%3E%E2%88%91 n = n(n+1)/2%3C/text%3E%3Ctext x='80%25' y='60%25' font-size='40'%3Ea%C2%B2 + b%C2%B2 = c%C2%B2%3C/text%3E%3Ctext x='40%25' y='15%25' font-size='40'%3Ex = (-b %C2%B1 %E2%88%9A(b%C2%B2-4ac))/2a%3C/text%3E%3C/g%3E%3C/svg%3E");
-            background-size: cover; z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); transition: opacity 0.5s; 
+            background-size: cover;
+            z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); transition: opacity 0.5s; 
         }
         
         .math-quote {
-            position: absolute; color: #ffffff; font-family: 'Georgia', serif; font-size: 1.15rem; font-style: italic;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.9); pointer-events: none; text-align: center; z-index: 1; line-height: 1.4;
+            position: absolute;
+            color: #ffffff;
+            font-family: 'Georgia', serif;
+            font-size: 1.15rem;
+            font-style: italic;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.9);
+            pointer-events: none;
+            text-align: center;
+            z-index: 1;
+            line-height: 1.4;
         }
         .mq-icon { font-size: 2rem; color: #a7f3d0; }
         .mq-author { color: #a7f3d0; font-size: 0.95rem; display: block; margin-top: 4px; font-weight: bold; }
         @media (max-width: 1200px) { .math-quote { display: none; } }
 
         .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.2); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
-        .login-title { font-size: 2.1rem; margin-bottom: 5px; font-weight: bold; }
+        .login-title { font-size: 2.2rem; margin-bottom: 5px; font-weight: bold; }
         .login-subtitle { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
         .role-btn { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
         .btn-student { background: #2563eb; color: white; }
@@ -90,11 +122,13 @@
         .auth-input:focus { outline: 2px solid #3b82f6; }
         .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 10px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
+        
         .creator-signature { margin-top: 25px; font-size: 1rem; color: #10b981; border-top: 1px solid #333; padding-top: 15px; font-weight: bold; letter-spacing: 0.5px;}
 
         #ui-panel, #main-toolbar { display: none; }
 
         .floating-panel { position: absolute; background: rgba(30, 30, 30, 0.95); color: #fff; border-radius: 12px; border: 1px solid #444; z-index: 10; box-shadow: 0 8px 25px rgba(0,0,0,0.3); display: flex; flex-direction: column; transition: width 0.2s, height 0.2s, top 0.2s, left 0.2s; }
+        .floating-panel.dragging { transition: none; }
         .panel-header { background: #222; padding: 8px 10px; cursor: move; font-weight: bold; border-top-left-radius: 12px; border-top-right-radius: 12px; display: flex; justify-content: space-between; align-items: center; font-size: 0.9rem; user-select: none;}
         .panel-controls-header button { padding: 2px 8px; font-size: 1rem; background: transparent; color: #888; border: none; cursor: pointer; transition: 0.2s; }
         .panel-controls-header button:hover { color: #fff; }
@@ -114,8 +148,10 @@
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
+        /* Emuladores Optimizados para Nitidez Suprema */
         iframe { transform: translateZ(0); backface-visibility: hidden; image-rendering: high-quality; }
         
+        /* Motor de Recorte Seguro */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); touch-action: none; }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
@@ -125,8 +161,8 @@
         
         #stamp-crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 10; background: rgba(0,0,0,0.3); border-radius: 0 0 9px 9px; touch-action: none;}
         #stamp-crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.3); pointer-events: none; display: none; }
+
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px; -webkit-user-drag: none; image-rendering: high-quality; }
-        
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
         .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
@@ -138,17 +174,23 @@
         .danger-btn { background: #dc2626 !important; color: #fff; }
         .record-active { background: #dc2626 !important; animation: pulse-record 1.5s infinite; }
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
+        
         .hidden-file { display: none; }
         
+        /* Estilo de las Galerías y Recursos */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none; image-rendering: high-quality;}
 
-        /* Barra Inferior */
+        /* === BARRA UNIFICADA - Zona Segura Inferior === */
         #main-toolbar {
-            position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); z-index: 9999; gap: 8px; padding: 8px 16px;
-            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1); border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
-            align-items: center; backdrop-filter: blur(12px); max-width: 95vw; overflow-x: auto; white-space: nowrap; display: none;
+            position: fixed; bottom: 25px; 
+            left: 50%; transform: translateX(-50%);
+            z-index: 9999; gap: 8px; padding: 8px 16px;
+            background: rgba(15, 23, 42, 0.95); border: 1px solid rgba(255,255,255,0.1);
+            border-radius: 30px; box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+            align-items: center; backdrop-filter: blur(12px);
+            max-width: 95vw; overflow-x: auto; white-space: nowrap; display: none;
         }
         #main-toolbar::-webkit-scrollbar { display: none; }
         .toolbar-divider { width: 1px; height: 24px; background: rgba(255,255,255,0.2); margin: 0 4px; flex-shrink: 0; }
@@ -158,15 +200,25 @@
         #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
         #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
         
-        #participants-chip { display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px; gap: 4px; max-width: 250px; }
+        /* Lista de Participantes (Avatares) */
+        #participants-chip {
+            display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px; gap: 4px; max-width: 250px;
+        }
         #participants-chip::-webkit-scrollbar { display: none; }
-        .user-avatar { width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #1e293b; margin-left: -8px; cursor: default; transition: transform 0.2s; flex-shrink: 0; }
+        .user-avatar {
+            width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #1e293b; margin-left: -8px; cursor: default; transition: transform 0.2s; flex-shrink: 0;
+        }
         .user-avatar:hover { transform: translateY(-2px); z-index: 20 !important; }
         .user-avatar:first-child { margin-left: 0; }
         .avatar-prof { background: #10b981; z-index: 10; }
         .avatar-alu { background: #3b82f6; z-index: 5; }
 
-        .audio-unlock-btn { position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000; padding: 20px 30px; font-size: 1.2rem; font-weight: bold; background: #2563eb; color: #fff; border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer; animation: pulseAudio 2s infinite; }
+        .audio-unlock-btn {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10000;
+            padding: 20px 30px; font-size: 1.2rem; font-weight: bold; background: #2563eb; color: #fff;
+            border: none; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); cursor: pointer;
+            animation: pulseAudio 2s infinite;
+        }
         @keyframes pulseAudio { 0% { transform: translate(-50%, -50%) scale(1); } 50% { transform: translate(-50%, -50%) scale(1.05); } 100% { transform: translate(-50%, -50%) scale(1); } }
 
         @media (max-width: 900px) {
@@ -181,35 +233,35 @@
 
     <div id="login-overlay">
         <!-- Citas Matemáticas Periféricas (Anillo 360 sin tapar el centro) -->
+        
         <!-- Izquierda -->
-        <div class="math-quote" style="top: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas es su libertad.<span class="mq-icon">❞</span><br><span class="mq-author">— Georg Cantor</span></div>
-        <div class="math-quote" style="top: 25%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>El universo está escrito en lenguaje matemático.<span class="mq-icon">❞</span><br><span class="mq-author">— Galileo Galilei</span></div>
-        <div class="math-quote" style="top: 45%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática es la reina de las ciencias.<span class="mq-icon">❞</span><br><span class="mq-author">— Carl F. Gauss</span></div>
-        <div class="math-quote" style="top: 65%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática pura es la poesía de las ideas lógicas.<span class="mq-icon">❞</span><br><span class="mq-author">— Albert Einstein</span></div>
-        <div class="math-quote" style="bottom: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>No hay rama de la matemática que no pueda aplicarse.<span class="mq-icon">❞</span><br><span class="mq-author">— Nikolai Lobachevsky</span></div>
+        <div class="math-quote" style="top: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas es su libertad.<span class="mq-icon">❞</span><span class="mq-author">— Georg Cantor</span></div>
+        <div class="math-quote" style="top: 25%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>El universo está escrito en lenguaje matemático.<span class="mq-icon">❞</span><span class="mq-author">— Galileo Galilei</span></div>
+        <div class="math-quote" style="top: 45%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática es la reina de las ciencias.<span class="mq-icon">❞</span><span class="mq-author">— Carl F. Gauss</span></div>
+        <div class="math-quote" style="top: 65%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática pura es la poesía de las ideas lógicas.<span class="mq-icon">❞</span><span class="mq-author">— Albert Einstein</span></div>
+        <div class="math-quote" style="bottom: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>No hay rama de la matemática que no pueda aplicarse.<span class="mq-icon">❞</span><span class="mq-author">— Nikolai Lobachevsky</span></div>
 
         <!-- Derecha -->
-        <div class="math-quote" style="top: 5%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Donde hay materia, hay geometría.<span class="mq-icon">❞</span><br><span class="mq-author">— Johannes Kepler</span></div>
-        <div class="math-quote" style="top: 25%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática es la música de la razón.<span class="mq-icon">❞</span><br><span class="mq-author">— J.J. Sylvester</span></div>
-        <div class="math-quote" style="top: 45%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Dios usó hermosas matemáticas al crear el mundo.<span class="mq-icon">❞</span><br><span class="mq-author">— Paul Dirac</span></div>
-        <div class="math-quote" style="top: 65%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Un matemático es una máquina para transformar café en teoremas.<span class="mq-icon">❞</span><br><span class="mq-author">— Paul Erdős</span></div>
-        <div class="math-quote" style="bottom: 5%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas radica en su belleza.<span class="mq-icon">❞</span><br><span class="mq-author">— G.H. Hardy</span></div>
+        <div class="math-quote" style="top: 5%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Donde hay materia, hay geometría.<span class="mq-icon">❞</span><span class="mq-author">— Johannes Kepler</span></div>
+        <div class="math-quote" style="top: 25%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>La matemática es la música de la razón.<span class="mq-icon">❞</span><span class="mq-author">— J.J. Sylvester</span></div>
+        <div class="math-quote" style="top: 45%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Dios usó hermosas matemáticas al crear el mundo.<span class="mq-icon">❞</span><span class="mq-author">— Paul Dirac</span></div>
+        <div class="math-quote" style="top: 65%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>Un matemático es una máquina para transformar café en teoremas.<span class="mq-icon">❞</span><span class="mq-author">— Paul Erdős</span></div>
+        <div class="math-quote" style="bottom: 5%; right: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas radica en su belleza.<span class="mq-icon">❞</span><span class="mq-author">— G.H. Hardy</span></div>
 
         <!-- Arriba Centro-Márgenes -->
-        <div class="math-quote" style="top: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>Los números gobiernan el universo.<span class="mq-icon">❞</span><br><span class="mq-author">— Pitágoras</span></div>
-        <div class="math-quote" style="top: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>La matemática es la ciencia del orden y la medida.<span class="mq-icon">❞</span><br><span class="mq-author">— René Descartes</span></div>
-        <div class="math-quote" style="top: 10%; left: 42%; width: 16vw;"><span class="mq-icon">❝</span>Dame un punto de apoyo y moveré el mundo.<span class="mq-icon">❞</span><br><span class="mq-author">— Arquímedes</span></div>
+        <div class="math-quote" style="top: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>Los números gobiernan el universo.<span class="mq-icon">❞</span><span class="mq-author">— Pitágoras</span></div>
+        <div class="math-quote" style="top: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>La matemática es la ciencia del orden y la medida.<span class="mq-icon">❞</span><span class="mq-author">— René Descartes</span></div>
         
         <!-- Abajo Centro-Márgenes -->
-        <div class="math-quote" style="bottom: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>En matemáticas te acostumbras a las cosas.<span class="mq-icon">❞</span><br><span class="mq-author">— John von Neumann</span></div>
-        <div class="math-quote" style="bottom: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>Podemos ver poco del futuro, pero lo suficiente para hacer.<span class="mq-icon">❞</span><br><span class="mq-author">— Alan Turing</span></div>
-        <div class="math-quote" style="bottom: 10%; right: 42%; width: 16vw;"><span class="mq-icon">❝</span>Lo que sabemos es una gota, lo que ignoramos un océano.<span class="mq-icon">❞</span><br><span class="mq-author">— Isaac Newton</span></div>
+        <div class="math-quote" style="bottom: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>En matemáticas te acostumbras a las cosas.<span class="mq-icon">❞</span><span class="mq-author">— John von Neumann</span></div>
+        <div class="math-quote" style="bottom: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>Podemos ver poco del futuro, pero lo suficiente para hacer.<span class="mq-icon">❞</span><span class="mq-author">— Alan Turing</span></div>
         
-        <div class="math-quote" style="top: 15%; right: 20%; width: 15vw;"><span class="mq-icon">❝</span>La matemática es el arte de dar el mismo nombre a cosas diferentes.<span class="mq-icon">❞</span><br><span class="mq-author">— Henri Poincaré</span></div>
-        <div class="math-quote" style="bottom: 15%; left: 20%; width: 15vw;"><span class="mq-icon">❝</span>Es imposible ser matemático sin tener alma de poeta.<span class="mq-icon">❞</span><br><span class="mq-author">— Sofia Kovalevskaya</span></div>
+        <div class="math-quote" style="top: 15%; left: 20%; width: 15vw;"><span class="mq-icon">❝</span>Conozco los números, luego existo.<span class="mq-icon">❞</span><span class="mq-author">— Euler</span></div>
+        <div class="math-quote" style="bottom: 15%; right: 20%; width: 15vw;"><span class="mq-icon">❝</span>El infinito es un suelo fecundo para la mente.<span class="mq-icon">❞</span><span class="mq-author">— Hilbert</span></div>
+
 
         <div class="login-box">
-            <div class="login-title">🇦🇷 Matematica online Pro</div>
+            <div class="login-title">📐 MathBoard Pro</div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
             <div id="role-selection">
                 <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
@@ -353,6 +405,25 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
+    <!-- Visor Dola AI -->
+    <div id="dola-panel" class="floating-panel">
+        <div class="panel-header" id="dola-header">
+            <span>🤖 Dola AI (Asistente Inteligente)</span>
+            <div class="panel-controls-header">
+                <button onclick="toggleMaximize('dola-panel')">🗖</button>
+                <button onclick="toggleDolaMinimize()">_</button>
+            </div>
+        </div>
+        <div class="pdf-controls">
+            <button onclick="window.open('https://www.cici.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
+            <button onclick="captureDolaScreen()" style="background:#10b981;" title="Haz clic y selecciona la pestaña de Dola para recortar">📸 Capturar Pantalla</button>
+        </div>
+        <div id="dola-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
+            <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+        </div>
+        <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
+    </div>
+
     <!-- Panel de Galería PERSISTENTE -->
     <div id="gallery-panel" class="floating-panel" style="width: 400px;">
         <div class="panel-header" id="gallery-header">
@@ -398,6 +469,7 @@
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
             <button onclick="toggleStudentPermissions()" id="btn-permissions" title="Habilitar que los alumnos compartan PDFs/Videos" style="background:#f59e0b; padding: 6px 12px; font-weight: bold; border-radius: 8px; width: 120px;">🔒 Bloqueado</button>
             <button onclick="toggleVideoPanel()" title="Compartir Video de Matemáticas" style="background:#ef4444;">📺</button>
+            <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
             
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
@@ -474,6 +546,7 @@
         let roomUsers = {};
         window.studentsCanShare = false;
         
+        // Timer Variables
         let classStartTime = null;
         let timerInterval = null;
 
@@ -945,7 +1018,7 @@
         }
         window.removeVideoLink = removeVideoLink;
 
-        // Captura HD
+        // Captura HD de Iframes (Ultra Quality)
         async function captureScreenSource(panelIdToMinimize) {
             try {
                 const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, preferCurrentTab: true });
@@ -1382,6 +1455,164 @@
             sOverlay.style.display = 'none';
             sBox.style.display = 'none';
             stampCropMode = false; sStartX = undefined;
+        });
+
+        // Visor PDF Original
+        let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
+        const pdfPanel = document.getElementById('pdf-panel');
+        const pdfAppCanvas = document.getElementById('pdf-canvas');
+        const pdfCtx = pdfAppCanvas.getContext('2d');
+
+        const pdfInput = document.getElementById('pdfInput');
+        if (pdfInput) pdfInput.addEventListener('change', async function(e) {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = async function(ev) {
+                currentPdfData = ev.target.result;
+                const base64Data = currentPdfData.split(',')[1];
+                const binary = atob(base64Data);
+                const len = binary.length;
+                const buffer = new ArrayBuffer(len);
+                const view = new Uint8Array(buffer);
+                for (let i = 0; i < len; i++) {
+                    view[i] = binary.charCodeAt(i);
+                }
+                pdfDoc = await pdfjsLib.getDocument({ data: view }).promise;
+                pageNum = 1; pdfScale = 2.0; pdfPanel.style.display = 'flex';
+                renderPage(pageNum);
+                
+                if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') {
+                    broadcastData({ type: 'pdf_share', data: currentPdfData, page: pageNum });
+                }
+            };
+            reader.readAsDataURL(file);
+        });
+
+        async function renderPage(num) {
+            if (!pdfDoc) return;
+            const page = await pdfDoc.getPage(num);
+            const viewport = page.getViewport({ scale: pdfScale });
+            pdfAppCanvas.width = viewport.width; pdfAppCanvas.height = viewport.height;
+            await page.render({ canvasContext: pdfCtx, viewport }).promise;
+            document.getElementById('page-num').textContent = num;
+        }
+
+        function prevPage() { 
+            if (!pdfDoc || pageNum <= 1) return; 
+            pageNum--; 
+            renderPage(pageNum); 
+            if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') broadcastData({ type: 'pdf_page', page: pageNum });
+        }
+        window.prevPage = prevPage;
+        function nextPage() { 
+            if (!pdfDoc || pageNum >= pdfDoc.numPages) return; 
+            pageNum++; 
+            renderPage(pageNum); 
+            if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') broadcastData({ type: 'pdf_page', page: pageNum });
+        }
+        window.nextPage = nextPage;
+        function zoomIn() { if (!pdfDoc) return; pdfScale += 0.5; renderPage(pageNum); }
+        window.zoomIn = zoomIn;
+        function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.5; renderPage(pageNum); } }
+        window.zoomOut = zoomOut;
+        function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
+        window.togglePdfMinimize = togglePdfMinimize;
+        
+        let cropModePdf = false, pStartX, pStartY;
+        const pOverlay = document.getElementById('crop-overlay');
+        const pBox = document.getElementById('crop-box');
+
+        function togglePdfCropMode() {
+            cropModePdf = !cropModePdf;
+            pOverlay.style.display = cropModePdf ? 'block' : 'none';
+            const container = document.getElementById('pdf-render-container');
+            if (cropModePdf) {
+                pOverlay.style.width = Math.max(container.clientWidth, container.scrollWidth) + 'px';
+                pOverlay.style.height = Math.max(container.clientHeight, container.scrollHeight) + 'px';
+                pOverlay.style.left = '0px';
+                pOverlay.style.top = '0px';
+                container.style.overflow = 'hidden'; 
+            } else {
+                container.style.overflow = 'auto';
+            }
+        }
+        window.togglePdfCropMode = togglePdfCropMode;
+        
+        pOverlay.addEventListener('pointerdown', e => {
+            if(!cropModePdf) return;
+            const rect = pOverlay.getBoundingClientRect();
+            pStartX = e.clientX - rect.left; pStartY = e.clientY - rect.top;
+            pBox.style.left = pStartX + 'px'; pBox.style.top = pStartY + 'px';
+            pBox.style.width = '0px'; pBox.style.height = '0px';
+            pBox.style.display = 'block';
+            try { pOverlay.setPointerCapture(e.pointerId); } catch(err){}
+            e.preventDefault(); e.stopPropagation();
+        });
+
+        pOverlay.addEventListener('pointermove', e => {
+            if(!cropModePdf || pStartX === undefined) return;
+            const rect = pOverlay.getBoundingClientRect();
+            const currentX = Math.max(0, Math.min(rect.width, e.clientX - rect.left));
+            const currentY = Math.max(0, Math.min(rect.height, e.clientY - rect.top));
+            
+            pBox.style.left = Math.min(currentX, pStartX) + 'px';
+            pBox.style.top = Math.min(currentY, pStartY) + 'px';
+            pBox.style.width = Math.abs(currentX - pStartX) + 'px';
+            pBox.style.height = Math.abs(currentY - pStartY) + 'px';
+        });
+
+        pOverlay.addEventListener('pointerup', e => {
+            if(!cropModePdf || pStartX === undefined) return;
+            try { pOverlay.releasePointerCapture(e.pointerId); } catch(err){}
+            
+            const pRect = pBox.getBoundingClientRect();
+            const cRect = pdfAppCanvas.getBoundingClientRect();
+            
+            const visualX = pRect.left - cRect.left;
+            const visualY = pRect.top - cRect.top;
+            
+            if(pRect.width > 10 && pRect.height > 10) {
+                const scaleX = pdfAppCanvas.width / cRect.width;
+                const scaleY = pdfAppCanvas.height / cRect.height;
+                
+                const safeX = Math.max(0, visualX);
+                const safeY = Math.max(0, visualY);
+                const adjW = pRect.width - (safeX - visualX);
+                const adjH = pRect.height - (safeY - visualY);
+                const safeW = Math.min(adjW, cRect.width - safeX);
+                const safeH = Math.min(adjH, cRect.height - safeY);
+
+                if(safeW > 0 && safeH > 0) {
+                    const srcX = safeX * scaleX;
+                    const srcY = safeY * scaleY;
+                    const srcW = safeW * scaleX;
+                    const srcH = safeH * scaleY;
+                    
+                    const tempCanvas = document.createElement('canvas');
+                    tempCanvas.width = srcW; tempCanvas.height = srcH;
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCtx.fillStyle='#fff'; tempCtx.fillRect(0,0,srcW,srcH);
+                    tempCtx.drawImage(pdfAppCanvas, srcX, srcY, srcW, srcH, 0, 0, srcW, srcH);
+                    
+                    document.getElementById('stamp-img').src = tempCanvas.toDataURL();
+                    
+                    const finalW = Math.min(safeW, 900);
+                    const finalH = Math.min(safeH, 600);
+                    document.getElementById('stamper-content').style.width = finalW + 'px';
+                    document.getElementById('stamper-content').style.height = finalH + 'px';
+                    
+                    const stamper = document.getElementById('stamper');
+                    stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
+                    stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
+                    stamper.style.display = 'block';
+                    
+                    togglePdfMinimize(); togglePdfCropMode();
+                }
+            }
+            pBox.style.display = 'none'; pStartX = undefined;
+            const container = document.getElementById('pdf-render-container');
+            container.style.overflow = 'auto';
         });
 
         function disableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none'); }
@@ -1833,7 +2064,7 @@ window.isLaserFadingGlobal = false;
   const clearBtn = document.getElementById('mw-clear');
   clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
   
-  // ================= GRABACIÓN AVANZADA MP4 INVISIBLE (HD) =================
+  // ================= GRABACIÓN AVANZADA MP4 (Video Compuesto HD Puro) =================
   let mediaRecorder; let recordedChunks = []; let isRecording = false;
   let recordingLoop;
   let recCanvas = document.createElement('canvas');
@@ -1842,7 +2073,7 @@ window.isLaserFadingGlobal = false;
   window.toggleRecording = function() { if (!isRecording) startRecording(); else stopRecording(); }
   
   function startRecording() {
-      if (!audioDestination) { alert("Micrófono apagado. Actívalo para grabar."); return; }
+      if (!audioDestination) { alert("Audio no inicializado."); return; }
       
       recCanvas.width = canvas.width;
       recCanvas.height = canvas.height;
@@ -1893,7 +2124,7 @@ window.isLaserFadingGlobal = false;
           cancelAnimationFrame(recordingLoop); 
           const blob = new Blob(recordedChunks, { type: 'video/mp4' });
           const url = URL.createObjectURL(blob);
-          const a = document.createElement('a'); a.href = url; a.download = 'Clase_Matematica_Online_Pro.mp4'; a.click();
+          const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
           URL.revokeObjectURL(url); recordedChunks = [];
       };
       mediaRecorder.start();
@@ -1911,7 +2142,9 @@ window.isLaserFadingGlobal = false;
 
 <script>
 /* === ESCUDO DE PROTECCIÓN BÁSICA (ANTI-COPIA) === */
-document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
 document.addEventListener('keydown', function(e) {
     if (e.keyCode === 123) { e.preventDefault(); }
     if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { e.preventDefault(); }
