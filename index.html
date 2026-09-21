@@ -1113,6 +1113,11 @@
 
         // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
         let sessionResources = [];
+        try {
+            const storedRes = localStorage.getItem('mathboard_resources');
+            if(storedRes) sessionResources = JSON.parse(storedRes);
+        } catch(e) {}
+        
         let isPdfSynced = false;
         let currentPdfData = null;
 
@@ -1163,6 +1168,11 @@
                 if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) fileName = "Documento_Importado.pdf";
                 
                 sessionResources.push({ name: fileName, type: 'pdf', data: dataUri });
+                try {
+                    localStorage.setItem('mathboard_resources', JSON.stringify(sessionResources));
+                } catch(e) {
+                    alert("Aviso: El archivo es muy pesado para guardarse de forma permanente, pero podrás usarlo en esta sesión. Borra otros archivos si deseas liberar espacio.");
+                }
                 updateResourcesGrid();
                 
                 currentPdfData = dataUri;
@@ -1197,6 +1207,11 @@
                         type: file.type.startsWith('image/') ? 'image' : 'pdf',
                         data: ev.target.result
                     });
+                    try {
+                        localStorage.setItem('mathboard_resources', JSON.stringify(sessionResources));
+                    } catch(err) {
+                        alert("Aviso: El archivo '" + file.name + "' es muy pesado para guardarse permanentemente, pero podrás usarlo en esta sesión. Borra otros archivos para liberar espacio.");
+                    }
                     updateResourcesGrid();
                 };
                 reader.readAsDataURL(file);
@@ -1228,9 +1243,13 @@
         }
 
         function removeResource(idx) {
-            sessionResources.splice(idx, 1);
-            updateResourcesGrid();
+            if(confirm("¿Eliminar este archivo de forma permanente?")) {
+                sessionResources.splice(idx, 1);
+                try { localStorage.setItem('mathboard_resources', JSON.stringify(sessionResources)); } catch(e){}
+                updateResourcesGrid();
+            }
         }
+        window.removeResource = removeResource;
 
         async function openResource(idx) {
             const res = sessionResources[idx];
@@ -1274,11 +1293,12 @@
                 }
             }
         }
+        window.openResource = openResource;
 
         function toggleResourcesPanel() {
             const p = document.getElementById('resources-panel');
             p.style.display = p.style.display === 'none' || p.style.display === '' ? 'flex' : 'none';
-            if (p.style.display === 'flex' && sessionResources.length === 0) updateResourcesGrid();
+            if (p.style.display === 'flex') updateResourcesGrid();
         }
         window.toggleResourcesPanel = toggleResourcesPanel;
 
@@ -1501,6 +1521,9 @@
 
         // Visor PDF Original con Sistema de Lectura TTS
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
+        let isReadingPdf = false;
+        let pdfSpeechUtterance = null;
+        
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
