@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MathBoard Pro — Pizarra Matemática Profesional</title>
+    <title>Pizarra online Pro — Pizarra Matemática Profesional</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1622,6 +1622,57 @@
         function toggleDolaMinimize() { dolaPanel.style.display = 'none'; }
         window.toggleDolaMinimize = toggleDolaMinimize;
         
+        async function captureScreenSource(panelIdToMinimize) {
+            try {
+                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, preferCurrentTab: true });
+                const video = document.createElement('video');
+                video.srcObject = stream;
+                video.onloadedmetadata = () => {
+                    video.play();
+                    setTimeout(() => {
+                        const canvasCap = document.createElement('canvas');
+                        canvasCap.width = video.videoWidth; 
+                        canvasCap.height = video.videoHeight;
+                        
+                        const ctxCap = canvasCap.getContext('2d', { alpha: false });
+                        ctxCap.imageSmoothingEnabled = true;
+                        ctxCap.imageSmoothingQuality = 'high';
+                        ctxCap.drawImage(video, 0, 0, canvasCap.width, canvasCap.height);
+                        
+                        stream.getTracks().forEach(track => track.stop());
+                        
+                        const img = document.getElementById('stamp-img');
+                        img.src = canvasCap.toDataURL('image/png', 1.0); 
+                        
+                        const maxDisplayW = 800;
+                        const maxDisplayH = 600;
+                        const ratio = Math.min(1, maxDisplayW / canvasCap.width, maxDisplayH / canvasCap.height);
+                        
+                        const finalW = canvasCap.width * ratio;
+                        const finalH = canvasCap.height * ratio;
+                        
+                        const sc = document.getElementById('stamper-content');
+                        sc.style.width = finalW + 'px';
+                        sc.style.height = finalH + 'px';
+                        
+                        const stamper = document.getElementById('stamper');
+                        stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
+                        stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
+                        stamper.style.display = 'block';
+                        
+                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
+                        if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
+                        if(panelIdToMinimize === 'video') toggleVideoMinimize();
+                    }, 800); 
+                };
+            } catch (err) {
+                alert("La captura fue cancelada o tu navegador no lo permite.");
+            }
+        }
+        
+        window.captureDolaScreen = () => captureScreenSource('dola');
+        window.captureCalcScreen = () => captureScreenSource('calc');
+
         function toggleCalcPanel() {
             const panel = document.getElementById('calc-panel');
             panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
@@ -2583,6 +2634,20 @@ window.isLaserFadingGlobal = false;
   const clearBtn = document.getElementById('mw-clear');
   clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
 })();
+</script>
+
+<script>
+/* === ESCUDO DE PROTECCIÓN BÁSICA (ANTI-COPIA) === */
+document.addEventListener('contextmenu', function(e) {
+    e.preventDefault();
+});
+document.addEventListener('keydown', function(e) {
+    if (e.keyCode === 123) { e.preventDefault(); }
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 73) { e.preventDefault(); }
+    if (e.ctrlKey && e.shiftKey && e.keyCode === 74) { e.preventDefault(); }
+    if (e.ctrlKey && e.keyCode === 85) { e.preventDefault(); }
+    if (e.ctrlKey && e.keyCode === 83) { e.preventDefault(); }
+});
 </script>
 
 </body>
