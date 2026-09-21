@@ -257,10 +257,16 @@
 </head>
 <body class="theme-grid">
 
-    <!-- ALERTA DE PROTOCOLO FILE:// -->
+    <!-- BLOQUEO VISUAL ESTRICTO PROTOCOLO FILE:// -->
+    <div id="file-protocol-warning" style="display:none; position:fixed; z-index:999999; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.98); color:white; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px;">
+        <div style="font-size:4rem; margin-bottom:10px;">⚠️</div>
+        <h1 style="color:#ef4444; margin-bottom:10px;">ERROR CRÍTICO DE RED</h1>
+        <p style="font-size:1.2rem; max-width:600px; line-height:1.5;">Estás abriendo este archivo directamente (protocolo <b>file://</b>). Por medidas de seguridad estrictas, los navegadores modernos <b>bloquean las conexiones P2P y el Micrófono</b> en archivos locales.</p>
+        <p style="font-size:1.1rem; max-width:600px; color:#cbd5e1; margin-top:15px; padding:15px; background:rgba(255,255,255,0.1); border-radius:8px;">Para que los alumnos puedan conectar y el audio funcione, debes usar un servidor local (ej. extensión <i>Live Server</i> en VS Code) o subir este archivo a un hosting (GitHub Pages, Netlify, etc.).</p>
+    </div>
     <script>
         if (window.location.protocol === 'file:') {
-            alert("AVISO DE RED: Estás abriendo el archivo localmente (file://). Los navegadores bloquean el uso del Micrófono y la conexión P2P por seguridad.\n\nPara que la pizarra conecte con los alumnos y grabe audio, debes subir este archivo a un hosting web o usar un servidor local (ej. Live Server).");
+            document.getElementById('file-protocol-warning').style.display = 'flex';
         }
     </script>
 
@@ -604,11 +610,15 @@
             }
         };
 
+        // Red mejorada y redundante para conexión P2P más estable
         const peerNetworkOptions = { 
+            debug: 1,
+            pingInterval: 5000, // Vital para mantener viva la sala del profesor en el servidor público
             config: { 
                 'iceServers': [ 
                     { urls: 'stun:stun.l.google.com:19302' }, 
                     { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:global.stun.twilio.com:3478' },
                     { urls: 'stun:stun.cloudflare.com:3478' }
                 ] 
             } 
@@ -2256,6 +2266,18 @@
             }
         }
 
+        function handlePeerDisconnect() {
+            console.warn("Peer desconectado del servidor. Intentando reconectar...");
+            const statusText = document.getElementById('status-text');
+            if(statusText) {
+                statusText.innerText = "Reconectando al servidor...";
+                statusText.style.color = "#fbbf24";
+                document.getElementById('ui-panel').style.display = 'block';
+                document.getElementById('ui-panel').style.opacity = '1';
+            }
+            if(peer && !peer.destroyed) peer.reconnect();
+        }
+
         async function createRoom() {
             await getMicrophone();
             document.getElementById('main-toolbar').style.display = 'flex';
@@ -2297,6 +2319,8 @@
                 }, 40000); 
             });
 
+            peer.on('disconnected', handlePeerDisconnect);
+
             peer.on('connection', (conn) => { 
                 conn.on('open', () => {
                     const activePeers = connections.filter(c => c.open).map(c => c.peer);
@@ -2315,6 +2339,11 @@
                     connections.push(conn); 
                 });
                 conn.on('data', drawRemote); 
+                
+                conn.on('close', () => {
+                    delete roomUsers[conn.peer];
+                    renderParticipants();
+                });
             });
 
             peer.on('error', (err) => {
@@ -2348,9 +2377,13 @@
             
             setupPeerAudio(peer);
 
-            peer.on('open', () => {
+            peer.on('disconnected', handlePeerDisconnect);
+
+            let connectionAttempts = 0;
+
+            function attemptConnection() {
                 const targetId = 'MBPRO_' + roomId;
-                const conn = peer.connect(targetId, { reliable: true }); 
+                const conn = peer.connect(targetId, { reliable: false }); // Usamos unreliable para mayor velocidad
                 
                 conn.on('open', () => {
                     connections.push(conn);
@@ -2372,16 +2405,28 @@
                         }
                     }, 1000);
                 });
+            }
+
+            peer.on('open', () => {
+                attemptConnection();
             });
 
             peer.on('error', (err) => {
                 console.error("Error del Alumno:", err);
-                btn.innerText = originalText;
-                btn.disabled = false;
                 
                 if (err.type === 'peer-unavailable') {
-                    alert("No se encontró al profesor. Verifica que el código sea correcto y que el profesor ya esté en la pizarra.");
+                    connectionAttempts++;
+                    if (connectionAttempts < 3) {
+                        btn.innerText = `Reintentando (${connectionAttempts}/3)...`;
+                        setTimeout(attemptConnection, 2000);
+                    } else {
+                        btn.innerText = originalText;
+                        btn.disabled = false;
+                        alert("No se encontró al profesor tras varios intentos. Verifica que el código sea correcto y que el profesor ya esté en la pizarra.");
+                    }
                 } else if (err.type === 'network' || err.type === 'server-error') {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                     alert("Falla en el servidor PeerJS. Intenta de nuevo.");
                 }
             });
