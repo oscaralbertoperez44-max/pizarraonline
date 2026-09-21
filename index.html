@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pizarra online Pro — Pizarra Matemática Profesional</title>
+    <title>Matematica online Pro — Pizarra Matemática Profesional</title>
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -109,7 +109,7 @@
         @media (max-width: 1200px) { .math-quote { display: none; } }
 
         .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.2); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
-        .login-title { font-size: 2.2rem; margin-bottom: 5px; font-weight: bold; }
+        .login-title { font-size: 2.1rem; margin-bottom: 5px; font-weight: bold; }
         .login-subtitle { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
         .role-btn { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
         .btn-student { background: #2563eb; color: white; }
@@ -251,17 +251,19 @@
         <!-- Arriba Centro-Márgenes -->
         <div class="math-quote" style="top: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>Los números gobiernan el universo.<span class="mq-icon">❞</span><span class="mq-author">— Pitágoras</span></div>
         <div class="math-quote" style="top: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>La matemática es la ciencia del orden y la medida.<span class="mq-icon">❞</span><span class="mq-author">— René Descartes</span></div>
+        <div class="math-quote" style="top: 10%; left: 42%; width: 16vw;"><span class="mq-icon">❝</span>Dame un punto de apoyo y moveré el mundo.<span class="mq-icon">❞</span><span class="mq-author">— Arquímedes</span></div>
         
         <!-- Abajo Centro-Márgenes -->
         <div class="math-quote" style="bottom: 4%; left: 28%; width: 16vw;"><span class="mq-icon">❝</span>En matemáticas te acostumbras a las cosas.<span class="mq-icon">❞</span><span class="mq-author">— John von Neumann</span></div>
         <div class="math-quote" style="bottom: 4%; right: 28%; width: 16vw;"><span class="mq-icon">❝</span>Podemos ver poco del futuro, pero lo suficiente para hacer.<span class="mq-icon">❞</span><span class="mq-author">— Alan Turing</span></div>
+        <div class="math-quote" style="bottom: 10%; right: 42%; width: 16vw;"><span class="mq-icon">❝</span>Lo que sabemos es una gota, lo que ignoramos un océano.<span class="mq-icon">❞</span><span class="mq-author">— Isaac Newton</span></div>
         
-        <div class="math-quote" style="top: 15%; left: 20%; width: 15vw;"><span class="mq-icon">❝</span>Conozco los números, luego existo.<span class="mq-icon">❞</span><span class="mq-author">— Euler</span></div>
-        <div class="math-quote" style="bottom: 15%; right: 20%; width: 15vw;"><span class="mq-icon">❝</span>El infinito es un suelo fecundo para la mente.<span class="mq-icon">❞</span><span class="mq-author">— Hilbert</span></div>
+        <div class="math-quote" style="top: 15%; right: 20%; width: 15vw;"><span class="mq-icon">❝</span>La matemática es el arte de dar el mismo nombre a cosas diferentes.<span class="mq-icon">❞</span><span class="mq-author">— Henri Poincaré</span></div>
+        <div class="math-quote" style="bottom: 15%; left: 20%; width: 15vw;"><span class="mq-icon">❝</span>Es imposible ser matemático sin tener alma de poeta.<span class="mq-icon">❞</span><span class="mq-author">— Sofia Kovalevskaya</span></div>
 
 
         <div class="login-box">
-            <div class="login-title">📐 MathBoard Pro</div>
+            <div class="login-title">🇦🇷 Matematica online Pro</div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
             <div id="role-selection">
                 <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
@@ -774,7 +776,7 @@
 
         const canvas = document.getElementById('board');
         const laserCanvas = document.getElementById('laser-board');
-        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true });
+        const ctx = canvas.getContext('2d', { desynchronized: true, alpha: true, willReadFrequently: false });
         
         ctx.lineCap = 'round'; 
         ctx.lineJoin = 'round';
@@ -1615,576 +1617,6 @@
             container.style.overflow = 'auto';
         });
 
-        // Visores Dinámicos
-        const dolaPanel = document.getElementById('dola-panel');
-        function toggleDolaPanel() { dolaPanel.style.display = dolaPanel.style.display === 'none' || dolaPanel.style.display === '' ? 'flex' : 'none'; }
-        window.toggleDolaPanel = toggleDolaPanel;
-        function toggleDolaMinimize() { dolaPanel.style.display = 'none'; }
-        window.toggleDolaMinimize = toggleDolaMinimize;
-        
-        async function captureScreenSource(panelIdToMinimize) {
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, preferCurrentTab: true });
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    video.play();
-                    setTimeout(() => {
-                        const canvasCap = document.createElement('canvas');
-                        canvasCap.width = video.videoWidth; 
-                        canvasCap.height = video.videoHeight;
-                        
-                        const ctxCap = canvasCap.getContext('2d', { alpha: false });
-                        ctxCap.imageSmoothingEnabled = true;
-                        ctxCap.imageSmoothingQuality = 'high';
-                        ctxCap.drawImage(video, 0, 0, canvasCap.width, canvasCap.height);
-                        
-                        stream.getTracks().forEach(track => track.stop());
-                        
-                        const img = document.getElementById('stamp-img');
-                        img.src = canvasCap.toDataURL('image/png', 1.0); 
-                        
-                        const maxDisplayW = 800;
-                        const maxDisplayH = 600;
-                        const ratio = Math.min(1, maxDisplayW / canvasCap.width, maxDisplayH / canvasCap.height);
-                        
-                        const finalW = canvasCap.width * ratio;
-                        const finalH = canvasCap.height * ratio;
-                        
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = finalW + 'px';
-                        sc.style.height = finalH + 'px';
-                        
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
-                        stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
-                        stamper.style.display = 'block';
-                        
-                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
-                        if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
-                        if(panelIdToMinimize === 'video') toggleVideoMinimize();
-                    }, 800); 
-                };
-            } catch (err) {
-                alert("La captura fue cancelada o tu navegador no lo permite.");
-            }
-        }
-        
-        window.captureDolaScreen = () => captureScreenSource('dola');
-        window.captureCalcScreen = () => captureScreenSource('calc');
-
-        function toggleCalcPanel() {
-            const panel = document.getElementById('calc-panel');
-            panel.style.display = panel.style.display === 'none' || panel.style.display === '' ? 'flex' : 'none';
-        }
-        window.toggleCalcPanel = toggleCalcPanel;
-        function toggleCalcMinimize() { document.getElementById('calc-panel').style.display = 'none'; }
-        window.toggleCalcMinimize = toggleCalcMinimize;
-
-        function loadImageIntoStamp(file) {
-            if (!file || !file.type || !file.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = function(ev) {
-                const img = document.getElementById('stamp-img');
-                const source = new Image();
-                source.onload = function() {
-                    let w = source.naturalWidth || source.width; let h = source.naturalHeight || source.height;
-                    const ratio = Math.min(1, 900 / w, 650 / h);
-                    w = Math.max(80, Math.round(w * ratio)); h = Math.max(60, Math.round(h * ratio));
-                    img.onload = function() {
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = w + 'px'; sc.style.height = h + 'px';
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.left = (window.innerWidth - w) / 2 + 'px';
-                        stamper.style.top = (window.innerHeight - h) / 2 + 'px';
-                        stamper.style.display = 'block';
-                    };
-                    img.src = ev.target.result;
-                };
-                source.src = res.data;
-            };
-            reader.readAsDataURL(file);
-        }
-        ['cameraInput'].forEach(id => {
-            const input = document.getElementById(id);
-            if (input) input.addEventListener('change', function(e) {
-                if (e.target.files[0]) {
-                    loadImageIntoStamp(e.target.files[0]);
-                }
-                e.target.value = '';
-            });
-        });
-
-        function saveAsPDF() {
-            const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
-            if (!filename) return;
-            const tempCanvas = document.createElement('canvas');
-            tempCanvas.width = canvas.width; tempCanvas.height = canvas.height;
-            const tCtx = tempCanvas.getContext('2d');
-            
-            const isChalk = document.body.classList.contains('theme-chalkboard');
-            const isGrid = document.body.classList.contains('theme-grid');
-            
-            tCtx.fillStyle = isChalk ? '#1e5631' : '#ffffff';
-            tCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
-            
-            if (isGrid || isChalk) {
-                tCtx.strokeStyle = isChalk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
-                tCtx.lineWidth = 1.5;
-                tCtx.beginPath();
-                for(let x=0; x<tempCanvas.width; x+=35) { tCtx.moveTo(x,0); tCtx.lineTo(x,tempCanvas.height); }
-                for(let y=0; y<tempCanvas.height; y+=35) { tCtx.moveTo(0,y); tCtx.lineTo(tempCanvas.width,y); }
-                tCtx.stroke();
-            }
-
-            tCtx.drawImage(canvas, 0, 0, tempCanvas.width, tempCanvas.height);
-            const { jsPDF } = window.jspdf;
-            
-            const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
-            const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
-            pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
-            pdf.save(filename + ".pdf");
-        }
-        window.saveAsPDF = saveAsPDF;
-
-        // ================= GRABACIÓN AVANZADA MP4 =================
-        let mediaRecorder; let recordedChunks = []; let isRecording = false;
-        let recordingLoop;
-
-        function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
-        window.toggleRecording = toggleRecording;
-        
-        function startRecording() {
-            if (!audioDestination) { alert("Audio no inicializado."); return; }
-            const canvasStream = canvas.captureStream(60);
-            let combinedStream;
-            if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
-                combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
-            } else {
-                combinedStream = canvasStream;
-            }
-            
-            const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
-            if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                options.mimeType = 'video/webm;codecs=vp9';
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
-            }
-
-            mediaRecorder = new MediaRecorder(combinedStream, options);
-            mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
-            mediaRecorder.onstop = () => {
-                cancelAnimationFrame(recordingLoop); 
-                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
-                URL.revokeObjectURL(url); recordedChunks = [];
-            };
-            mediaRecorder.start(); isRecording = true;
-            document.getElementById('btn-record').classList.add('record-active');
-
-            function keepRecordingAlive() {
-                if (!isRecording) return;
-                const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
-                c.fillStyle = '#ffffff';
-                c.fillRect(0, 0, 1, 1);
-                recordingLoop = requestAnimationFrame(keepRecordingAlive);
-            }
-            keepRecordingAlive();
-        }
-        
-        function stopRecording() { 
-            mediaRecorder.stop(); 
-            isRecording = false; 
-            document.getElementById('btn-record').classList.remove('record-active'); 
-        }
-
-        // ================= CONEXIÓN Y SISTEMA MULTIJUGADOR =================
-        function updateRemoteCursor(data) {
-            if (!data.peerId) return;
-            let cursor = document.getElementById('cursor-' + data.peerId);
-            if (!cursor) {
-                cursor = document.createElement('div');
-                cursor.id = 'cursor-' + data.peerId;
-                cursor.className = 'remote-cursor';
-                cursor.innerHTML = `<div class="cursor-dot"></div><div class="cursor-label">${data.userName || data.role}</div>`;
-                document.getElementById('canvas-container').appendChild(cursor);
-            }
-            
-            const realX = (data.lastPosX || data.x) * canvas.width;
-            const realY = (data.lastPosY || data.y) * canvas.width;
-            
-            cursor.style.transform = `translate(${realX}px, ${realY}px)`;
-            
-            const dot = cursor.querySelector('.cursor-dot');
-            if (data.type === 'laser') {
-                dot.style.backgroundColor = '#ef4444';
-                dot.style.borderColor = '#b91c1c';
-                dot.style.boxShadow = '0 0 12px 4px rgba(239, 68, 68, 0.8)';
-                dot.style.transform = 'scale(1.5)';
-            } else {
-                dot.style.backgroundColor = data.color || '#3b82f6';
-                dot.style.borderColor = 'white';
-                dot.style.boxShadow = '0 1px 4px rgba(0,0,0,0.5)';
-                dot.style.transform = 'scale(1)';
-            }
-            
-            cursor.querySelector('.cursor-label').innerText = data.userName || data.role;
-            cursor.querySelector('.cursor-label').style.backgroundColor = data.role === 'Profesor' ? '#10b981' : '#2563eb';
-            
-            clearTimeout(cursor.timeout);
-            cursor.style.opacity = '1';
-            cursor.timeout = setTimeout(() => { cursor.style.opacity = '0'; }, 600);
-        }
-
-        function drawShapeExact(targetCtx, type, x1, y1, x2, y2, color, size) {
-            targetCtx.save();
-            targetCtx.lineCap = 'round'; targetCtx.lineJoin = 'round';
-            targetCtx.globalCompositeOperation = 'source-over';
-            targetCtx.strokeStyle = color; targetCtx.lineWidth = size;
-            const w = x2 - x1; const h = y2 - y1;
-            targetCtx.beginPath();
-            if (type === 'line' || type === 'arrow') {
-                targetCtx.moveTo(x1, y1); targetCtx.lineTo(x2, y2); targetCtx.stroke();
-                if (type === 'arrow') drawArrowHead(targetCtx, x1, y1, x2, y2, size);
-            } else if (type === 'rect') {
-                targetCtx.strokeRect(Math.min(x1,x2), Math.min(y1,y2), Math.abs(w), Math.abs(h));
-            } else if (type === 'circle') {
-                const r = Math.hypot(w, h); targetCtx.arc(x1, y1, r, 0, 2*Math.PI); targetCtx.stroke();
-            }
-            targetCtx.restore();
-        }
-
-        function drawArrowHead(ctxT, x1, y1, x2, y2, size) {
-            const angle = Math.atan2(y2-y1, x2-x1); const head = Math.max(15, size * 3);
-            ctxT.beginPath(); ctxT.moveTo(x2, y2);
-            ctxT.lineTo(x2 - head*Math.cos(angle-Math.PI/6), y2 - head*Math.sin(angle-Math.PI/6));
-            ctxT.moveTo(x2, y2);
-            ctxT.lineTo(x2 - head*Math.cos(angle+Math.PI/6), y2 - head*Math.sin(angle+Math.PI/6));
-            ctxT.stroke();
-        }
-
-        function processRemoteCommand(data) {
-            if (data.type === 'sync_timer') {
-                startTimer(data.startTime);
-                return;
-            }
-            if (data.userName && data.peerId && data.type !== 'logout') {
-                roomUsers[data.peerId] = { name: data.userName, role: data.role };
-            }
-            if (data.type === 'sync_users') {
-                roomUsers = { ...roomUsers, ...data.users };
-                renderParticipants();
-                return;
-            }
-            if (data.type === 'permissions') {
-                if (!isAdmin) {
-                    window.studentsCanShare = data.canShare;
-                    if (data.canShare) {
-                        document.body.classList.add('students-unlocked');
-                    } else {
-                        document.body.classList.remove('students-unlocked');
-                        if (isPdfSynced) {
-                            isPdfSynced = false;
-                            const btn = document.getElementById('btn-sync-pdf');
-                            if(btn) { btn.style.background = '#4b5563'; btn.innerText = '👀 Local'; }
-                        }
-                    }
-                }
-                return;
-            }
-            if (data.type === 'hello') {
-                return; 
-            }
-            if (data.type === 'kick') {
-                alert("El profesor te ha desconectado de la clase.");
-                window.location.reload();
-                return;
-            }
-            if (data.type === 'pdf_share') {
-                currentPdfData = data.data;
-                const base64Data = data.data.split(',')[1];
-                const binary = atob(base64Data);
-                const len = binary.length;
-                const buffer = new ArrayBuffer(len);
-                const view = new Uint8Array(buffer);
-                for (let i = 0; i < len; i++) {
-                    view[i] = binary.charCodeAt(i);
-                }
-                pdfjsLib.getDocument({ data: view }).promise.then(doc => {
-                    pdfDoc = doc;
-                    pageNum = data.page || 1;
-                    pdfScale = 2.0;
-                    document.getElementById('pdf-panel').style.display = 'flex';
-                    renderPage(pageNum);
-                });
-                isPdfSynced = true;
-                const btn = document.getElementById('btn-sync-pdf');
-                if(btn) { btn.style.background = '#10b981'; btn.innerText = '📡 Sincronizado'; }
-                return;
-            }
-            if (data.type === 'pdf_page') {
-                if (pdfDoc) {
-                    pageNum = data.page;
-                    renderPage(pageNum);
-                }
-                return;
-            }
-            if (data.type === 'pdf_stop') {
-                document.getElementById('pdf-panel').style.display = 'none';
-                pdfDoc = null;
-                isPdfSynced = false;
-                const btn = document.getElementById('btn-sync-pdf');
-                if(btn) { btn.style.background = '#4b5563'; btn.innerText = '👀 Local'; }
-                return;
-            }
-            if (data.type === 'video_share') {
-                document.getElementById('video-frame').src = data.url;
-                document.getElementById('video-panel').style.display = 'flex';
-                const ctrlArea = document.getElementById('video-controls-area');
-                if(ctrlArea) ctrlArea.style.display = 'none';
-                return;
-            }
-            if (data.type === 'video_stop') {
-                document.getElementById('video-frame').src = '';
-                document.getElementById('video-panel').style.display = 'none';
-                const ctrlArea = document.getElementById('video-controls-area');
-                if(ctrlArea) ctrlArea.style.display = 'flex';
-                return;
-            }
-            if (data.type === 'theme') {
-                applyTheme(data.theme);
-                return;
-            }
-            if (data.type === 'clear') { 
-                const mCtx = document.getElementById('board').getContext('2d');
-                mCtx.clearRect(0, 0, canvas.width, canvas.height); 
-                return; 
-            }
-            if (data.type === 'logout') {
-                alert("El profesor ha finalizado y cerrado la sesión.");
-                window.location.reload();
-                return;
-            }
-            if (data.type === 'peer_list') {
-                data.peers.forEach(pId => {
-                    if (pId !== peer.id && localStream) {
-                        setTimeout(() => {
-                            const call = peer.call(pId, localStream);
-                            if(call) call.on('stream', (stream) => playAudio(stream, pId));
-                        }, Math.random() * 500 + 500); 
-                    }
-                });
-                return;
-            }
-            
-            if (data.type === 'laser') {
-                if(data.lastPosX !== undefined && typeof drawLaserFade === 'function') {
-                    window.laserPathsGlobal.push({ x1: data.lastPosX * canvas.width, y1: data.lastPosY * canvas.width, x2: data.x * canvas.width, y2: data.y * canvas.width, cX: data.x * canvas.width, cY: data.y * canvas.width, time: Date.now() });
-                    if(!window.isLaserFadingGlobal) {
-                        window.isLaserFadingGlobal = true;
-                        requestAnimationFrame(window.drawLaserFadeGlobal);
-                    }
-                }
-                updateRemoteCursor(data);
-                return; 
-            }
-            
-            if (data.type === 'start') { 
-                updateRemoteCursor(data);
-                return; 
-            }
-            if (data.type === 'stop') { return; }
-            if (data.type === 'image') {
-                const img = new Image();
-                img.onload = () => { 
-                    const mCtx = document.getElementById('board').getContext('2d');
-                    mCtx.globalAlpha=1; 
-                    mCtx.drawImage(img, data.x * canvas.width, data.y * canvas.width, data.w * canvas.width, data.h * canvas.width); 
-                };
-                img.src = data.src; return;
-            }
-            if (data.type === 'shape') {
-                const mCtx = document.getElementById('board').getContext('2d');
-                drawShapeExact(mCtx, data.shape, data.x1 * canvas.width, data.y1 * canvas.width, data.x2 * canvas.width, data.y2 * canvas.width, data.color, data.size * canvas.width);
-                return;
-            }
-            if (data.type === 'stroke') {
-                updateRemoteCursor(data);
-                const mCtx = document.getElementById('board').getContext('2d');
-                const finalSize = data.size * canvas.width;
-                const isChalk = document.body.classList.contains('theme-chalkboard');
-                
-                mCtx.beginPath();
-                mCtx.moveTo(data.lastMidX * canvas.width, data.lastMidY * canvas.width);
-                mCtx.quadraticCurveTo(data.lastPosX * canvas.width, data.lastPosY * canvas.width, data.midX * canvas.width, data.midY * canvas.width);
-
-                mCtx.lineWidth = finalSize;
-                mCtx.shadowBlur = 0;
-                mCtx.shadowColor = 'transparent';
-
-                if(data.tool === 'eraser'){
-                    mCtx.globalCompositeOperation = 'destination-out';
-                    mCtx.strokeStyle = 'rgba(0,0,0,1)';
-                    mCtx.globalAlpha = 1;
-                } else if(data.tool === 'pencil') {
-                    mCtx.globalCompositeOperation = 'source-over';
-                    mCtx.strokeStyle = data.color;
-                    mCtx.globalAlpha = 0.6; 
-                    mCtx.shadowBlur = 1;
-                    mCtx.shadowColor = data.color;
-                } else {
-                    mCtx.globalCompositeOperation = 'source-over';
-                    mCtx.strokeStyle = data.color;
-                    if (data.tool === 'marker') {
-                        mCtx.globalAlpha = 0.38;
-                    } else if (isChalk) {
-                        mCtx.globalAlpha = 0.9;
-                        mCtx.shadowBlur = 1; 
-                        mCtx.shadowColor = data.color;
-                    } else {
-                        mCtx.globalAlpha = 0.85;
-                    }
-                }
-                mCtx.stroke();
-            }
-        }
-
-        function drawRemote(data) {
-            if (data.type === 'batch') {
-                for(let i=0; i<data.data.length; i++) processRemoteCommand(data.data[i]);
-            } else {
-                processRemoteCommand(data);
-            }
-            
-            if (isAdmin) {
-                connections.forEach(conn => {
-                    if (conn.open && conn.peer !== data.peerId) {
-                        conn.send(data);
-                    }
-                });
-            }
-        }
-
-        async function createRoom() {
-            await getMicrophone();
-            document.getElementById('main-toolbar').style.display = 'flex';
-            
-            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
-            peer = new Peer('MBPRO_' + randomCode, peerNetworkOptions);
-            
-            setupPeerAudio(peer);
-
-            peer.on('open', (id) => {
-                document.getElementById('login-overlay').style.opacity = '0';
-                setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
-                document.getElementById('main-toolbar').style.display = 'flex';
-
-                document.getElementById('ui-panel').style.display = 'block';
-                const codeDisplay = document.getElementById('room-code-display');
-                codeDisplay.innerText = randomCode; 
-                codeDisplay.style.display = 'block';
-                
-                roomUsers[peer.id] = { name: myName, role: 'Profesor' };
-                renderParticipants();
-                setInterval(renderParticipants, 2000);
-                
-                classStartTime = Date.now();
-                startTimer(classStartTime);
-                
-                setTimeout(() => { 
-                    const uiPanel = document.getElementById('ui-panel');
-                    if(uiPanel) {
-                        uiPanel.style.opacity = '0'; 
-                        setTimeout(() => uiPanel.style.display = 'none', 1000); 
-                    }
-                }, 40000); 
-            });
-
-            peer.on('connection', (conn) => { 
-                conn.on('open', () => {
-                    const activePeers = connections.filter(c => c.open).map(c => c.peer);
-                    if (activePeers.length > 0) {
-                        conn.send({ type: 'peer_list', peers: activePeers });
-                    }
-                    const currentTheme = ['theme-grid', 'theme-whiteboard', 'theme-chalkboard'].find(t => document.body.classList.contains(t)) || 'theme-grid';
-                    conn.send({ type: 'theme', theme: currentTheme });
-                    conn.send({ type: 'permissions', canShare: window.studentsCanShare });
-                    conn.send({ type: 'sync_timer', startTime: classStartTime });
-                    
-                    if (isPdfSynced && currentPdfData) {
-                        conn.send({ type: 'pdf_share', data: currentPdfData, page: pageNum });
-                    }
-                    
-                    connections.push(conn); 
-                });
-                conn.on('data', drawRemote); 
-            });
-
-            peer.on('error', (err) => {
-                console.error("Error del Profesor:", err);
-                if (err.type === 'unavailable-id') {
-                    alert("Error de red. Ese código está atascado en el servidor. Recargando...");
-                    window.location.reload();
-                }
-            });
-        }
-
-        async function joinRoom() {
-            const roomIdInput = document.getElementById('roomIdInput');
-            const roomId = roomIdInput.value.toUpperCase().trim();
-            if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
-            
-            myName = document.getElementById('studentName').value.trim() || 'Alumno';
-            
-            const btn = document.querySelector('#form-student .btn-student');
-            const originalText = btn.innerText;
-            btn.innerText = "Conectando al Profesor...";
-            btn.disabled = true;
-
-            await getMicrophone();
-            peer = new Peer(peerNetworkOptions);
-            
-            setupPeerAudio(peer);
-
-            peer.on('open', () => {
-                const targetId = 'MBPRO_' + roomId;
-                const conn = peer.connect(targetId, { reliable: true }); 
-                
-                conn.on('open', () => {
-                    connections.push(conn);
-                    conn.on('data', drawRemote);
-                    
-                    document.getElementById('login-overlay').style.opacity = '0';
-                    setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
-                    document.getElementById('main-toolbar').style.display = 'flex';
-                    
-                    document.body.classList.add('student-mode');
-                    
-                    roomUsers[peer.id] = { name: myName, role: 'Alumno' };
-                    conn.send({ type: 'hello', userName: myName, role: userRole });
-                    
-                    setTimeout(() => {
-                        if(localStream) { 
-                            const call = peer.call(targetId, localStream); 
-                            if(call) call.on('stream', (stream) => playAudio(stream, targetId)); 
-                        }
-                    }, 1000);
-                });
-            });
-
-            peer.on('error', (err) => {
-                console.error("Error del Alumno:", err);
-                btn.innerText = originalText;
-                btn.disabled = false;
-                
-                if (err.type === 'peer-unavailable') {
-                    alert("No se encontró al profesor. Verifica que el código sea correcto y que el profesor ya esté en la pizarra.");
-                } else if (err.type === 'network' || err.type === 'server-error') {
-                    alert("Falla en el servidor PeerJS. Intenta de nuevo.");
-                }
-            });
-        }
-
         function disableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'none'); }
         function enableIframes() { document.querySelectorAll('iframe').forEach(f => f.style.pointerEvents = 'auto'); }
 
@@ -2332,8 +1764,8 @@ window.isLaserFadingGlobal = false;
   const laserCanvas = document.getElementById('laser-board');
   if(!board || !laserCanvas) return;
 
-  const mCtx = board.getContext('2d', {desynchronized: true, alpha: true});
-  const lCtx = laserCanvas.getContext('2d');
+  const mCtx = board.getContext('2d', {desynchronized: true, alpha: true, willReadFrequently: false});
+  const lCtx = laserCanvas.getContext('2d', {alpha: true});
 
   let mwMode = 'pen';
   let mwSize = 5;
@@ -2500,7 +1932,7 @@ window.isLaserFadingGlobal = false;
         let dy = p.y - mwLastPosY;
         let dist = Math.hypot(dx, dy);
         
-        smoothedSpeed = smoothedSpeed * 0.8 + dist * 0.2;
+        smoothedSpeed = smoothedSpeed * 0.6 + dist * 0.4;
         let speedFactor = Math.max(0.2, 1 - (smoothedSpeed / 50)); 
         
         let rawPressure = e.pointerType === 'pen' ? e.pressure : speedFactor;
@@ -2633,6 +2065,80 @@ window.isLaserFadingGlobal = false;
 
   const clearBtn = document.getElementById('mw-clear');
   clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
+  
+  // ================= GRABACIÓN AVANZADA MP4 (Video Compuesto HD Puro) =================
+  let mediaRecorder; let recordedChunks = []; let isRecording = false;
+  let recordingLoop;
+  let recCanvas = document.createElement('canvas');
+  let recCtx = recCanvas.getContext('2d', { alpha: false });
+
+  window.toggleRecording = function() { if (!isRecording) startRecording(); else stopRecording(); }
+  
+  function startRecording() {
+      if (!audioDestination) { alert("Audio no inicializado."); return; }
+      
+      recCanvas.width = canvas.width;
+      recCanvas.height = canvas.height;
+      const isChalk = document.body.classList.contains('theme-chalkboard');
+      const isGrid = document.body.classList.contains('theme-grid');
+      
+      isRecording = true;
+      
+      function keepRecordingAlive() {
+          if (!isRecording) return;
+          
+          recCtx.fillStyle = isChalk ? '#1e5631' : '#ffffff';
+          recCtx.fillRect(0, 0, recCanvas.width, recCanvas.height);
+          
+          if (isGrid || isChalk) {
+              recCtx.strokeStyle = isChalk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+              recCtx.lineWidth = 1.5;
+              recCtx.beginPath();
+              for(let x=0; x<recCanvas.width; x+=35) { recCtx.moveTo(x,0); recCtx.lineTo(x,recCanvas.height); }
+              for(let y=0; y<recCanvas.height; y+=35) { recCtx.moveTo(0,y); recCtx.lineTo(recCanvas.width,y); }
+              recCtx.stroke();
+          }
+
+          recCtx.drawImage(canvas, 0, 0);
+          recCtx.drawImage(laserCanvas, 0, 0);
+          
+          recordingLoop = requestAnimationFrame(keepRecordingAlive);
+      }
+      keepRecordingAlive();
+
+      const canvasStream = recCanvas.captureStream(30); 
+      let combinedStream;
+      if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
+          combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
+      } else {
+          combinedStream = canvasStream;
+      }
+      
+      const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
+      if (!MediaRecorder.isTypeSupported(options.mimeType)) {
+          options.mimeType = 'video/webm;codecs=vp9';
+          if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
+      }
+
+      mediaRecorder = new MediaRecorder(combinedStream, options);
+      mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
+      mediaRecorder.onstop = () => {
+          cancelAnimationFrame(recordingLoop); 
+          const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
+          URL.revokeObjectURL(url); recordedChunks = [];
+      };
+      mediaRecorder.start();
+      document.getElementById('btn-record').classList.add('record-active');
+  }
+  
+  function stopRecording() { 
+      mediaRecorder.stop(); 
+      isRecording = false; 
+      document.getElementById('btn-record').classList.remove('record-active'); 
+  }
+  
 })();
 </script>
 
