@@ -533,7 +533,7 @@
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
             <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
-            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4" class="hide-mobile">⏺️</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4/WebM" class="hide-mobile">⏺️</button>
             <button onclick="logoutSession()" title="Cerrar Sesión para Todos" class="danger-btn" style="background:#dc2626;">🚪</button>
             
             <div class="toolbar-divider"></div>
@@ -568,7 +568,6 @@
         <div id="participants-chip" style="display:none;" title="Usuarios conectados"></div>
 
         <button type="button" id="mw-undo" title="Deshacer último trazo [Z]">↩️</button>
-        <!-- BOTONES CORREGIDOS SIN DOBLE ONCLICK -->
         <button type="button" id="mw-clear" onclick="clearCanvas()" title="Limpiar Pizarra Absoluto [Supr]" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
@@ -1840,7 +1839,7 @@
         }
         window.saveAsPDF = saveAsPDF;
 
-        // ================= GRABACIÓN AVANZADA MP4 =================
+        // ================= GRABACIÓN AVANZADA MP4 / WEBM =================
         let mediaRecorder; 
         let recordedChunks = []; 
         let isRecording = false;
@@ -1853,9 +1852,12 @@
         window.toggleRecording = toggleRecording;
         
         function startRecording() {
-            // Permitir grabar la pizarra aunque el micrófono falle o no esté conectado
-            if (!audioDestination) { 
-                console.warn("Grabando sin audio: Micrófono no inicializado o denegado."); 
+            // Verificar si el micrófono directo está disponible
+            let audioTracks = [];
+            if (localStream && localStream.getAudioTracks().length > 0) {
+                audioTracks = localStream.getAudioTracks();
+            } else {
+                console.warn("Grabando sin audio: Micrófono no detectado o sin permisos.");
             }
             
             isRecording = true;
@@ -1863,28 +1865,25 @@
             
             keepRecordingAlive(); 
             
+            // Unir el video de la pizarra con el audio directo del micrófono
             const canvasStream = compositeCanvas.captureStream(30);
-            let combinedStream;
+            const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioTracks ]);
             
-            // Verifica de forma segura si hay pistas de audio disponibles
-            if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
-                combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
-            } else {
-                combinedStream = canvasStream; // Graba solo el video de la pizarra
-            }
-            
-            const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
+            // Asegurar formato compatible con audio (WebM con VP9/Opus es el estándar nativo más seguro)
+            const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 4000000 }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                options.mimeType = 'video/webm;codecs=vp9';
-                if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
+                options.mimeType = 'video/webm';
             }
 
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/mp4' });
+                // Guardarlo como WebM asegura que el audio y video no se desfasen ni se pierdan
+                const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
+                const a = document.createElement('a'); a.href = url; 
+                a.download = 'Clase_MathBoard.webm'; 
+                a.click();
                 URL.revokeObjectURL(url); recordedChunks = [];
             };
             mediaRecorder.start(); 
@@ -2830,7 +2829,7 @@ window.isLaserFadingGlobal = false;
             mCtx.globalAlpha = 1;
         } else if(mwMode === 'pencil') {
             mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
+            mCtx.strokeStyle = data.color;
             mCtx.globalAlpha = 0.6; 
             mCtx.shadowBlur = 1;
             mCtx.shadowColor = inkColor;
@@ -2890,7 +2889,7 @@ window.isLaserFadingGlobal = false;
     }
     try{ 
         if(mwMode === 'laser') laserCanvas.releasePointerCapture(ev.pointerId);
-        else board.releasePointerCapture(ev.pointerId); 
+        else board.setPointerCapture(ev.pointerId); 
     }catch(e){}
   }
 
