@@ -489,6 +489,13 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         <div id="dola-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
             <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
+        
+        <!-- Esquinas para estirar Dola añadidas aquí -->
+        <div class="resize-corner nw-resize" data-dir="nw"></div>
+        <div class="resize-corner ne-resize" data-dir="ne"></div>
+        <div class="resize-corner sw-resize" data-dir="sw"></div>
+        <div class="resize-corner se-resize" data-dir="se"></div>
+
         <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
@@ -2497,14 +2504,17 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-header'));
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-footer'));
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
+        makeDraggable(document.getElementById('dola-panel'), document.getElementById('dola-header'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
+        makePanelResizable('dola-panel', 'dola-resize-handle');
         
         makePanelCornersResizable('video-panel');
         makePanelCornersResizable('pdf-panel');
+        makePanelCornersResizable('dola-panel');
 
         // Sistema especial para estirar el recorte desde las 4 esquinas independientemente
         const stamper = document.getElementById('stamper');
