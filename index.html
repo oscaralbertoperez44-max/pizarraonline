@@ -3443,5 +3443,196 @@ function init(){const dock=$('mbu-dock');if(dock)dock.style.display='flex';docum
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();
-</script></body>
+</script>
+<!-- ================= ULTIMATE v4.1 — VENTANAS + PIZARRA ================= -->
+<style id="mbu-v41-style">
+  /* Ventanas verdaderamente libres: nunca quedan atrapadas detrás del lienzo */
+  .floating-panel.mbu-v41-window{
+    position:fixed !important;
+    margin:0 !important;
+    transform:none !important;
+    will-change:left,top,width,height;
+    touch-action:none;
+  }
+  .floating-panel.mbu-v41-window.mbu-dragging{
+    transition:none !important;
+    user-select:none !important;
+  }
+  .floating-panel.mbu-v41-window.mbu-front{ z-index:10000 !important; }
+  #stamper.mbu-v41-window{z-index:10050 !important;}
+  #stamper.mbu-v41-window #stamper-header{cursor:grab;pointer-events:auto;}
+  #stamper.mbu-v41-window.mbu-dragging #stamper-header{cursor:grabbing;}
+  .mbu-v41-drag-zone{cursor:grab !important;}
+  .mbu-v41-drag-zone:active{cursor:grabbing !important;}
+  /* HUD discreto para la pizarra */
+  #mbu-board-hud{
+    position:fixed;left:50%;bottom:16px;transform:translateX(-50%);
+    z-index:9000;display:flex;align-items:center;gap:6px;padding:7px 9px;
+    border:1px solid rgba(148,163,184,.35);border-radius:18px;
+    background:rgba(15,23,42,.88);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    box-shadow:0 10px 30px rgba(0,0,0,.25);color:#e5e7eb;font:600 12px system-ui;
+    opacity:.78;transition:opacity .18s,transform .18s;
+  }
+  #mbu-board-hud:hover{opacity:1;}
+  #mbu-board-hud button{border:0;border-radius:10px;background:rgba(255,255,255,.1);color:#fff;padding:6px 9px;cursor:pointer;font:inherit;}
+  #mbu-board-hud button:hover{background:rgba(255,255,255,.18);}
+  #mbu-board-hud .mbu-v41-zoom{min-width:52px;text-align:center;}
+  #mbu-board-hud .mbu-v41-sep{width:1px;height:20px;background:rgba(255,255,255,.15);margin:0 2px;}
+  #mbu-board-hud.mbu-hidden{display:none;}
+  body.mbu-v41-presentation #mbu-board-hud{opacity:.18;}
+  body.mbu-v41-presentation #mbu-board-hud:hover{opacity:1;}
+  /* Pizarra más limpia y fluida */
+  #canvas-container{touch-action:none;}
+  #board,#laser-board{touch-action:none;}
+  .mbu-v41-board-focus #board{cursor:crosshair;}
+  @media(max-width:700px){
+    #mbu-board-hud{bottom:8px;max-width:calc(100vw - 16px);overflow:auto;}
+    #mbu-board-hud button{padding:6px 8px;}
+  }
+</style>
+<script id="mbu-v41-js">
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
+  let z=10100;
+
+  /* ---------- Ventanas: arrastre universal ---------- */
+  function makeFreeWindow(panel){
+    if(!panel || panel.__mbuV41) return;
+    panel.__mbuV41=true;
+    panel.classList.add('mbu-v41-window');
+    const handle = panel.id==='stamper'
+      ? panel
+      : (panel.querySelector('.panel-header,.window-header,.modal-header,.f-tab-header,[data-drag-handle]') || panel.firstElementChild || panel);
+    if(handle) handle.classList.add('mbu-v41-drag-zone');
+    panel.addEventListener('pointerdown',e=>{
+      /* Solo arrastrar desde una zona de ventana; el estampador permite arrastrar desde su cabecera/imagen. */
+      const isStamper=panel.id==='stamper';
+      const inHeader=!!e.target.closest('.panel-header,.window-header,.modal-header,.f-tab-header,[data-drag-handle],#stamper-header');
+      const inStampImage=isStamper && !!e.target.closest('#stamper-content,#stamp-img');
+      if(!isStamper && !inHeader) return;
+      if(isStamper && !(inHeader||inStampImage)) return;
+      if(e.target.closest('button,input,textarea,select,a,.resize-corner,.resize-handle,#stamp-crop-overlay,#crop-overlay')) return;
+      if(e.button!==undefined && e.button!==0) return;
+      e.preventDefault();
+      e.stopPropagation();
+      if(e.stopImmediatePropagation) e.stopImmediatePropagation();
+      bringFront(panel);
+      const r=panel.getBoundingClientRect();
+      const sx=e.clientX, sy=e.clientY, sl=r.left, st=r.top;
+      panel.classList.add('mbu-dragging');
+      try{panel.setPointerCapture(e.pointerId);}catch(_){ }
+      const move=ev=>{
+        ev.preventDefault();
+        let left=sl+(ev.clientX-sx), top=st+(ev.clientY-sy);
+        /* Permite recorrer toda la pantalla, pero deja siempre una pequeña zona para recuperarla. */
+        const visible=28;
+        left=clamp(left,visible-panel.offsetWidth,window.innerWidth-visible);
+        top=clamp(top,0,window.innerHeight-visible);
+        panel.style.left=Math.round(left)+'px';
+        panel.style.top=Math.round(top)+'px';
+      };
+      const end=ev=>{
+        panel.classList.remove('mbu-dragging');
+        try{panel.releasePointerCapture(e.pointerId);}catch(_){ }
+        panel.removeEventListener('pointermove',move);
+        panel.removeEventListener('pointerup',end);
+        panel.removeEventListener('pointercancel',end);
+      };
+      panel.addEventListener('pointermove',move,{passive:false});
+      panel.addEventListener('pointerup',end,{once:true});
+      panel.addEventListener('pointercancel',end,{once:true});
+    },true);
+    panel.addEventListener('pointerdown',()=>bringFront(panel),true);
+  }
+  function bringFront(panel){
+    z=Math.min(z+1,20000); panel.style.zIndex=z; panel.classList.add('mbu-front');
+    document.querySelectorAll('.floating-panel.mbu-front').forEach(p=>{if(p!==panel)p.classList.remove('mbu-front');});
+  }
+  function initWindows(){
+    document.querySelectorAll('.floating-panel').forEach(makeFreeWindow);
+    const s=$('stamper'); if(s) makeFreeWindow(s);
+  }
+
+  /* ---------- HUD de pizarra ---------- */
+  function installBoardHud(){
+    if($('mbu-board-hud')) return;
+    const hud=document.createElement('div'); hud.id='mbu-board-hud';
+    hud.innerHTML=`
+      <button title="Alejar" data-act="out">−</button>
+      <span class="mbu-v41-zoom" id="mbu-v41-zoom">100%</span>
+      <button title="Acercar" data-act="in">+</button>
+      <span class="mbu-v41-sep"></span>
+      <button title="Restablecer vista" data-act="reset">⛶</button>
+      <button title="Cuadrícula" data-act="grid">▦</button>
+      <button title="Ejes cartesianos" data-act="axes">⌗</button>
+      <button title="Ocultar controles" data-act="hide">×</button>`;
+    document.body.appendChild(hud);
+    hud.addEventListener('click',e=>{
+      const b=e.target.closest('button'); if(!b)return;
+      const a=b.dataset.act;
+      if(a==='in') boardZoom(1.1);
+      if(a==='out') boardZoom(1/1.1);
+      if(a==='reset') boardReset();
+      if(a==='grid') toggleInstrument('grid');
+      if(a==='axes') toggleInstrument('axes');
+      if(a==='hide') hud.classList.add('mbu-hidden');
+    });
+    updateZoomLabel();
+  }
+  function boardZoom(f){
+    if(window.MBU && typeof window.MBU.zoom==='function') window.MBU.zoom(f);
+    else {
+      const c=$('board'); if(!c)return;
+      const cur=parseFloat(c.dataset.mbuZoom||'1'); const n=clamp(cur*f,.5,3);
+      c.dataset.mbuZoom=n; c.style.transformOrigin='center center'; c.style.transform=`scale(${n})`;
+    }
+    updateZoomLabel();
+  }
+  function boardReset(){
+    if(window.MBU && typeof window.MBU.resetView==='function') window.MBU.resetView();
+    else {const c=$('board');if(c)c.style.transform='none';}
+    updateZoomLabel();
+  }
+  function updateZoomLabel(){
+    const e=$('mbu-v41-zoom'); if(!e)return;
+    const c=$('board'); let n=1;
+    if(c && c.style.transform && c.style.transform.includes('scale(')){
+      const m=c.style.transform.match(/scale\(([^)]+)\)/); if(m)n=parseFloat(m[1])||1;
+    } else if(c && c.dataset.mbuZoom)n=parseFloat(c.dataset.mbuZoom)||1;
+    e.textContent=Math.round(n*100)+'%';
+  }
+  function toggleInstrument(kind){
+    if(window.MBU && typeof window.MBU.instrument==='function') window.MBU.instrument(kind);
+    else return;
+  }
+  window.addEventListener('resize',()=>{
+    document.querySelectorAll('.floating-panel.mbu-v41-window').forEach(p=>{
+      const r=p.getBoundingClientRect();
+      p.style.left=clamp(r.left,8,Math.max(8,window.innerWidth-28))+'px';
+      p.style.top=clamp(r.top,0,Math.max(0,window.innerHeight-28))+'px';
+    });
+    updateZoomLabel();
+  });
+
+  /* Reaplicar después de que la aplicación original cree/reconfigure ventanas. */
+  const boot=()=>{initWindows();installBoardHud();};
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true}); else boot();
+  setTimeout(boot,500); setTimeout(boot,1500);
+
+  /* Atajos útiles para la pizarra */
+  window.addEventListener('keydown',e=>{
+    if(e.target && /INPUT|TEXTAREA|SELECT/.test(e.target.tagName))return;
+    if((e.ctrlKey||e.metaKey) && (e.key==='='||e.key==='+')){e.preventDefault();boardZoom(1.1);}
+    if((e.ctrlKey||e.metaKey) && e.key==='-'){e.preventDefault();boardZoom(1/1.1);}
+    if((e.ctrlKey||e.metaKey) && e.key==='0'){e.preventDefault();boardReset();}
+    if(e.key==='Escape'){$('mbu-board-hud')?.classList.remove('mbu-hidden');}
+  });
+
+  /* Exponer una pequeña API de diagnóstico */
+  window.MathBoardUltimateV41={version:'4.1',windows:()=>document.querySelectorAll('.floating-panel').length,bringFront};
+})();
+</script>
+</body>
 </html>
