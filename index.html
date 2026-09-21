@@ -163,9 +163,18 @@
         #stamp-crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.3); pointer-events: none; display: none; }
 
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px; -webkit-user-drag: none; image-rendering: high-quality; }
+        
+        /* Controles de Redimensión Genéricos */
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
         .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
+        
+        /* Sistema Multi-Direccional para Esquinas de Video */
+        .resize-corner { position: absolute; width: 25px; height: 25px; z-index: 99; touch-action: none; background: transparent; }
+        .nw-resize { top: -5px; left: -5px; cursor: nw-resize; }
+        .ne-resize { top: -5px; right: -5px; cursor: ne-resize; }
+        .sw-resize { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .se-resize { bottom: -5px; right: -5px; cursor: se-resize; }
         
         .stamper-toolbar { position: absolute; top: 100%; left: 50%; transform: translateX(-50%); margin-top: 12px; display: flex; gap: 6px; background: rgba(30,30,30,0.97); padding: 6px 9px; border-radius: 20px; border: 1px solid #555; white-space: nowrap; z-index: 50; }
         
@@ -267,7 +276,13 @@
 
 
         <div class="login-box">
-            <div class="login-title">🇦🇷 Clases de matemática Online</div>
+            <div class="login-title">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600" width="38" height="26" style="vertical-align: text-bottom; margin-right: 6px; border-radius: 4px; box-shadow: 0 2px 6px rgba(0,0,0,0.8);">
+                    <rect width="900" height="600" fill="#74ACDF"/>
+                    <rect y="200" width="900" height="200" fill="#FFFFFF"/>
+                    <circle cx="450" cy="300" r="45" fill="#F6B40E"/>
+                </svg>Clases de Matemática Online
+            </div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
             <div id="role-selection">
                 <button class="role-btn btn-student" onclick="showStudentForm()">🙋‍♂️ Soy Alumno</button>
@@ -354,7 +369,12 @@
         </div>
         <!-- Nueva barra inferior para arrastrar el panel de video -->
         <div id="video-footer" style="height: 15px; background: #222; cursor: move; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px; border-top: 1px solid #444; width: 100%; display: flex; justify-content: center; align-items: center;" title="Arrastrar desde aquí"><div style="width: 40px; height: 4px; background: #555; border-radius: 2px;"></div></div>
-        <div class="resize-handle resize-handle-panel" id="video-resize-handle" title="Arrastra para redimensionar"></div>
+        
+        <!-- Esquinas invisibles de redimensionamiento multi-direccional exclusivas del video -->
+        <div class="resize-corner nw-resize" data-dir="nw"></div>
+        <div class="resize-corner ne-resize" data-dir="ne"></div>
+        <div class="resize-corner sw-resize" data-dir="sw"></div>
+        <div class="resize-corner se-resize" data-dir="se"></div>
     </div>
 
     <!-- Gestor de Archivos y Buscador de PDFs -->
@@ -2279,6 +2299,45 @@
             window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
         }
 
+        // Sistema especial para estirar desde las 4 esquinas (exclusivo para el video)
+        function makePanelCornersResizable(panelId) {
+            const panel = document.getElementById(panelId);
+            if(!panel) return;
+            const corners = panel.querySelectorAll('.resize-corner');
+            corners.forEach(corner => {
+                let isR = false, sW, sH, sX, sY, sTop, sLeft;
+                const dir = corner.getAttribute('data-dir');
+                corner.addEventListener('pointerdown', e => {
+                    e.preventDefault(); e.stopPropagation();
+                    isR = true;
+                    sW = panel.offsetWidth; sH = panel.offsetHeight;
+                    sX = e.clientX; sY = e.clientY;
+                    sTop = panel.offsetTop; sLeft = panel.offsetLeft;
+                    disableIframes();
+                });
+                window.addEventListener('pointermove', e => {
+                    if(!isR) return;
+                    let dx = e.clientX - sX;
+                    let dy = e.clientY - sY;
+                    let newW = sW, newH = sH, newTop = sTop, newLeft = sLeft;
+                    
+                    if(dir.includes('e')) newW = sW + dx;
+                    if(dir.includes('s')) newH = sH + dy;
+                    if(dir.includes('w')) { newW = sW - dx; newLeft = sLeft + dx; }
+                    if(dir.includes('n')) { newH = sH - dy; newTop = sTop + dy; }
+                    
+                    if(newW > 280) { panel.style.width = newW + 'px'; panel.style.left = newLeft + 'px'; }
+                    if(newH > 220) { 
+                        panel.style.height = newH + 'px'; panel.style.top = newTop + 'px'; 
+                        panel.style.maxHeight = 'none';
+                        const container = panel.querySelector('div[id$="-render-container"]');
+                        if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
+                    }
+                });
+                window.addEventListener('pointerup', () => { if(isR) { isR = false; enableIframes(); } });
+            });
+        }
+
         function toggleMaximize(panelId) {
             const panel = document.getElementById(panelId);
             if (!panel) return;
@@ -2322,7 +2381,9 @@
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
-        makePanelResizable('video-panel', 'video-resize-handle');
+        
+        // Aplica el redimensionamiento de 4 esquinas exclusivamente al video
+        makePanelCornersResizable('video-panel');
 
         const resizeHandleStamper = document.getElementById('resize-handle');
         const stamperContent = document.getElementById('stamper-content');
