@@ -83,16 +83,32 @@
             white-space: nowrap;
         }
 
-        /* Pantalla de Inicio con Fondo Verde Matemático Premium */
+        /* Pantalla de Inicio Premium con Citas en Blanco */
         #login-overlay { 
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background-color: rgba(30, 86, 49, 0.96); /* Verde Pizarrón */
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' opacity='0.35'%3E%3Cg fill='%23ffffff' font-family='Georgia, serif' font-style='italic'%3E%3Ctext x='10%25' y='15%25' font-size='28'%3E%E2%88%AB e%5E%7B-x%C2%B2%7D dx = %E2%88%9A%CF%80%3C/text%3E%3Ctext x='70%25' y='25%25' font-size='28'%3E%E2%88%87 \u00D7 E = -%E2%88%82B/%E2%88%82t%3C/text%3E%3Ctext x='35%25' y='75%25' font-size='28'%3Ee%5E%7Bi%CF%80%7D + 1 = 0%3C/text%3E%3Ctext x='5%25' y='85%25' font-size='28'%3EE = mc%C2%B2%3C/text%3E%3Ctext x='60%25' y='85%25' font-size='28'%3E%E2%88%91 n = n(n+1)/2%3C/text%3E%3Ctext x='80%25' y='50%25' font-size='28'%3Ea%C2%B2 + b%C2%B2 = c%C2%B2%3C/text%3E%3Ctext x='30%25' y='90%25' font-size='28'%3E%CE%94S %E2%89%A5 0%3C/text%3E%3Ctext x='40%25' y='15%25' font-size='28'%3Ex = (-b %C2%B1 %E2%88%9A(b%C2%B2-4ac))/2a%3C/text%3E%3Ctext x='5%25' y='40%25' font-size='22'%3E%22La esencia de las matem%C3%A1ticas es su libertad%22 - Cantor%3C/text%3E%3Ctext x='45%25' y='35%25' font-size='22'%3E%22Donde hay materia%2C hay geometr%C3%ADa%22 - Kepler%3C/text%3E%3Ctext x='40%25' y='55%25' font-size='22'%3E%22El universo est%C3%A1 escrito en lenguaje matem%C3%A1tico%22 - Galileo%3C/text%3E%3Ctext x='15%25' y='65%25' font-size='22'%3E%22La matem%C3%A1tica es la m%C3%BAsica de la raz%C3%B3n%22 - Sylvester%3C/text%3E%3Ctext x='55%25' y='10%25' font-size='22'%3E%22La matem%C3%A1tica es la reina de las ciencias%22 - Gauss%3C/text%3E%3Ctext x='10%25' y='30%25' font-size='22'%3E%22Dios us%C3%B3 hermosas matem%C3%A1ticas al crear el mundo%22 - Dirac%3C/text%3E%3Ctext x='50%25' y='75%25' font-size='22'%3E%22En matem%C3%A1ticas te acostumbras a las cosas%22 - von Neumann%3C/text%3E%3C/g%3E%3C/svg%3E");
+            background-color: rgba(30, 86, 49, 0.98); /* Verde Pizarrón Premium */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' opacity='0.1'%3E%3Cg fill='%23ffffff' font-family='Georgia, serif' font-style='italic'%3E%3Ctext x='15%25' y='25%25' font-size='36'%3E%E2%88%AB e%5E%7B-x%C2%B2%7D dx = %E2%88%9A%CF%80%3C/text%3E%3Ctext x='70%25' y='20%25' font-size='36'%3E%E2%88%87 \u00D7 E = -%E2%88%82B/%E2%88%82t%3C/text%3E%3Ctext x='35%25' y='75%25' font-size='36'%3Ee%5E%7Bi%CF%80%7D + 1 = 0%3C/text%3E%3Ctext x='5%25' y='80%25' font-size='36'%3EE = mc%C2%B2%3C/text%3E%3Ctext x='65%25' y='85%25' font-size='36'%3E%E2%88%91 n = n(n+1)/2%3C/text%3E%3Ctext x='80%25' y='60%25' font-size='36'%3Ea%C2%B2 + b%C2%B2 = c%C2%B2%3C/text%3E%3Ctext x='40%25' y='15%25' font-size='36'%3Ex = (-b %C2%B1 %E2%88%9A(b%C2%B2-4ac))/2a%3C/text%3E%3C/g%3E%3C/svg%3E");
             background-size: cover;
             z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); transition: opacity 0.5s; 
         }
-        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
-        .login-title { font-size: 2rem; margin-bottom: 5px; font-weight: bold; }
+        
+        .math-quote {
+            position: absolute;
+            color: #ffffff;
+            font-family: 'Georgia', serif;
+            font-size: 1.15rem;
+            font-style: italic;
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
+            pointer-events: none;
+            max-width: 260px;
+            text-align: center;
+            z-index: 1;
+            line-height: 1.4;
+        }
+        @media (max-width: 1000px) { .math-quote { display: none; } } /* Ocultar en móviles para limpieza */
+
+        .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.2); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
+        .login-title { font-size: 2.2rem; margin-bottom: 5px; font-weight: bold; }
         .login-subtitle { color: #888; margin-bottom: 25px; font-size: 0.9rem; }
         .role-btn { display: block; width: 100%; padding: 14px; margin-bottom: 12px; border-radius: 12px; font-size: 1.05rem; font-weight: bold; cursor: pointer; transition: 0.3s; border: none; }
         .btn-student { background: #2563eb; color: white; }
@@ -106,7 +122,7 @@
         .back-btn { background: transparent; color: #888; font-size: 0.9rem; margin-top: 10px; padding: 5px; border: none; cursor: pointer; }
         .back-btn:hover { color: white; }
         
-        .creator-signature { margin-top: 25px; font-size: 0.8rem; color: #aaa; border-top: 1px solid #333; padding-top: 15px; font-style: italic; letter-spacing: 0.5px;}
+        .creator-signature { margin-top: 25px; font-size: 1rem; color: #10b981; border-top: 1px solid #333; padding-top: 15px; font-weight: bold; letter-spacing: 0.5px;}
 
         #ui-panel, #main-toolbar { display: none; }
 
@@ -123,21 +139,12 @@
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; }
         
         #dola-panel { width: 750px; height: 550px; }
-        #calc-panel { width: 600px; height: 500px; }
+        #calc-panel { width: 650px; height: 600px; }
         #resources-panel { width: 450px; height: 500px; }
         #video-panel { width: 650px; height: 480px; }
         
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
-        
-        #formulas-panel { top: 80px; right: 30px; width: 480px; display: none; max-height: 85vh; overflow: hidden; }
-        .formula-tab-btns { display: flex; background: #111; overflow-x: auto; scroll-behavior: smooth; }
-        .formula-tab-btns::-webkit-scrollbar { height: 4px; }
-        .formula-tab-btns::-webkit-scrollbar-thumb { background: #555; border-radius: 4px; }
-        
-        .f-tab { background: transparent; border: none; color: #888; padding: 12px 14px; cursor: pointer; font-weight: bold; font-size: 0.85rem; border-bottom: 2px solid transparent; white-space: nowrap; }
-        .f-tab.active { color: #3b82f6; border-bottom: 2px solid #3b82f6; background: #1a1a1a; }
-        .formula-grid { display: grid; grid-template-columns: 1fr; gap: 8px; padding: 15px; overflow-y: auto; max-height: 60vh; background: #1a1a1a; }
         
         /* Motor de Recorte Seguro Libre de Bugs */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); touch-action: none; }
@@ -164,23 +171,7 @@
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         .hidden-file { display: none; }
-        #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
-        #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
-        .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
-        .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
-        .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
-        .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
-        #formula-grid-container{display:grid;grid-template-columns:1fr;gap:8px;padding-bottom:10px;}
-        .formula-card{padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);}
-        .formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;}
-        .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
-        .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
-        .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
-        
-        #formulas-panel{overscroll-behavior:contain;}
-        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
-
         /* Estilo de las Galerías y Recursos */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
@@ -235,6 +226,16 @@
 <body class="theme-grid">
 
     <div id="login-overlay">
+        <!-- Citas Matemáticas Flotantes -->
+        <div class="math-quote" style="top: 8%; left: 4%;"><span style="font-size:2rem;">❝</span>La esencia de las matemáticas<br>es su libertad.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Georg Cantor</span></div>
+        <div class="math-quote" style="top: 15%; right: 4%;"><span style="font-size:2rem;">❝</span>Donde hay materia,<br>hay geometría.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Johannes Kepler</span></div>
+        <div class="math-quote" style="bottom: 12%; left: 4%;"><span style="font-size:2rem;">❝</span>El universo está escrito en<br>lenguaje matemático.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Galileo Galilei</span></div>
+        <div class="math-quote" style="bottom: 12%; right: 4%;"><span style="font-size:2rem;">❝</span>La matemática es la<br>música de la razón.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— J.J. Sylvester</span></div>
+        <div class="math-quote" style="top: 45%; left: 2%;"><span style="font-size:2rem;">❝</span>La matemática es la<br>reina de las ciencias.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Carl F. Gauss</span></div>
+        <div class="math-quote" style="top: 45%; right: 2%;"><span style="font-size:2rem;">❝</span>Dios usó hermosas matemáticas<br>al crear el mundo.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Paul Dirac</span></div>
+        <div class="math-quote" style="top: 5%; left: 35%; width:30%;"><span style="font-size:2rem;">❝</span>Los números gobiernan el universo.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— Pitágoras</span></div>
+        <div class="math-quote" style="bottom: 5%; left: 35%; width:30%;"><span style="font-size:2rem;">❝</span>En matemáticas te acostumbras<br>a las cosas.<span style="font-size:2rem;">❞</span><br><span style="color:#a7f3d0; font-size:1rem;">— John von Neumann</span></div>
+
         <div class="login-box">
             <div class="login-title">📐 MathBoard Pro</div>
             <div class="login-subtitle" id="login-msg">Selecciona tu perfil para ingresar</div>
@@ -265,21 +266,25 @@
         <div style="font-size: 0.85em; color: #cbd5e1;">El código se ocultará en 40 segundos</div>
     </div>
 
-    <!-- Calculadora Desmos Integrada -->
+    <!-- Calculadoras Duales: NumWorks y GeoGebra -->
     <div id="calc-panel" class="floating-panel">
         <div class="panel-header" id="calc-header">
-            <span>🖩 Desmos - Calculadora Avanzada</span>
+            <span>🖩 Calculadora Gráfica Avanzada</span>
             <div class="panel-controls-header">
                 <button onclick="toggleMaximize('calc-panel')" title="Pantalla Completa">🗖</button>
                 <button onclick="toggleCalcMinimize()" title="Minimizar">_</button>
             </div>
         </div>
-        <div class="pdf-controls">
-            <button onclick="window.open('https://www.desmos.com/calculator?lang=es', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
-            <button onclick="captureCalcScreen()" style="background:#10b981;" title="Captura la gráfica actual para enviarla a la pizarra">📸 Capturar Gráfica</button>
+        <div class="pdf-controls" style="gap: 5px;">
+            <div class="pdf-controls-group" style="flex:1;">
+                <button onclick="document.getElementById('calc-frame').src='https://www.numworks.com/simulator/embed/'" style="background:#f59e0b; flex:1;" title="Simulador Físico Intuitivo">NumWorks</button>
+                <button onclick="document.getElementById('calc-frame').src='https://www.geogebra.org/classic?embed=true&keyboard=false&showToolBarHelp=false'" style="background:#8b5cf6; flex:1;" title="GeoGebra Classic sin teclado popup">GeoGebra</button>
+            </div>
+            <button onclick="captureCalcScreen()" style="background:#10b981; padding:6px 15px;" title="Captura la gráfica para enviarla a la pizarra">📸 Capturar</button>
         </div>
-        <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <iframe id="calc-frame" src="https://www.desmos.com/calculator?embed" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
+        <div id="calc-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0; background:#fff;">
+            <!-- Iniciamos con NumWorks por defecto -->
+            <iframe id="calc-frame" src="https://www.numworks.com/simulator/embed/" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
@@ -294,12 +299,10 @@
             </div>
         </div>
         <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
-            <!-- Buscador YouTube Matemático -->
             <div class="hide-student flex-container" style="gap:5px;">
                 <input type="text" id="video-search-input" placeholder="Buscar tema en YouTube (ej: Integrales)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="searchMathVideo()" style="background:#8b5cf6; min-width:90px;">🔍 Buscar</button>
             </div>
-            <!-- Transmisor P2P y Favoritos -->
             <div class="hide-student flex-container" style="gap:5px; align-items:center;">
                 <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="saveVideoLink()" style="background:#f59e0b; min-width:40px; padding: 6px;" title="Guardar a favoritos">⭐</button>
@@ -307,9 +310,8 @@
                 <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:90px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Compartir</button>
                 <button onclick="stopAndCloseVideo()" style="background:#dc2626; min-width:80px;" title="Detener y cerrar el video a todos">🛑 Parar</button>
             </div>
-            <!-- Contenedor de Favoritos Desplegable -->
             <div id="video-bookmarks-container" style="display:none; max-height:150px; overflow-y:auto; background:#1a1a1a; border-radius:8px; padding:10px; margin-top:5px; gap:8px; flex-direction:column;" class="hide-student">
-                <!-- Los videos guardados aparecerán aquí -->
+                <!-- Videos guardados -->
             </div>
         </div>
         <div id="video-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0; background:#000;">
@@ -374,25 +376,6 @@
         <div class="resize-handle resize-handle-panel" id="pdf-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor Dola AI (Exclusivo Profesor) -->
-    <div id="dola-panel" class="floating-panel">
-        <div class="panel-header" id="dola-header">
-            <span>🤖 Dola AI (Asistente Inteligente)</span>
-            <div class="panel-controls-header">
-                <button onclick="toggleMaximize('dola-panel')">🗖</button>
-                <button onclick="toggleDolaMinimize()">_</button>
-            </div>
-        </div>
-        <div class="pdf-controls">
-            <button onclick="window.open('https://www.cici.com', '_blank', 'width=1000,height=800')" style="background:#2563eb;">🌐 Nueva Pestaña</button>
-            <button onclick="captureDolaScreen()" style="background:#10b981;" title="Haz clic y selecciona la pestaña de Dola para recortar">📸 Capturar Pantalla</button>
-        </div>
-        <div id="dola-render-container" style="flex-grow: 1; display:flex; flex-direction:column; padding:0;">
-            <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
-        </div>
-        <div class="resize-handle resize-handle-panel" id="dola-resize-handle" title="Arrastra para redimensionar"></div>
-    </div>
-
     <!-- Panel de Galería PERSISTENTE -->
     <div id="gallery-panel" class="floating-panel" style="width: 400px;">
         <div class="panel-header" id="gallery-header">
@@ -430,15 +413,16 @@
         
         <!-- Opciones Universales Extras (Profesor y Alumno) -->
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
-        <button onclick="toggleCalcPanel()" title="Calculadora Científica y Gráfica">🖩</button>
+        <button onclick="toggleCalcPanel()" title="Calculadora Gráfica NumWorks y GeoGebra">🖩</button>
         <button onclick="toggleResourcesPanel()" title="Buscador Académico y Archivos de Clase" style="background:#8b5cf6;">📚</button>
         <div class="toolbar-divider"></div>
 
         <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
-            <button onclick="toggleStudentPermissions()" id="btn-permissions" title="Habilitar que los alumnos compartan PDFs/Videos" style="background:#f59e0b; padding: 6px 10px; font-weight: bold; border-radius: 8px; width: 110px;">🔒 Bloqueado</button>
+            <!-- BOTÓN DE PERMISOS RENOVADO (🔑 / 🔒) -->
+            <button onclick="toggleStudentPermissions()" id="btn-permissions" title="Habilitar que los alumnos compartan PDFs/Videos" style="background:#f59e0b; padding: 6px 12px; font-weight: bold; border-radius: 8px; width: 120px;">🔒 Bloqueado</button>
+            
             <button onclick="toggleVideoPanel()" title="Compartir Video de Matemáticas" style="background:#ef4444;">📺</button>
-            <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
             
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
@@ -469,7 +453,7 @@
         
         <div class="toolbar-divider"></div>
         
-        <!-- Botón Selector de Pizarra (3 modos) -->
+        <!-- Botón Selector de Pizarra -->
         <button type="button" id="btn-theme" onclick="toggleTheme()" title="Cambiar Fondo (Cuadrícula / Blanca Lisa / Tiza)" style="background:#14b8a6;">🌐</button>
         
         <!-- Chip de Participantes -->
@@ -537,7 +521,6 @@
             } catch(e) { return false; }
         }
 
-        // ================= SISTEMA DE AUDIO EN MALLA =================
         function unlockAudio() {
             if(document.getElementById('unlock-btn')) return;
             const btn = document.createElement('button');
@@ -631,7 +614,6 @@
         window.toggleTheme = toggleTheme;
         window.applyTheme = applyTheme;
 
-        // ================= SISTEMA DE PARTICIPANTES =================
         function renderParticipants() {
             const chip = document.getElementById('participants-chip');
             if(!chip) return;
@@ -677,7 +659,6 @@
             }
         };
 
-        // ================= PERMISOS DE ALUMNOS =================
         function toggleStudentPermissions() {
             window.studentsCanShare = !window.studentsCanShare;
             const btn = document.getElementById('btn-permissions');
@@ -694,7 +675,6 @@
         }
         window.toggleStudentPermissions = toggleStudentPermissions;
 
-        // ================= ADMIN & CANCEL =================
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
@@ -758,7 +738,7 @@
         initCanvas();
         window.addEventListener('resize', resizeCanvas, { passive: true });
 
-        // ===== MOTOR DE RED MULTIJUGADOR (Optimizado) =====
+        // ===== MOTOR DE RED MULTIJUGADOR =====
         let broadcastQueue = [];
         
         function broadcastLoop() {
