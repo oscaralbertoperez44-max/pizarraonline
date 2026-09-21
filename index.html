@@ -198,11 +198,12 @@
         
         /* Lista de Participantes (Avatares) */
         #participants-chip {
-            display: flex; align-items: center; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px;
+            display: flex; align-items: center; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px; gap: 4px;
         }
         .user-avatar {
-            width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #1e293b; margin-left: -8px; cursor: default;
+            width: 28px; height: 28px; border-radius: 50%; color: white; display: flex; justify-content: center; align-items: center; font-size: 0.8rem; font-weight: bold; border: 2px solid #1e293b; margin-left: -8px; cursor: default; transition: transform 0.2s;
         }
+        .user-avatar:hover { transform: translateY(-2px); z-index: 20 !important; }
         .user-avatar:first-child { margin-left: 0; }
         .avatar-prof { background: #10b981; z-index: 10; }
         .avatar-alu { background: #3b82f6; z-index: 5; }
@@ -284,10 +285,12 @@
             </div>
         </div>
         <div class="pdf-controls" style="flex-direction: column; gap: 8px; align-items: stretch;">
+            <!-- Buscador YouTube Matemático -->
             <div style="display:flex; gap:5px;" class="hide-student">
                 <input type="text" id="video-search-input" placeholder="Buscar tema en YouTube (ej: Integrales)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="searchMathVideo()" style="background:#8b5cf6; min-width:90px;">🔍 Buscar</button>
             </div>
+            <!-- Transmisor P2P -->
             <div style="display:flex; gap:5px;" class="hide-student">
                 <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:90px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Compartir</button>
@@ -449,7 +452,7 @@
         
         <div class="toolbar-divider"></div>
         
-        <!-- Botón Selector de Pizarra -->
+        <!-- Botón Selector de Pizarra (3 modos) -->
         <button type="button" id="btn-theme" onclick="toggleTheme()" title="Cambiar Fondo (Cuadrícula / Blanca Lisa / Tiza)" style="background:#14b8a6;">🌐</button>
         
         <!-- Chip de Participantes -->
@@ -629,16 +632,32 @@
             chip.style.display = 'flex';
             let html = '';
             
-            const usersArr = Object.values(roomUsers).sort((a,b) => a.role === 'Profesor' ? -1 : 1);
+            const usersArr = Object.keys(roomUsers).map(id => ({ id, ...roomUsers[id] })).sort((a,b) => a.role === 'Profesor' ? -1 : 1);
             
             usersArr.forEach(u => {
                 const isProf = u.role === 'Profesor';
                 const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
-                html += `<div class="user-avatar ${isProf ? 'avatar-prof' : 'avatar-alu'}" title="${u.name} (${u.role})">${initial}</div>`;
+                const clickAction = (isAdmin && !isProf) ? `onclick="kickUser('${u.id}', '${u.name}')" style="cursor:pointer;"` : '';
+                const titleText = `${u.name} (${u.role})${isAdmin && !isProf ? ' - Clic para expulsar' : ''}`;
+                html += `<div class="user-avatar ${isProf ? 'avatar-prof' : 'avatar-alu'}" title="${titleText}" ${clickAction}>${initial}</div>`;
             });
             
             chip.innerHTML = html;
         }
+
+        window.kickUser = function(peerId, userName) {
+            if (!isAdmin) return;
+            if (confirm(`¿Expulsar a ${userName} de la clase?`)) {
+                connections.forEach(conn => {
+                    if (conn.peer === peerId && conn.open) {
+                        conn.send({ type: 'kick' });
+                        setTimeout(() => { conn.close(); }, 500);
+                    }
+                });
+                delete roomUsers[peerId];
+                renderParticipants();
+            }
+        };
 
         // ================= ADMIN & CANCEL =================
         function verifyAdmin() {
@@ -1208,7 +1227,8 @@
             const rect = pOverlay.getBoundingClientRect();
             pStartX = e.clientX - rect.left; pStartY = e.clientY - rect.top;
             pBox.style.left = pStartX + 'px'; pBox.style.top = pStartY + 'px';
-            pBox.style.width = '0px'; pBox.style.height = '0px'; pBox.style.display = 'block';
+            pBox.style.width = '0px'; pBox.style.height = '0px';
+            pBox.style.display = 'block';
             try { pOverlay.setPointerCapture(e.pointerId); } catch(err){}
             e.preventDefault(); e.stopPropagation();
         });
@@ -1522,6 +1542,11 @@
             if (data.type === 'hello') {
                 return; 
             }
+            if (data.type === 'kick') {
+                alert("El profesor te ha desconectado de la clase.");
+                window.location.reload();
+                return;
+            }
             if (data.type === 'video_share') {
                 document.getElementById('video-frame').src = data.url;
                 document.getElementById('video-panel').style.display = 'flex';
@@ -1731,7 +1756,6 @@
                     document.getElementById('main-toolbar').style.display = 'flex';
                     
                     roomUsers[peer.id] = { name: myName, role: 'Alumno' };
-                    
                     conn.send({ type: 'hello', userName: myName, role: userRole });
                     
                     setTimeout(() => {
@@ -1896,7 +1920,7 @@
 </script>
 
 <script>
-/* === MOTOR UNIVERSAL DE ESCRITURA Y LÁSER FLUIDO === */
+/* === MOTOR UNIVERSAL DE ESCRITURA Y LÁSER FLUIDO (Latencia Cero & EMA) === */
 window.laserPathsGlobal = [];
 window.isLaserFadingGlobal = false;
 
