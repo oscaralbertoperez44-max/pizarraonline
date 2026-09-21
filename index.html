@@ -83,11 +83,11 @@
             white-space: nowrap;
         }
 
-        /* Pantalla de Inicio con Fondo Matemático Premium */
+        /* Pantalla de Inicio con Fondo Verde Matemático Premium */
         #login-overlay { 
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
-            background-color: rgba(15, 23, 42, 0.98);
-            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' opacity='0.08'%3E%3Cg stroke='%23ffffff' stroke-width='1.5' fill='none'%3E%3Ccircle cx='15%25' cy='25%25' r='60'/%3E%3Cpolygon points='85%25,15%25 90%25,25%25 80%25,25%25'/%3E%3Cpath d='M 100 700 Q 300 500 500 700 T 900 700'/%3E%3Cpath d='M 75%25 80%25 L 85%25 70%25 L 95%25 80%25 Z'/%3E%3C/g%3E%3Cg fill='%23ffffff' font-family='Georgia, serif' font-size='28' font-style='italic'%3E%3Ctext x='15%25' y='15%25'%3E%E2%88%AB e%5E%7B-x%C2%B2%7D dx = %E2%88%9A%CF%80%3C/text%3E%3Ctext x='70%25' y='30%25'%3E%E2%88%87 \u00D7 E = -%E2%88%82B/%E2%88%82t%3C/text%3E%3Ctext x='40%25' y='80%25'%3Ee%5E%7Bi%CF%80%7D + 1 = 0%3C/text%3E%3Ctext x='5%25' y='85%25'%3EE = mc%C2%B2%3C/text%3E%3Ctext x='60%25' y='85%25'%3E%E2%88%91 n = n(n+1)/2%3C/text%3E%3Ctext x='85%25' y='50%25'%3Ea%C2%B2 + b%C2%B2 = c%C2%B2%3C/text%3E%3Ctext x='30%25' y='90%25'%3E%CE%94S %E2%89%A5 0%3C/text%3E%3Ctext x='45%25' y='15%25'%3Ex = (-b %C2%B1 %E2%88%9A(b%C2%B2-4ac))/2a%3C/text%3E%3C/g%3E%3C/svg%3E");
+            background-color: rgba(30, 86, 49, 0.96); /* Verde Pizarrón */
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='100%25' height='100%25' opacity='0.15'%3E%3Cg fill='%23ffffff' font-family='Georgia, serif' font-style='italic'%3E%3Ctext x='10%25' y='15%25' font-size='28'%3E%E2%88%AB e%5E%7B-x%C2%B2%7D dx = %E2%88%9A%CF%80%3C/text%3E%3Ctext x='70%25' y='25%25' font-size='28'%3E%E2%88%87 \u00D7 E = -%E2%88%82B/%E2%88%82t%3C/text%3E%3Ctext x='35%25' y='75%25' font-size='28'%3Ee%5E%7Bi%CF%80%7D + 1 = 0%3C/text%3E%3Ctext x='5%25' y='85%25' font-size='28'%3EE = mc%C2%B2%3C/text%3E%3Ctext x='60%25' y='85%25' font-size='28'%3E%E2%88%91 n = n(n+1)/2%3C/text%3E%3Ctext x='80%25' y='50%25' font-size='28'%3Ea%C2%B2 + b%C2%B2 = c%C2%B2%3C/text%3E%3Ctext x='30%25' y='90%25' font-size='28'%3E%CE%94S %E2%89%A5 0%3C/text%3E%3Ctext x='40%25' y='15%25' font-size='28'%3Ex = (-b %C2%B1 %E2%88%9A(b%C2%B2-4ac))/2a%3C/text%3E%3Ctext x='8%25' y='45%25' font-size='20'%3E%22La esencia de las matem%C3%A1ticas es su libertad%22 - Cantor%3C/text%3E%3Ctext x='45%25' y='35%25' font-size='20'%3E%22Donde hay materia%2C hay geometr%C3%ADa%22 - Kepler%3C/text%3E%3Ctext x='40%25' y='55%25' font-size='20'%3E%22El universo est%C3%A1 escrito en lenguaje matem%C3%A1tico%22 - Galileo%3C/text%3E%3Ctext x='15%25' y='65%25' font-size='20'%3E%22La matem%C3%A1tica es la m%C3%BAsica de la raz%C3%B3n%22 - Sylvester%3C/text%3E%3C/g%3E%3C/svg%3E");
             background-size: cover;
             z-index: 9999; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(8px); transition: opacity 0.5s; 
         }
@@ -162,7 +162,23 @@
         @keyframes pulse-record { 0% { opacity: 1; } 50% { opacity: 0.7; } 100% { opacity: 1; } }
         
         .hidden-file { display: none; }
+        #formula-search { margin: 10px 15px 0; width: calc(100% - 30px); box-sizing: border-box; padding: 10px 12px; border: 1px solid #3a3a3a; border-radius: 8px; background: #101010; color: #fff; outline: none; font-size: .9rem; }
+        #formula-search:focus { border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59,130,246,.15); }
+        .formula-count { padding: 6px 15px 0; color: #777; font-size: .7rem; text-align: right; }
         
+        .formula-category-selector{ display:flex;flex-wrap:wrap;gap:5px;padding:5px 0;max-height:105px;overflow-y:auto; }
+        .formula-category-selector .f-cat{ border:1px solid rgba(255,255,255,.12);border-radius:8px;padding:6px 9px; cursor:pointer;background:rgba(255,255,255,.05);color:inherit;font-size:.78rem; }
+        .formula-category-selector .f-cat.active{outline:2px solid rgba(139,92,246,.7);background:rgba(139,92,246,.22);}
+        #formula-grid-container{display:grid;grid-template-columns:1fr;gap:8px;padding-bottom:10px;}
+        .formula-card{padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:12px;background:rgba(255,255,255,.045);}
+        .formula-card-title{font-weight:700;font-size:.84rem;margin-bottom:5px;}
+        .formula-card-eq{font-family:"Cambria Math","Times New Roman",serif;font-size:1.02rem;line-height:1.35;word-break:break-word;}
+        .formula-card-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:8px;}
+        .formula-card-actions button{border:0;border-radius:7px;padding:5px 7px;cursor:pointer;font-size:.72rem;background:rgba(255,255,255,.09);color:inherit;}
+        
+        #formulas-panel{overscroll-behavior:contain;}
+        #formula-grid-container{max-height:43vh;overflow-y:auto;padding-right:3px;}
+
         /* Estilo de las Galerías y Recursos */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
@@ -411,7 +427,7 @@
 
         <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
-            <button onclick="toggleStudentPermissions()" id="btn-permissions" title="Habilitar que los alumnos compartan PDFs/Videos" style="background:#f59e0b; padding: 6px 10px; font-weight: bold; border-radius: 8px;">Alumnos: OFF</button>
+            <button onclick="toggleStudentPermissions()" id="btn-permissions" title="Habilitar que los alumnos compartan PDFs/Videos" style="background:#f59e0b; padding: 6px 10px; font-weight: bold; border-radius: 8px;">🔒 Bloqueado</button>
             <button onclick="toggleVideoPanel()" title="Compartir Video de Matemáticas" style="background:#ef4444;">📺</button>
             <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
             <button onclick="toggleGalleryPanel()" title="Ver Capturas y Ejercicios Guardados" style="background:#f59e0b;">📁</button>
@@ -512,7 +528,6 @@
             } catch(e) { return false; }
         }
 
-        // ================= SISTEMA DE AUDIO EN MALLA =================
         function unlockAudio() {
             if(document.getElementById('unlock-btn')) return;
             const btn = document.createElement('button');
@@ -606,7 +621,6 @@
         window.toggleTheme = toggleTheme;
         window.applyTheme = applyTheme;
 
-        // ================= SISTEMA DE PARTICIPANTES =================
         function renderParticipants() {
             const chip = document.getElementById('participants-chip');
             if(!chip) return;
@@ -652,15 +666,14 @@
             }
         };
 
-        // ================= PERMISOS DE ALUMNOS =================
         function toggleStudentPermissions() {
             window.studentsCanShare = !window.studentsCanShare;
             const btn = document.getElementById('btn-permissions');
             if (window.studentsCanShare) {
-                btn.innerText = 'Alumnos: ON';
+                btn.innerText = '🔑 Libre';
                 btn.style.background = '#10b981';
             } else {
-                btn.innerText = 'Alumnos: OFF';
+                btn.innerText = '🔒 Bloqueado';
                 btn.style.background = '#f59e0b';
             }
             if (typeof broadcastData === 'function') {
@@ -669,7 +682,6 @@
         }
         window.toggleStudentPermissions = toggleStudentPermissions;
 
-        // ================= ADMIN & CANCEL =================
         function verifyAdmin() {
             if (document.getElementById('adminPin').value === "1977$") {
                 isAdmin = true;
@@ -733,7 +745,7 @@
         initCanvas();
         window.addEventListener('resize', resizeCanvas, { passive: true });
 
-        // ===== MOTOR DE RED MULTIJUGADOR (Optimizado) =====
+        // ===== MOTOR DE RED MULTIJUGADOR =====
         let broadcastQueue = [];
         
         function broadcastLoop() {
@@ -754,7 +766,6 @@
             if(data.type === 'stroke' || data.type === 'draw' || data.type === 'shape' || data.type === 'laser') {
                 broadcastQueue.push(data);
             } else if (data.type === 'pdf_share') {
-                // FIX PARA EVITAR CONGELAMIENTO EN PDF GRANDES
                 let delay = 0;
                 connections.forEach(conn => { 
                     if (conn.open) {
