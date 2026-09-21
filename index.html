@@ -259,6 +259,12 @@
         <div class="math-quote" style="top: 15%; left: 20%; width: 15vw;"><span class="mq-icon">❝</span>Conozco los números, luego existo.<span class="mq-icon">❞</span><span class="mq-author">— Euler</span></div>
         <div class="math-quote" style="bottom: 15%; right: 20%; width: 15vw;"><span class="mq-icon">❝</span>El infinito es un suelo fecundo para la mente.<span class="mq-icon">❞</span><span class="mq-author">— Hilbert</span></div>
 
+        <!-- Nuevos Dichos Matemáticos Extras -->
+        <div class="math-quote" style="top: 10%; left: 42%; width: 16vw;"><span class="mq-icon">❝</span>Las matemáticas son la creación más bella del espíritu humano.<span class="mq-icon">❞</span><span class="mq-author">— Stefan Banach</span></div>
+        <div class="math-quote" style="top: 86%; left: 42%; width: 16vw;"><span class="mq-icon">❝</span>La matemática es la llave y la puerta de las ciencias.<span class="mq-icon">❞</span><span class="mq-author">— Roger Bacon</span></div>
+        <div class="math-quote" style="top: 50%; left: 12%; width: 15vw;"><span class="mq-icon">❝</span>Un matemático no es completamente tal, si no tiene algo de poeta.<span class="mq-icon">❞</span><span class="mq-author">— Karl Weierstrass</span></div>
+        <div class="math-quote" style="top: 50%; right: 12%; width: 15vw;"><span class="mq-icon">❝</span>Las matemáticas son la gimnasia del espíritu.<span class="mq-icon">❞</span><span class="mq-author">— Isócrates</span></div>
+
 
         <div class="login-box">
             <div class="login-title">📐 MathBoard Pro</div>
@@ -1747,16 +1753,27 @@
         }
         window.saveAsPDF = saveAsPDF;
 
-        // ================= GRABACIÓN AVANZADA MP4 =================
-        let mediaRecorder; let recordedChunks = []; let isRecording = false;
+        // ================= GRABACIÓN AVANZADA MP4 (ARREGLADO PARA FONDOS OPACOS) =================
+        let mediaRecorder; 
+        let recordedChunks = []; 
+        let isRecording = false;
         let recordingLoop;
+        
+        let compositeCanvas = document.createElement('canvas');
+        let compositeCtx = compositeCanvas.getContext('2d', { alpha: false });
 
         function toggleRecording() { if (!isRecording) startRecording(); else stopRecording(); }
         window.toggleRecording = toggleRecording;
         
         function startRecording() {
             if (!audioDestination) { alert("Audio no inicializado."); return; }
-            const canvasStream = canvas.captureStream(60);
+            
+            isRecording = true;
+            document.getElementById('btn-record').classList.add('record-active');
+            
+            keepRecordingAlive(); 
+            
+            const canvasStream = compositeCanvas.captureStream(30);
             let combinedStream;
             if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
                 combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
@@ -1773,28 +1790,35 @@
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                cancelAnimationFrame(recordingLoop); 
                 const blob = new Blob(recordedChunks, { type: 'video/mp4' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.href = url; a.download = 'Clase_MathBoard.mp4'; a.click();
                 URL.revokeObjectURL(url); recordedChunks = [];
             };
-            mediaRecorder.start(); isRecording = true;
-            document.getElementById('btn-record').classList.add('record-active');
+            mediaRecorder.start(); 
+        }
 
-            function keepRecordingAlive() {
-                if (!isRecording) return;
-                const c = canvas.getContext('2d', { desynchronized: true, alpha: false });
-                c.fillStyle = '#ffffff';
-                c.fillRect(0, 0, 1, 1);
-                recordingLoop = requestAnimationFrame(keepRecordingAlive);
+        function keepRecordingAlive() {
+            if (!isRecording) return;
+            
+            if (compositeCanvas.width !== canvas.width || compositeCanvas.height !== canvas.height) {
+                compositeCanvas.width = canvas.width;
+                compositeCanvas.height = canvas.height;
             }
-            keepRecordingAlive();
+            
+            const isChalk = document.body.classList.contains('theme-chalkboard');
+            compositeCtx.fillStyle = isChalk ? '#1e5631' : '#ffffff';
+            compositeCtx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+            
+            compositeCtx.drawImage(canvas, 0, 0);
+            
+            recordingLoop = requestAnimationFrame(keepRecordingAlive);
         }
         
         function stopRecording() { 
             mediaRecorder.stop(); 
             isRecording = false; 
+            cancelAnimationFrame(recordingLoop); 
             document.getElementById('btn-record').classList.remove('record-active'); 
         }
 
