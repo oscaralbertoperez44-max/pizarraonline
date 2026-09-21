@@ -193,6 +193,21 @@
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none; image-rendering: high-quality;}
 
+        /* Estilo para la herramienta de texto en vivo */
+        .canvas-text-input {
+            position: absolute;
+            z-index: 9999;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed #3b82f6;
+            backdrop-filter: blur(4px);
+            font-family: 'Segoe UI', sans-serif;
+            font-weight: bold;
+            outline: none;
+            padding: 2px 8px;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
         /* === BARRA UNIFICADA - Zona Segura Inferior === */
         #main-toolbar {
             position: fixed; bottom: 25px; 
@@ -524,21 +539,23 @@
             <div class="toolbar-divider"></div>
         </div>
 
-        <!-- Opciones Universales de Dibujo -->
-        <button type="button" id="mw-pen" class="active" title="Fibrón Fino">🖋️</button>
-        <button type="button" id="mw-pencil" title="Lápiz Real">✏️</button>
-        <button type="button" id="mw-marker" title="Marcador Grueso">🖍️</button>
-        <button type="button" id="mw-line" title="Línea Recta" class="hide-mobile">╱</button>
-        <button type="button" id="mw-arrow" title="Flecha" class="hide-mobile">➜</button>
-        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo" class="hide-mobile">▭</button>
-        <button type="button" id="mw-circle" title="Círculo" class="hide-mobile">○</button>
-        <button type="button" id="mw-eraser" title="Borrador Real">🧼</button>
-        <button type="button" id="mw-laser" title="Puntero Láser">🎯</button>
+        <!-- Opciones Universales de Dibujo con Atajos de Teclado -->
+        <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
+        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
+        <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
+        <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
+        <button type="button" id="btn-snap" title="Regla Magnética (Ángulos exactos) [Shift]">📐</button>
+        <button type="button" id="mw-rect" title="Cuadrado / Rectángulo [R]" class="hide-mobile">▭</button>
+        <button type="button" id="mw-circle" title="Círculo [C]" class="hide-mobile">○</button>
+        <button type="button" id="mw-eraser" title="Borrador Real [E]">🧼</button>
+        <button type="button" id="mw-laser" title="Puntero Láser [L]">🎯</button>
+        <button type="button" id="mw-text" title="Escribir Texto [T]" class="hide-mobile" style="font-weight:bold; font-size:1.1rem;">T</button>
         
         <div class="toolbar-divider"></div>
         
         <input id="mw-color" type="color" value="#0f172a" title="Color de Tinta">
-        <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor del Trazo">
+        <input id="mw-size" type="range" min="2" max="40" value="5" title="Grosor del Trazo / Tamaño de Fuente">
         
         <div class="toolbar-divider"></div>
         
@@ -550,8 +567,8 @@
         <!-- Chip de Participantes -->
         <div id="participants-chip" style="display:none;" title="Usuarios conectados"></div>
 
-        <button type="button" id="mw-undo" title="Deshacer último trazo">↩️</button>
-        <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto" class="danger-btn">🗑️</button>
+        <button type="button" id="mw-undo" title="Deshacer último trazo [Z]">↩️</button>
+        <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto [Supr]" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
@@ -1101,6 +1118,7 @@
                         
                         if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
                         if(panelIdToMinimize === 'video') toggleVideoMinimize();
+                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
                     }, 800); 
                 };
             } catch (err) {
@@ -1110,14 +1128,10 @@
         
         window.captureCalcScreen = () => captureScreenSource('calc');
         window.captureVideoScreen = () => captureScreenSource('video');
+        window.captureDolaScreen = () => captureScreenSource('dola');
 
         // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
         let sessionResources = [];
-        try {
-            const storedRes = localStorage.getItem('mathboard_resources');
-            if(storedRes) sessionResources = JSON.parse(storedRes);
-        } catch(e) {}
-        
         let isPdfSynced = false;
         let currentPdfData = null;
 
@@ -1168,11 +1182,6 @@
                 if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) fileName = "Documento_Importado.pdf";
                 
                 sessionResources.push({ name: fileName, type: 'pdf', data: dataUri });
-                try {
-                    localStorage.setItem('mathboard_resources', JSON.stringify(sessionResources));
-                } catch(e) {
-                    alert("Aviso: El archivo es muy pesado para guardarse de forma permanente, pero podrás usarlo en esta sesión. Borra otros archivos si deseas liberar espacio.");
-                }
                 updateResourcesGrid();
                 
                 currentPdfData = dataUri;
@@ -1207,11 +1216,6 @@
                         type: file.type.startsWith('image/') ? 'image' : 'pdf',
                         data: ev.target.result
                     });
-                    try {
-                        localStorage.setItem('mathboard_resources', JSON.stringify(sessionResources));
-                    } catch(err) {
-                        alert("Aviso: El archivo '" + file.name + "' es muy pesado para guardarse permanentemente, pero podrás usarlo en esta sesión. Borra otros archivos para liberar espacio.");
-                    }
                     updateResourcesGrid();
                 };
                 reader.readAsDataURL(file);
@@ -1243,13 +1247,9 @@
         }
 
         function removeResource(idx) {
-            if(confirm("¿Eliminar este archivo de forma permanente?")) {
-                sessionResources.splice(idx, 1);
-                try { localStorage.setItem('mathboard_resources', JSON.stringify(sessionResources)); } catch(e){}
-                updateResourcesGrid();
-            }
+            sessionResources.splice(idx, 1);
+            updateResourcesGrid();
         }
-        window.removeResource = removeResource;
 
         async function openResource(idx) {
             const res = sessionResources[idx];
@@ -1293,12 +1293,11 @@
                 }
             }
         }
-        window.openResource = openResource;
 
         function toggleResourcesPanel() {
             const p = document.getElementById('resources-panel');
             p.style.display = p.style.display === 'none' || p.style.display === '' ? 'flex' : 'none';
-            if (p.style.display === 'flex') updateResourcesGrid();
+            if (p.style.display === 'flex' && sessionResources.length === 0) updateResourcesGrid();
         }
         window.toggleResourcesPanel = toggleResourcesPanel;
 
@@ -1521,9 +1520,6 @@
 
         // Visor PDF Original con Sistema de Lectura TTS
         let pdfDoc = null, pageNum = 1, pdfScale = 2.0;
-        let isReadingPdf = false;
-        let pdfSpeechUtterance = null;
-        
         const pdfPanel = document.getElementById('pdf-panel');
         const pdfAppCanvas = document.getElementById('pdf-canvas');
         const pdfCtx = pdfAppCanvas.getContext('2d');
@@ -1758,57 +1754,6 @@
         window.toggleDolaPanel = toggleDolaPanel;
         function toggleDolaMinimize() { dolaPanel.style.display = 'none'; }
         window.toggleDolaMinimize = toggleDolaMinimize;
-        
-        async function captureScreenSource(panelIdToMinimize) {
-            try {
-                const stream = await navigator.mediaDevices.getDisplayMedia({ video: { displaySurface: "browser" }, preferCurrentTab: true });
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.onloadedmetadata = () => {
-                    video.play();
-                    setTimeout(() => {
-                        const canvasCap = document.createElement('canvas');
-                        canvasCap.width = video.videoWidth; 
-                        canvasCap.height = video.videoHeight;
-                        
-                        const ctxCap = canvasCap.getContext('2d', { alpha: false });
-                        ctxCap.imageSmoothingEnabled = true;
-                        ctxCap.imageSmoothingQuality = 'high';
-                        ctxCap.drawImage(video, 0, 0, canvasCap.width, canvasCap.height);
-                        
-                        stream.getTracks().forEach(track => track.stop());
-                        
-                        const img = document.getElementById('stamp-img');
-                        img.src = canvasCap.toDataURL('image/png', 1.0); 
-                        
-                        const maxDisplayW = 800;
-                        const maxDisplayH = 600;
-                        const ratio = Math.min(1, maxDisplayW / canvasCap.width, maxDisplayH / canvasCap.height);
-                        
-                        const finalW = canvasCap.width * ratio;
-                        const finalH = canvasCap.height * ratio;
-                        
-                        const sc = document.getElementById('stamper-content');
-                        sc.style.width = finalW + 'px';
-                        sc.style.height = finalH + 'px';
-                        
-                        const stamper = document.getElementById('stamper');
-                        stamper.style.left = (window.innerWidth - finalW) / 2 + 'px';
-                        stamper.style.top = (window.innerHeight - finalH) / 2 + 'px';
-                        stamper.style.display = 'block';
-                        
-                        if(panelIdToMinimize === 'dola') toggleDolaMinimize();
-                        if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
-                        if(panelIdToMinimize === 'video') toggleVideoMinimize();
-                    }, 800); 
-                };
-            } catch (err) {
-                alert("La captura fue cancelada o tu navegador no lo permite.");
-            }
-        }
-        
-        window.captureDolaScreen = () => captureScreenSource('dola');
-        window.captureCalcScreen = () => captureScreenSource('calc');
 
         function toggleCalcPanel() {
             const panel = document.getElementById('calc-panel');
@@ -1838,7 +1783,7 @@
                     };
                     img.src = ev.target.result;
                 };
-                source.src = res.data;
+                source.src = ev.target.result;
             };
             reader.readAsDataURL(file);
         }
@@ -2143,6 +2088,28 @@
                 updateRemoteCursor(data);
                 return; 
             }
+
+            // Sincronización Remota de Texto
+            if (data.type === 'text') {
+                const mCtx = document.getElementById('board').getContext('2d');
+                const realX = data.x * canvas.width;
+                const realY = data.y * canvas.width;
+                const realSize = data.fontSize * canvas.width;
+                
+                mCtx.save();
+                mCtx.globalCompositeOperation = 'source-over';
+                mCtx.globalAlpha = 1;
+                mCtx.font = `bold ${realSize}px 'Segoe UI', sans-serif`;
+                mCtx.fillStyle = data.color;
+                mCtx.textBaseline = 'middle';
+                if (document.body.classList.contains('theme-chalkboard')) {
+                    mCtx.shadowBlur = 1;
+                    mCtx.shadowColor = data.color;
+                }
+                mCtx.fillText(data.text, realX, realY);
+                mCtx.restore();
+                return;
+            }
             
             if (data.type === 'start') { 
                 updateRemoteCursor(data);
@@ -2355,7 +2322,7 @@
                    e.target.classList.contains('resize-handle') ||
                    e.target.classList.contains('f-tab') ||
                    e.target.classList.contains('f-cat')) return;
-                   
+                    
                 e.preventDefault(); 
                 pos3 = e.clientX; pos4 = e.clientY; 
                 startTop = element.offsetTop;
@@ -2576,6 +2543,7 @@ window.isLaserFadingGlobal = false;
   let lastRenderedSize = mwSize;
   
   let shapeStartX = 0, shapeStartY = 0;
+  window.isSnapEnabled = false;
 
   window.drawLaserFadeGlobal = function() {
       const now = Date.now();
@@ -2630,7 +2598,7 @@ window.isLaserFadingGlobal = false;
 
   function setMode(mode){
     mwMode = mode;
-    ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
+    ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
       const b=document.getElementById(id);
       if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
@@ -2638,6 +2606,9 @@ window.isLaserFadingGlobal = false;
     if (mode === 'laser') {
         laserCanvas.style.pointerEvents = 'auto'; 
         laserCanvas.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32"><circle cx="16" cy="16" r="6" fill="%23ef4444"/><circle cx="16" cy="16" r="14" fill="%23ef4444" fill-opacity="0.3"/></svg>\') 16 16, crosshair';
+    } else if (mode === 'text') {
+        laserCanvas.style.pointerEvents = 'none';
+        board.style.cursor = 'text';
     } else {
         laserCanvas.style.pointerEvents = 'none';
         board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>\') 12 12, crosshair !important';
@@ -2647,6 +2618,65 @@ window.isLaserFadingGlobal = false;
   function start(ev){
     if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
     ev.preventDefault();
+
+    // --- INICIO HERRAMIENTA TEXTO ---
+    if (mwMode === 'text') {
+        if (document.getElementById('canvas-temp-text')) return;
+        const p = pos(ev);
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'canvas-temp-text';
+        input.className = 'canvas-text-input';
+        input.placeholder = "Escribe aquí...";
+        
+        const fontSize = Math.max(16, mwSize * 5); 
+        const inkColor = document.getElementById('mw-color').value;
+        
+        input.style.fontSize = fontSize + 'px';
+        input.style.color = inkColor;
+        input.style.left = p.x + 'px';
+        input.style.top = (p.y - fontSize/2) + 'px';
+
+        document.getElementById('canvas-container').appendChild(input);
+        setTimeout(() => input.focus(), 10);
+
+        function finalizeText() {
+            const val = input.value;
+            if (val.trim() !== '') {
+                mCtx.save();
+                mCtx.globalCompositeOperation = 'source-over';
+                mCtx.font = `bold ${fontSize}px 'Segoe UI', sans-serif`;
+                mCtx.fillStyle = inkColor;
+                mCtx.textBaseline = 'middle';
+                if (document.body.classList.contains('theme-chalkboard')) {
+                    mCtx.shadowBlur = 1; mCtx.shadowColor = inkColor;
+                }
+                mCtx.fillText(val, p.x + 6, p.y + 2);
+                mCtx.restore();
+
+                if (typeof broadcastData === 'function') {
+                    broadcastData({
+                        type: 'text', text: val,
+                        x: (p.x + 6) / canvas.width, y: (p.y + 2) / canvas.width,
+                        color: inkColor, fontSize: fontSize / canvas.width
+                    });
+                }
+                saveState();
+            }
+            input.remove();
+        }
+
+        input.addEventListener('blur', finalizeText);
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter') finalizeText();
+            if (e.key === 'Escape') input.remove();
+        });
+
+        return;
+    }
+    // --- FIN HERRAMIENTA TEXTO ---
+
     if (mwMode !== 'laser') saveState();
 
     mwDrawing = true;
@@ -2691,6 +2721,26 @@ window.isLaserFadingGlobal = false;
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
+        
+        // --- LÓGICA MAGNÉTICA ---
+        if (window.isSnapEnabled || ev.shiftKey) {
+            let dx = p.x - shapeStartX;
+            let dy = p.y - shapeStartY;
+            
+            if (mwMode === 'line' || mwMode === 'arrow') {
+                let angle = Math.atan2(dy, dx);
+                let snapAngle = Math.round(angle / (Math.PI / 4)) * (Math.PI / 4);
+                let dist = Math.hypot(dx, dy);
+                p.x = shapeStartX + Math.cos(snapAngle) * dist;
+                p.y = shapeStartY + Math.sin(snapAngle) * dist;
+            } else if (mwMode === 'rect') {
+                let side = Math.max(Math.abs(dx), Math.abs(dy));
+                p.x = shapeStartX + Math.sign(dx) * side;
+                p.y = shapeStartY + Math.sign(dy) * side;
+            }
+        }
+        // --- FIN LÓGICA MAGNÉTICA ---
+
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
         drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
         mwLastPosX = p.x; mwLastPosY = p.y;
@@ -2841,7 +2891,7 @@ window.isLaserFadingGlobal = false;
   laserCanvas.addEventListener('pointercancel', end, {passive:false});
   laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
 
-  ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser'].forEach(id=>{
+  ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
       const btn = document.getElementById(id);
       if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
@@ -2863,6 +2913,43 @@ window.isLaserFadingGlobal = false;
 
   const clearBtn = document.getElementById('mw-clear');
   clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
+
+  const btnSnap = document.getElementById('btn-snap');
+  if (btnSnap) {
+      btnSnap.addEventListener('click', () => {
+          window.isSnapEnabled = !window.isSnapEnabled;
+          btnSnap.style.background = window.isSnapEnabled ? '#10b981' : '#334155';
+          btnSnap.style.outline = window.isSnapEnabled ? '2px solid #3b82f6' : 'none';
+      });
+  }
+
+  // --- ATAJOS DE TECLADO INTELIGENTES ---
+  window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
+      if (e.ctrlKey || e.altKey || e.metaKey) return;
+
+      const key = e.key.toLowerCase();
+      switch (key) {
+          case 'p': setMode('pen'); break;
+          case 'b': setMode('pencil'); break;
+          case 'm': setMode('marker'); break;
+          case 'e': setMode('eraser'); break;
+          case 't': setMode('text'); break;
+          case 'l': setMode('laser'); break;
+          case 'r': setMode('rect'); break;
+          case 'c': setMode('circle'); break;
+          case 'a': setMode('arrow'); break;
+          case 'i': setMode('line'); break;
+          case 'z': 
+              const btnUndo = document.getElementById('mw-undo');
+              if (btnUndo) btnUndo.click();
+              break;
+          case 'delete':
+              const btnClear = document.getElementById('mw-clear');
+              if (btnClear) btnClear.click();
+              break;
+      }
+  });
 })();
 </script>
 
