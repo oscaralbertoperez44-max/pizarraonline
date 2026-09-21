@@ -257,19 +257,6 @@
 </head>
 <body class="theme-grid">
 
-    <!-- BLOQUEO VISUAL ESTRICTO PROTOCOLO FILE:// -->
-    <div id="file-protocol-warning" style="display:none; position:fixed; z-index:999999; top:0; left:0; width:100vw; height:100vh; background:rgba(15,23,42,0.98); color:white; justify-content:center; align-items:center; flex-direction:column; text-align:center; padding:20px;">
-        <div style="font-size:4rem; margin-bottom:10px;">⚠️</div>
-        <h1 style="color:#ef4444; margin-bottom:10px;">ERROR CRÍTICO DE RED</h1>
-        <p style="font-size:1.2rem; max-width:600px; line-height:1.5;">Estás abriendo este archivo directamente (protocolo <b>file://</b>). Por medidas de seguridad estrictas, los navegadores modernos <b>bloquean las conexiones P2P y el Micrófono</b> en archivos locales.</p>
-        <p style="font-size:1.1rem; max-width:600px; color:#cbd5e1; margin-top:15px; padding:15px; background:rgba(255,255,255,0.1); border-radius:8px;">Para que los alumnos puedan conectar y el audio funcione, debes usar un servidor local (ej. extensión <i>Live Server</i> en VS Code) o subir este archivo a un hosting (GitHub Pages, Netlify, etc.).</p>
-    </div>
-    <script>
-        if (window.location.protocol === 'file:') {
-            document.getElementById('file-protocol-warning').style.display = 'flex';
-        }
-    </script>
-
     <div id="login-overlay">
         <!-- Citas Matemáticas Periféricas -->
         <div class="math-quote" style="top: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas es su libertad.<span class="mq-icon">❞</span><span class="mq-author">— Georg Cantor</span></div>
@@ -546,7 +533,7 @@
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
             <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
-            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4/WebM" class="hide-mobile">⏺️</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4" class="hide-mobile">⏺️</button>
             <button onclick="logoutSession()" title="Cerrar Sesión para Todos" class="danger-btn" style="background:#dc2626;">🚪</button>
             
             <div class="toolbar-divider"></div>
@@ -610,22 +597,27 @@
             }
         };
 
-        // Red mejorada y redundante para conexión P2P más estable
+        // Red original y estable de PeerJS
         const peerNetworkOptions = { 
-            debug: 1,
-            pingInterval: 5000, // Vital para mantener viva la sala del profesor en el servidor público
             config: { 
                 'iceServers': [ 
                     { urls: 'stun:stun.l.google.com:19302' }, 
                     { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:global.stun.twilio.com:3478' },
                     { urls: 'stun:stun.cloudflare.com:3478' }
                 ] 
             } 
         };
+        
         let isAdmin = false; 
         let peer, connections = [], localStream = null;
         let audioContext, audioDestination;
+        // Exponer referencias dinámicas para módulos de optimización externos.
+        Object.defineProperties(window, {
+            peer: { configurable:true, get:()=>peer },
+            connections: { configurable:true, get:()=>connections },
+            localStream: { configurable:true, get:()=>localStream },
+            mediaRecorder: { configurable:true, get:()=>mediaRecorder, set:v=>{ mediaRecorder=v; } }
+        });
         let userRole = 'Alumno'; 
         let myName = 'Usuario';
         let roomUsers = {};
@@ -648,35 +640,21 @@
         document.getElementById('adminPin')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyAdmin(); });
         document.getElementById('roomIdInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
 
-        // === MOTOR DE AUDIO REFORZADO ===
         async function getMicrophone() {
             try {
-                // Iniciar AudioContext SIEMPRE, incluso si es silencioso
                 window.AudioContext = window.AudioContext || window.webkitAudioContext;
                 audioContext = new AudioContext();
                 audioDestination = audioContext.createMediaStreamDestination();
-            } catch(e) {
-                console.warn("AudioContext no soportado en este navegador.");
-            }
+            } catch(e) {}
 
-            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-                try {
-                    localStream = await navigator.mediaDevices.getUserMedia({
-                        audio: { echoCancellation: true, noiseSuppression: true },
-                        video: false
-                    });
-                    
-                    if (audioContext && audioDestination) {
-                        const localSource = audioContext.createMediaStreamSource(localStream);
-                        localSource.connect(audioDestination);
-                    }
-                    return true;
-                } catch(e) {
-                    console.warn("Permiso de micrófono denegado o dispositivo no disponible.");
-                    return false;
+            if (!navigator.mediaDevices) return false;
+            try { 
+                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
+                if(audioContext && audioDestination) {
+                    audioContext.createMediaStreamSource(localStream).connect(audioDestination);
                 }
-            }
-            return false;
+                return true; 
+            } catch(e) { return false; }
         }
 
         function unlockAudio() {
@@ -694,7 +672,7 @@
         }
 
         function playAudio(stream, peerId) {
-            if (!peerId || (localStream && stream.id === localStream.id)) return;
+            if (!peerId || stream.id === localStream?.id) return;
             let audioEl = document.getElementById('audio-' + peerId);
             if (!audioEl) {
                 audioEl = document.createElement('audio');
@@ -705,17 +683,16 @@
             if (audioEl.srcObject !== stream) {
                 audioEl.srcObject = stream;
                 
-                // MEZCLAR EL AUDIO DE LOS ALUMNOS HACIA LA GRABACIÓN DEL PROFESOR
+                // Mezclar audio remoto para la grabación
                 if (audioContext && audioDestination) {
                     try {
                         const remoteSource = audioContext.createMediaStreamSource(stream);
                         remoteSource.connect(audioDestination);
-                    } catch(err){ console.warn("No se pudo enlazar el audio remoto a la mezcla master"); }
+                    } catch(e) {}
                 }
             }
-            
             audioEl.play().catch(err => {
-                console.warn("Autoplay bloqueado para el alumno", peerId, err);
+                console.warn("Autoplay bloqueado para", peerId, err);
                 unlockAudio();
             });
         }
@@ -733,7 +710,7 @@
                     }
                 }
             } else {
-                alert("El micrófono no está activo o denegaste los permisos al inicio.");
+                alert("El micrófono no está activo.");
             }
         }
         window.toggleMic = toggleMic;
@@ -870,13 +847,8 @@
                 userRole = 'Profesor';
                 myName = document.getElementById('teacherName').value.trim() || 'Profesor';
                 document.getElementById('admin-tools').style.display = 'flex';
-                
-                const status = document.getElementById('status-text');
-                if (status) { status.innerText = "Iniciando Red PeerJS..."; status.style.color = "#fbbf24"; }
-                
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
-                
                 createRoom();
                 updateGalleryGrid();
             } else { alert("PIN Incorrecto."); }
@@ -968,8 +940,8 @@
         // LIMPIAR PIZARRA GLOBAL
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-            ctx.clearRect(0, 0, canvas.width, canvas.height); 
-            if(typeof window.saveState === 'function') window.saveState(); 
+            if(typeof window.saveState === 'function') window.saveState();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
             broadcastData({ type:'clear' });
         }
         window.clearCanvas = clearCanvas;
@@ -1891,7 +1863,7 @@
         }
         window.saveAsPDF = saveAsPDF;
 
-        // ================= GRABACIÓN AVANZADA MP4 / WEBM =================
+        // ================= GRABACIÓN AVANZADA MP4 =================
         let mediaRecorder; 
         let recordedChunks = []; 
         let isRecording = false;
@@ -1904,18 +1876,15 @@
         window.toggleRecording = toggleRecording;
         
         function startRecording() {
-            // Despierta el contexto de audio si el navegador lo suspendió
             if (audioContext && audioContext.state === 'suspended') {
                 audioContext.resume();
             }
 
             let audioTracks = [];
             
-            // Toma la MEZCLA MAESTRA (Tu voz + La voz de los alumnos)
             if (audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
                 audioTracks = audioDestination.stream.getAudioTracks();
             } else if (localStream && localStream.getAudioTracks().length > 0) {
-                // Fallback de seguridad: Graba al menos tu propia voz
                 audioTracks = localStream.getAudioTracks();
             } else {
                 console.warn("Grabando sin audio: Verifica los permisos del micrófono.");
@@ -1929,20 +1898,28 @@
             const canvasStream = compositeCanvas.captureStream(30);
             const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioTracks ]);
             
-            const options = { mimeType: 'video/webm;codecs=vp8,opus' }; 
+            const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
-                options.mimeType = 'video/webm';
+                options.mimeType = 'video/webm;codecs=vp9';
+                if (!MediaRecorder.isTypeSupported(options.mimeType)) options.mimeType = 'video/webm';
             }
 
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                const blob = new Blob(recordedChunks, { type: 'video/webm' });
+                const actualMime = mediaRecorder?.mimeType || options.mimeType || 'video/webm';
+                const safeType = actualMime.split(';')[0] || 'video/webm';
+                const ext = safeType.includes('mp4') ? 'mp4' : 'webm';
+                const blob = new Blob(recordedChunks, { type: safeType });
                 const url = URL.createObjectURL(blob);
-                const a = document.createElement('a'); a.href = url; 
-                a.download = 'Clase_MathBoard.webm'; 
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'Clase_MathBoard.' + ext;
+                document.body.appendChild(a);
                 a.click();
-                URL.revokeObjectURL(url); recordedChunks = [];
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                recordedChunks = [];
             };
             mediaRecorder.start(); 
         }
@@ -1964,8 +1941,12 @@
             recordingLoop = requestAnimationFrame(keepRecordingAlive);
         }
         
-        function stopRecording() { 
-            mediaRecorder.stop(); 
+        function stopRecording() {
+            if (!mediaRecorder || mediaRecorder.state === 'inactive') {
+                isRecording = false;
+                return;
+            }
+            mediaRecorder.stop();
             isRecording = false; 
             cancelAnimationFrame(recordingLoop); 
             document.getElementById('btn-record').classList.remove('record-active'); 
@@ -2266,18 +2247,6 @@
             }
         }
 
-        function handlePeerDisconnect() {
-            console.warn("Peer desconectado del servidor. Intentando reconectar...");
-            const statusText = document.getElementById('status-text');
-            if(statusText) {
-                statusText.innerText = "Reconectando al servidor...";
-                statusText.style.color = "#fbbf24";
-                document.getElementById('ui-panel').style.display = 'block';
-                document.getElementById('ui-panel').style.opacity = '1';
-            }
-            if(peer && !peer.destroyed) peer.reconnect();
-        }
-
         async function createRoom() {
             await getMicrophone();
             document.getElementById('main-toolbar').style.display = 'flex';
@@ -2297,12 +2266,6 @@
                 codeDisplay.innerText = randomCode; 
                 codeDisplay.style.display = 'block';
                 
-                const statusText = document.getElementById('status-text');
-                if(statusText) {
-                    statusText.innerText = "¡Conectado! Sala lista.";
-                    statusText.style.color = "#4ade80";
-                }
-                
                 roomUsers[peer.id] = { name: myName, role: 'Profesor' };
                 renderParticipants();
                 setInterval(renderParticipants, 2000);
@@ -2318,8 +2281,6 @@
                     }
                 }, 40000); 
             });
-
-            peer.on('disconnected', handlePeerDisconnect);
 
             peer.on('connection', (conn) => { 
                 conn.on('open', () => {
@@ -2339,20 +2300,10 @@
                     connections.push(conn); 
                 });
                 conn.on('data', drawRemote); 
-                
-                conn.on('close', () => {
-                    delete roomUsers[conn.peer];
-                    renderParticipants();
-                });
             });
 
             peer.on('error', (err) => {
                 console.error("Error del Profesor:", err);
-                const statusText = document.getElementById('status-text');
-                if(statusText) {
-                    statusText.innerText = "Error de red: " + err.type;
-                    statusText.style.color = "#dc2626";
-                }
                 if (err.type === 'unavailable-id') {
                     alert("Error de red. Ese código está atascado en el servidor. Recargando...");
                     window.location.reload();
@@ -2377,13 +2328,9 @@
             
             setupPeerAudio(peer);
 
-            peer.on('disconnected', handlePeerDisconnect);
-
-            let connectionAttempts = 0;
-
-            function attemptConnection() {
+            peer.on('open', () => {
                 const targetId = 'MBPRO_' + roomId;
-                const conn = peer.connect(targetId, { reliable: false }); // Usamos unreliable para mayor velocidad
+                const conn = peer.connect(targetId, { reliable: true }); 
                 
                 conn.on('open', () => {
                     connections.push(conn);
@@ -2405,28 +2352,16 @@
                         }
                     }, 1000);
                 });
-            }
-
-            peer.on('open', () => {
-                attemptConnection();
             });
 
             peer.on('error', (err) => {
                 console.error("Error del Alumno:", err);
+                btn.innerText = originalText;
+                btn.disabled = false;
                 
                 if (err.type === 'peer-unavailable') {
-                    connectionAttempts++;
-                    if (connectionAttempts < 3) {
-                        btn.innerText = `Reintentando (${connectionAttempts}/3)...`;
-                        setTimeout(attemptConnection, 2000);
-                    } else {
-                        btn.innerText = originalText;
-                        btn.disabled = false;
-                        alert("No se encontró al profesor tras varios intentos. Verifica que el código sea correcto y que el profesor ya esté en la pizarra.");
-                    }
+                    alert("No se encontró al profesor. Verifica que el código sea correcto y que el profesor ya esté en la pizarra.");
                 } else if (err.type === 'network' || err.type === 'server-error') {
-                    btn.innerText = originalText;
-                    btn.disabled = false;
                     alert("Falla en el servidor PeerJS. Intenta de nuevo.");
                 }
             });
@@ -2761,7 +2696,6 @@ window.isLaserFadingGlobal = false;
                         color: inkColor, fontSize: fontSize / canvas.width
                     });
                 }
-                saveState();
             }
             input.remove();
         }
@@ -3034,8 +2968,8 @@ window.isLaserFadingGlobal = false;
   if (btnClear) {
       btnClear.onclick = () => {
           if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-          mCtx.clearRect(0, 0, board.width, board.height); 
-          saveState(); 
+          saveState();
+          mCtx.clearRect(0, 0, board.width, board.height);
           if (typeof broadcastData === 'function') broadcastData({ type:'clear' });
       };
   }
@@ -3093,6 +3027,364 @@ document.addEventListener('keydown', function(e) {
     if (e.ctrlKey && e.keyCode === 85) { e.preventDefault(); }
     if (e.ctrlKey && e.keyCode === 83) { e.preventDefault(); }
 });
+</script>
+
+
+<script>
+/* =========================================================
+   MATHBOARD PRO — CAPA DE ROBUSTEZ Y OPTIMIZACIÓN v3
+   No reemplaza el motor original: lo protege y mejora.
+   ========================================================= */
+(() => {
+  'use strict';
+
+  const MB = {
+    version: '3.0.0',
+    autosaveKey: 'mathboard_pro_recovery_v3',
+    settingsKey: 'mathboard_pro_settings_v3',
+    maxHistory: 12,
+    saveTimer: null,
+    statusTimer: null,
+    roomSweepTimer: null
+  };
+  window.MathBoardPro = MB;
+
+  const $ = id => document.getElementById(id);
+  const board = $('board');
+  if (!board) return;
+
+  /* ---------- Estado visual / recuperación ---------- */
+  function safeStorageSet(key, value) {
+    try { localStorage.setItem(key, value); return true; } catch (_) { return false; }
+  }
+  function safeStorageGet(key) {
+    try { return localStorage.getItem(key); } catch (_) { return null; }
+  }
+
+  function showStatus(message, good = true, ms = 2200) {
+    let el = $('mb3-status');
+    if (!el) {
+      el = document.createElement('div');
+      el.id = 'mb3-status';
+      el.style.cssText =
+        'position:fixed;top:14px;left:50%;transform:translateX(-50%);' +
+        'z-index:100001;padding:8px 14px;border-radius:999px;' +
+        'background:rgba(15,23,42,.94);color:#fff;font:600 13px Segoe UI,sans-serif;' +
+        'box-shadow:0 8px 25px rgba(0,0,0,.25);opacity:0;pointer-events:none;' +
+        'transition:opacity .18s ease;backdrop-filter:blur(8px);';
+      document.body.appendChild(el);
+    }
+    el.textContent = message;
+    el.style.border = '1px solid ' + (good ? '#10b981' : '#ef4444');
+    el.style.opacity = '1';
+    clearTimeout(MB.statusTimer);
+    MB.statusTimer = setTimeout(() => el.style.opacity = '0', ms);
+  }
+
+  function snapshotCanvas() {
+    try {
+      return board.toDataURL('image/webp', .78);
+    } catch (_) {
+      try { return board.toDataURL('image/png'); } catch (e) { return null; }
+    }
+  }
+
+  function saveRecovery(reason = 'auto') {
+    const data = snapshotCanvas();
+    if (!data) return;
+    const payload = {
+      v: MB.version,
+      at: Date.now(),
+      reason,
+      width: board.width,
+      height: board.height,
+      theme: ['theme-grid','theme-whiteboard','theme-chalkboard']
+        .find(x => document.body.classList.contains(x)) || 'theme-grid',
+      image: data
+    };
+    safeStorageSet(MB.autosaveKey, JSON.stringify(payload));
+  }
+
+  function scheduleRecoverySave() {
+    clearTimeout(MB.saveTimer);
+    MB.saveTimer = setTimeout(() => saveRecovery('debounced'), 900);
+  }
+
+  function recoverIfUseful() {
+    const raw = safeStorageGet(MB.autosaveKey);
+    if (!raw) return;
+    try {
+      const d = JSON.parse(raw);
+      if (!d.image || !d.at || Date.now() - d.at > 7 * 86400000) return;
+      if (!confirm('MathBoard encontró una pizarra guardada recientemente. ¿Querés recuperarla?')) return;
+      const img = new Image();
+      img.onload = () => {
+        const c = board.getContext('2d');
+        c.save();
+        c.globalCompositeOperation = 'source-over';
+        c.globalAlpha = 1;
+        c.clearRect(0,0,board.width,board.height);
+        c.drawImage(img,0,0,board.width,board.height);
+        c.restore();
+        if (d.theme && typeof window.applyTheme === 'function') window.applyTheme(d.theme);
+        showStatus('Pizarra recuperada ✓');
+      };
+      img.src = d.image;
+    } catch (_) {}
+  }
+
+  /* ---------- Historial robusto + redo ---------- */
+  if (!window.mbRedo) window.mbRedo = [];
+  function getUndo() { return Array.isArray(window.mwUndo) ? window.mwUndo : (window.mwUndo = []); }
+
+  function pushRedoSnapshot() {
+    const data = snapshotCanvas();
+    if (!data) return;
+    window.mbRedo.push(data);
+    if (window.mbRedo.length > MB.maxHistory) window.mbRedo.shift();
+  }
+
+  function restoreSnapshot(data) {
+    if (!data) return;
+    const img = new Image();
+    img.onload = () => {
+      const c = board.getContext('2d');
+      c.save();
+      c.globalCompositeOperation = 'source-over';
+      c.globalAlpha = 1;
+      c.clearRect(0,0,board.width,board.height);
+      c.drawImage(img,0,0,board.width,board.height);
+      c.restore();
+      scheduleRecoverySave();
+    };
+    img.src = data;
+  }
+
+  function undo() {
+    const stack = getUndo();
+    if (!stack.length) return;
+    const current = snapshotCanvas();
+    if (current) window.mbRedo.push(current);
+    const previous = stack.pop();
+    restoreSnapshot(previous);
+    if (typeof window.broadcastData === 'function' && previous) {
+      window.broadcastData({type:'image', src:previous, x:0, y:0, w:1, h:board.height/Math.max(1,board.width)});
+    }
+    showStatus('Deshacer ↩');
+  }
+
+  function redo() {
+    if (!window.mbRedo.length) return;
+    const current = snapshotCanvas();
+    if (current) getUndo().push(current);
+    const next = window.mbRedo.pop();
+    restoreSnapshot(next);
+    if (typeof window.broadcastData === 'function' && next) {
+      window.broadcastData({type:'image', src:next, x:0, y:0, w:1, h:board.height/Math.max(1,board.width)});
+    }
+    showStatus('Rehacer ↪');
+  }
+  window.mbUndoPro = undo;
+  window.mbRedoPro = redo;
+
+  /* ---------- Pantalla completa limpia ---------- */
+  const style = document.createElement('style');
+  style.textContent = `
+    body.mb-clean-fullscreen #main-toolbar{opacity:0;pointer-events:none;transform:translate(-50%,20px);transition:.18s}
+    body.mb-clean-fullscreen #mb3-reveal{display:flex}
+    #mb3-reveal{display:none;position:fixed;right:14px;bottom:14px;z-index:100000;
+      width:46px;height:46px;border:0;border-radius:50%;align-items:center;justify-content:center;
+      background:rgba(15,23,42,.92);color:#fff;box-shadow:0 8px 25px rgba(0,0,0,.3);font-size:20px}
+    body.mb-clean-fullscreen .floating-panel{max-width:96vw;max-height:90vh}
+  `;
+  document.head.appendChild(style);
+
+  const reveal = document.createElement('button');
+  reveal.id = 'mb3-reveal';
+  reveal.type = 'button';
+  reveal.title = 'Mostrar herramientas';
+  reveal.textContent = '☰';
+  reveal.onclick = () => {
+    const tb = $('main-toolbar');
+    if (tb) { tb.style.opacity = '1'; tb.style.pointerEvents = 'auto'; tb.style.transform = 'translateX(-50%)'; }
+  };
+  document.body.appendChild(reveal);
+
+  function syncFullscreenUI() {
+    const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
+    document.body.classList.toggle('mb-clean-fullscreen', full);
+  }
+  document.addEventListener('fullscreenchange', syncFullscreenUI);
+  document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
+
+  const originalFS = window.toggleFullScreen;
+  window.toggleFullScreen = function() {
+    try {
+      if (!document.fullscreenElement && !document.webkitFullscreenElement) {
+        const el = document.documentElement;
+        const fn = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (fn) {
+          Promise.resolve(fn.call(el)).then(syncFullscreenUI).catch(() => {
+            if (originalFS) originalFS();
+          });
+        } else if (originalFS) originalFS();
+      } else {
+        const fn = document.exitFullscreen || document.webkitExitFullscreen;
+        if (fn) Promise.resolve(fn.call(document)).then(syncFullscreenUI);
+      }
+    } catch (_) {
+      if (originalFS) originalFS();
+    }
+  };
+
+  /* ---------- Red: limpieza de conexiones muertas ---------- */
+  function sweepConnections() {
+    if (!Array.isArray(window.connections)) return;
+    const before = window.connections.length;
+    window.connections = window.connections.filter(c => c && (c.open || c.readyState === 'open'));
+    if (window.connections.length !== before && typeof window.renderParticipants === 'function') {
+      try { window.renderParticipants(); } catch (_) {}
+    }
+  }
+  MB.roomSweepTimer = setInterval(sweepConnections, 5000);
+
+  /* ---------- Seguridad de PeerJS: handlers de reconexión ---------- */
+  function attachPeerGuards() {
+    const p = window.peer;
+    if (!p || p.__mb3guard) return;
+    p.__mb3guard = true;
+    const setOnline = () => showStatus('Conexión de clase activa ✓');
+    const setOffline = () => showStatus('Conexión interrumpida — reconectando…', false, 3500);
+    try {
+      p.on('open', setOnline);
+      p.on('disconnected', () => {
+        setOffline();
+        try { p.reconnect(); } catch (_) {}
+      });
+      p.on('close', () => showStatus('Clase desconectada', false, 3500));
+      p.on('error', err => {
+        if (err && ['network','server-error','socket-error','socket-closed'].includes(err.type)) setOffline();
+      });
+    } catch (_) {}
+  }
+
+  const peerWatcher = setInterval(() => {
+    attachPeerGuards();
+    if (window.peer && window.connections) {
+      window.connections.forEach(conn => {
+        if (!conn || conn.__mb3guard) return;
+        conn.__mb3guard = true;
+        try {
+          conn.on('close', sweepConnections);
+          conn.on('error', () => sweepConnections());
+        } catch (_) {}
+      });
+    }
+  }, 1200);
+
+  /* ---------- Botón redo ---------- */
+  const undoBtn = $('mw-undo');
+  if (undoBtn && !$('mb3-redo')) {
+    const redoBtn = document.createElement('button');
+    redoBtn.id = 'mb3-redo';
+    redoBtn.type = 'button';
+    redoBtn.title = 'Rehacer (Ctrl/Cmd+Y)';
+    redoBtn.textContent = '↪️';
+    redoBtn.onclick = redo;
+    undoBtn.insertAdjacentElement('afterend', redoBtn);
+  }
+
+  /* ---------- Atajos profesionales ---------- */
+  window.addEventListener('keydown', e => {
+    const tag = e.target?.tagName;
+    if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target?.isContentEditable) return;
+
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key.toLowerCase() === 'z') {
+      e.preventDefault();
+      if (e.shiftKey) redo(); else undo();
+      return;
+    }
+    if (mod && e.key.toLowerCase() === 'y') {
+      e.preventDefault(); redo(); return;
+    }
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.floating-panel').forEach(p => {
+        if (p.id !== 'stamper') p.style.display = 'none';
+      });
+    }
+    if (e.key === 'f' && !mod) {
+      e.preventDefault();
+      window.toggleFullScreen();
+    }
+  });
+
+  /* ---------- Auto recuperación sin interferir con el dibujo ---------- */
+  board.addEventListener('pointerup', scheduleRecoverySave, {passive:true});
+  board.addEventListener('pointercancel', scheduleRecoverySave, {passive:true});
+  window.addEventListener('beforeunload', () => saveRecovery('exit'));
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) saveRecovery('background');
+  });
+
+  /* ---------- Mejor manejo de cierre de micrófono ---------- */
+  window.addEventListener('pagehide', () => {
+    try {
+      if (window.localStream) window.localStream.getTracks().forEach(t => t.stop());
+    } catch (_) {}
+    try {
+      if (window.mediaRecorder && window.mediaRecorder.state !== 'inactive') window.mediaRecorder.stop();
+    } catch (_) {}
+  });
+
+  /* ---------- Estado persistente de tema ---------- */
+  const themeButtons = $('btn-theme');
+  if (themeButtons) themeButtons.addEventListener('click', () => {
+    const theme = ['theme-grid','theme-whiteboard','theme-chalkboard']
+      .find(x => document.body.classList.contains(x));
+    if (theme) safeStorageSet(MB.settingsKey, JSON.stringify({theme,at:Date.now()}));
+  });
+
+  /* ---------- Reparación de URLs de YouTube ---------- */
+  const oldYT = window.extractYouTubeEmbedUrl;
+  if (oldYT) {
+    window.extractYouTubeEmbedUrl = function(url) {
+      try {
+        const u = new URL(String(url).trim());
+        let id = '';
+        if (u.hostname === 'youtu.be') id = u.pathname.slice(1);
+        else if (u.hostname.includes('youtube.com')) {
+          if (u.pathname === '/watch') id = u.searchParams.get('v') || '';
+          else if (u.pathname.startsWith('/shorts/')) id = u.pathname.split('/')[2] || '';
+          else if (u.pathname.startsWith('/embed/')) return u.toString();
+        }
+        id = (id || '').split('/')[0];
+        if (!/^[A-Za-z0-9_-]{6,20}$/.test(id)) return oldYT(url);
+        return 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0';
+      } catch (_) {
+        return oldYT(url);
+      }
+    };
+  }
+
+  /* ---------- API de diagnóstico ---------- */
+  window.MathBoardDiagnostics = () => ({
+    version: MB.version,
+    canvas: {width: board.width, height: board.height},
+    fullscreen: !!(document.fullscreenElement || document.webkitFullscreenElement),
+    peer: !!window.peer,
+    connections: Array.isArray(window.connections) ? window.connections.filter(c => c?.open).length : 0,
+    storage: (() => { try { const k='__mb3'; localStorage.setItem(k,'1'); localStorage.removeItem(k); return true; } catch (_) { return false; } })(),
+    mediaRecorder: typeof MediaRecorder !== 'undefined',
+    pdf: typeof window.pdfjsLib !== 'undefined'
+  });
+
+  /* Exponer referencias útiles del motor original sin reemplazarlo. */
+  window.mbScheduleRecovery = scheduleRecoverySave;
+
+  setTimeout(recoverIfUseful, 900);
+  showStatus('MathBoard Pro listo ✓', true, 1500);
+})();
 </script>
 
 </body>
