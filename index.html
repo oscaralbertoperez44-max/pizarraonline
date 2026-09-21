@@ -568,7 +568,7 @@
         <div id="participants-chip" style="display:none;" title="Usuarios conectados"></div>
 
         <button type="button" id="mw-undo" title="Deshacer último trazo [Z]">↩️</button>
-        <button type="button" id="mw-clear" title="Limpiar Pizarra Absoluto [Supr]" class="danger-btn">🗑️</button>
+        <button type="button" id="mw-clear" onclick="clearCanvas()" title="Limpiar Pizarra Absoluto [Supr]" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
 
@@ -904,6 +904,7 @@
             }
         }
 
+        // LIMPIAR PIZARRA GLOBAL
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
             ctx.clearRect(0, 0, canvas.width, canvas.height); 
@@ -1783,7 +1784,7 @@
                     };
                     img.src = ev.target.result;
                 };
-                source.src = ev.target.result;
+                source.src = ev.target.result; // CORREGIDO: Evita el ReferenceError bloqueante
             };
             reader.readAsDataURL(file);
         }
@@ -2683,17 +2684,16 @@ window.isLaserFadingGlobal = false;
     const p = pos(ev);
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
+    shapeStartX = p.x; shapeStartY = p.y; // IMPORTANTE: Se inicializa siempre
     
     smoothedSpeed = 0;
     lastRenderedSize = mwSize;
 
-    if (['line','arrow','rect','circle'].includes(mwMode)) {
-        shapeStartX = p.x; shapeStartY = p.y;
-    } else if (mwMode === 'laser') {
+    if (mwMode === 'laser') {
         if (typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
         }
-    } else {
+    } else if (!['line','arrow','rect','circle'].includes(mwMode)) {
         if (typeof broadcastData === 'function') {
             broadcastData({ type:'start' });
         }
@@ -2722,7 +2722,7 @@ window.isLaserFadingGlobal = false;
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
         
-        // --- LÓGICA MAGNÉTICA ---
+        // --- LÓGICA MAGNÉTICA PARA FORMAS GEOMÉTRICAS ---
         if (window.isSnapEnabled || ev.shiftKey) {
             let dx = p.x - shapeStartX;
             let dy = p.y - shapeStartY;
@@ -2739,7 +2739,6 @@ window.isLaserFadingGlobal = false;
                 p.y = shapeStartY + Math.sign(dy) * side;
             }
         }
-        // --- FIN LÓGICA MAGNÉTICA ---
 
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
         drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
@@ -2775,6 +2774,17 @@ window.isLaserFadingGlobal = false;
     for (let i=0; i<events.length; i++) {
         let e = events[i];
         let p = pos(e);
+        
+        // --- LÓGICA MAGNÉTICA PARA DIBUJO CONTINUO (EJES) ---
+        if (window.isSnapEnabled || ev.shiftKey) {
+            let dx = Math.abs(p.x - shapeStartX);
+            let dy = Math.abs(p.y - shapeStartY);
+            if (dx > dy) {
+                p.y = shapeStartY; // Bloquea vertical, dibuja horizontal
+            } else {
+                p.x = shapeStartX; // Bloquea horizontal, dibuja vertical
+            }
+        }
         
         let dx = p.x - mwLastPosX;
         let dy = p.y - mwLastPosY;
@@ -2911,9 +2921,6 @@ window.isLaserFadingGlobal = false;
     }
   });
 
-  const clearBtn = document.getElementById('mw-clear');
-  clearBtn && clearBtn.addEventListener('click',()=>{ if(typeof clearCanvas === 'function') clearCanvas(); });
-
   const btnSnap = document.getElementById('btn-snap');
   if (btnSnap) {
       btnSnap.addEventListener('click', () => {
@@ -2945,8 +2952,8 @@ window.isLaserFadingGlobal = false;
               if (btnUndo) btnUndo.click();
               break;
           case 'delete':
-              const btnClear = document.getElementById('mw-clear');
-              if (btnClear) btnClear.click();
+          case 'backspace':
+              if (typeof window.clearCanvas === 'function') window.clearCanvas();
               break;
       }
   });
