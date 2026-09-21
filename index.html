@@ -12,6 +12,10 @@
     </script>
     <style>
         /* Base General Ultra Optimizada - Bloqueo de Gestos de SO */
+        input, textarea {
+            user-select: text !important;
+            -webkit-user-select: text !important;
+        }
         body, html {
             margin: 0; padding: 0; width: 100vw; height: 100vh;
             color: #1e293b;
@@ -529,6 +533,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         
         <!-- Opciones Universales Extras -->
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
+        <button type="button" onclick="toggleMbuDock()" title="Menú Ultimate" style="background:#eab308;">🚀</button>
         <button onclick="toggleCalcPanel()" title="Calculadora Gráfica Desmos y GeoGebra">🖩</button>
         <button onclick="toggleResourcesPanel()" title="Buscador Académico y Archivos de Clase" style="background:#8b5cf6;">📚</button>
         <div class="toolbar-divider"></div>
@@ -3029,6 +3034,9 @@ window.isLaserFadingGlobal = false;
 <script>
 /* === ESCUDO DE PROTECCIÓN BÁSICA (ANTI-COPIA) === */
 document.addEventListener('contextmenu', function(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
+        return; 
+    }
     e.preventDefault();
 });
 document.addEventListener('keydown', function(e) {
@@ -3438,7 +3446,7 @@ function clearActivity(){M.activity=null;$('mbu-live-activity').style.display='n
 function plot(){const c=$('mbu-graph');if(!c)return;const ctx=c.getContext('2d'),w=c.width,h=c.height;ctx.clearRect(0,0,w,h);ctx.fillStyle='#fff';ctx.fillRect(0,0,w,h);let xmin=parseFloat($('mbu-xmin').value)||-10,xmax=parseFloat($('mbu-xmax').value)||10;if(xmax<=xmin)xmax=xmin+1;let fn=$('mbu-fn').value.trim().replace(/\^/g,'**');let safe=/^[0-9xX+\-*/().\s*]+$/.test(fn);const evalFn=x=>{if(!safe)throw Error();return Function('x','"use strict";return '+fn)(x)};let ymin=Infinity,ymax=-Infinity,pts=[];for(let i=0;i<w;i++){let x=xmin+(xmax-xmin)*i/(w-1),y=evalFn(x);if(Number.isFinite(y)){pts.push([x,y]);ymin=Math.min(ymin,y);ymax=Math.max(ymax,y)}}if(!Number.isFinite(ymin)){ctx.fillStyle='#b91c1c';ctx.fillText('Expresión no válida',20,30);return}let pad=(ymax-ymin||1)*.1;ymin-=pad;ymax+=pad;const X=x=>((x-xmin)/(xmax-xmin))*w,Y=y=>h-((y-ymin)/(ymax-ymin))*h;ctx.strokeStyle='#cbd5e1';ctx.lineWidth=1;for(let i=0;i<=10;i++){let xx=i*w/10,yy=i*h/10;ctx.beginPath();ctx.moveTo(xx,0);ctx.lineTo(xx,h);ctx.stroke();ctx.beginPath();ctx.moveTo(0,yy);ctx.lineTo(w,yy);ctx.stroke()}ctx.strokeStyle='#475569';ctx.beginPath();if(xmin<=0&&xmax>=0){ctx.moveTo(X(0),0);ctx.lineTo(X(0),h)}if(ymin<=0&&ymax>=0){ctx.moveTo(0,Y(0));ctx.lineTo(w,Y(0))}ctx.stroke();ctx.strokeStyle='#2563eb';ctx.lineWidth=2;ctx.beginPath();pts.forEach((p,i)=>{const xx=X(p[0]),yy=Y(p[1]);if(i===0||Math.abs(yy)>h*2)ctx.moveTo(xx,yy);else ctx.lineTo(xx,yy)});ctx.stroke();ctx.fillStyle='#334155';ctx.font='12px system-ui';ctx.fillText('y',6,14);ctx.fillText('x',w-12,h-6)}
 function stageZoom(f){M.stageScale=Math.max(.5,Math.min(3,M.stageScale*f));$('mbu-stage-canvas').style.transform=`scale(${M.stageScale})`}
 function closeStage(){$('mbu-stage').style.display='none'}
-function init(){const dock=$('mbu-dock');if(dock)dock.style.display='flex';document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();if((e.ctrlKey||e.metaKey)&&e.key==='Enter')sendChat();if(e.key==='f'&&!e.ctrlKey&&!e.metaKey&&document.activeElement?.tagName!=='INPUT'&&document.activeElement?.tagName!=='TEXTAREA')toggleImmersive()});const ci=$('mbu-chat-input');ci?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});setInterval(renderUsers,2500);window.MBU={open,closeAll,toggleImmersive,instrument,zoom,resetView,saveSnapshot,restoreSnapshot,solve,writeFormula,generate,sendChat,raiseHand,renderUsers,shareClassCode,pingClass,sendActivity,showActivity,clearActivity,plot,stageZoom,closeStage};
+function init(){const dock=$('mbu-dock');if(dock)dock.style.display='none';window.toggleMbuDock = function(){dock.style.display = dock.style.display === 'none' || dock.style.display === '' ? 'flex' : 'none';};document.addEventListener('keydown',e=>{if(e.key==='Escape')closeAll();if((e.ctrlKey||e.metaKey)&&e.key==='Enter')sendChat();if(e.key==='f'&&!e.ctrlKey&&!e.metaKey&&document.activeElement?.tagName!=='INPUT'&&document.activeElement?.tagName!=='TEXTAREA')toggleImmersive()});const ci=$('mbu-chat-input');ci?.addEventListener('keydown',e=>{if(e.key==='Enter')sendChat()});setInterval(renderUsers,2500);window.MBU={open,closeAll,toggleImmersive,instrument,zoom,resetView,saveSnapshot,restoreSnapshot,solve,writeFormula,generate,sendChat,raiseHand,renderUsers,shareClassCode,pingClass,sendActivity,showActivity,clearActivity,plot,stageZoom,closeStage};
  const oldPR=window.processRemoteCommand;if(typeof oldPR==='function'){window.processRemoteCommand=function(d){if(d?.type==='mbu_chat'){renderChat(d);return}if(d?.type==='mbu_hand'){toast('✋ '+(d.userName||'Un alumno')+' levantó la mano');return}if(d?.type==='mbu_ping'){toast('📣 '+(d.userName||'Profesor')+' solicita atención');return}if(d?.type==='mbu_activity'){showActivity(d);open('activity');return}return oldPR(d)}}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
