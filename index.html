@@ -545,7 +545,7 @@
         <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
         <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
         <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
-        <button type="button" id="btn-snap" title="Regla Magnética (Ángulos exactos) [Shift]">📐</button>
+        <button type="button" id="btn-snap" title="Regla Magnética (Ejes y ángulos perfectos) [Shift]">📐</button>
         <button type="button" id="mw-rect" title="Cuadrado / Rectángulo [R]" class="hide-mobile">▭</button>
         <button type="button" id="mw-circle" title="Círculo [C]" class="hide-mobile">○</button>
         <button type="button" id="mw-eraser" title="Borrador Real [E]">🧼</button>
@@ -568,6 +568,7 @@
         <div id="participants-chip" style="display:none;" title="Usuarios conectados"></div>
 
         <button type="button" id="mw-undo" title="Deshacer último trazo [Z]">↩️</button>
+        <!-- BOTONES CORREGIDOS SIN DOBLE ONCLICK -->
         <button type="button" id="mw-clear" onclick="clearCanvas()" title="Limpiar Pizarra Absoluto [Supr]" class="danger-btn">🗑️</button>
         <button type="button" onclick="window.toggleFullScreen()" title="Pantalla Completa" class="hide-mobile">🔲</button>
     </div>
@@ -579,12 +580,21 @@
     </div>
 
 <script>
-        // Súper Script Unificado y Seguro
+        // === POLYFILL UNIVERSAL DE PANTALLA COMPLETA ===
         window.toggleFullScreen = function() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen().catch(err => console.log(err));
-            } else {
-                if (document.exitFullscreen) document.exitFullscreen();
+            try {
+                let doc = window.document;
+                let docEl = doc.documentElement;
+                let requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullscreen || docEl.msRequestFullscreen;
+                let cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+                
+                if(!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+                    requestFullScreen.call(docEl);
+                } else {
+                    cancelFullScreen.call(doc);
+                }
+            } catch (err) {
+                console.error("Tu navegador no soporta pantalla completa por código:", err);
             }
         };
 
@@ -1784,7 +1794,7 @@
                     };
                     img.src = ev.target.result;
                 };
-                source.src = ev.target.result; // CORREGIDO: Evita el ReferenceError bloqueante
+                source.src = ev.target.result; 
             };
             reader.readAsDataURL(file);
         }
@@ -1843,7 +1853,10 @@
         window.toggleRecording = toggleRecording;
         
         function startRecording() {
-            if (!audioDestination) { alert("Audio no inicializado."); return; }
+            // Permitir grabar la pizarra aunque el micrófono falle o no esté conectado
+            if (!audioDestination) { 
+                console.warn("Grabando sin audio: Micrófono no inicializado o denegado."); 
+            }
             
             isRecording = true;
             document.getElementById('btn-record').classList.add('record-active');
@@ -1852,10 +1865,12 @@
             
             const canvasStream = compositeCanvas.captureStream(30);
             let combinedStream;
+            
+            // Verifica de forma segura si hay pistas de audio disponibles
             if(audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
                 combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioDestination.stream.getAudioTracks() ]);
             } else {
-                combinedStream = canvasStream;
+                combinedStream = canvasStream; // Graba solo el video de la pizarra
             }
             
             const options = { mimeType: 'video/webm;codecs=h264', videoBitsPerSecond: 4000000 }; 
@@ -2056,11 +2071,17 @@
                 applyTheme(data.theme);
                 return;
             }
+            
+            // LIMPIAR PIZARRA DESDE RED
             if (data.type === 'clear') { 
-                const mCtx = document.getElementById('board').getContext('2d');
-                mCtx.clearRect(0, 0, canvas.width, canvas.height); 
+                const b = document.getElementById('board');
+                if (b) {
+                    const c = b.getContext('2d');
+                    c.clearRect(0, 0, b.width, b.height);
+                }
                 return; 
             }
+            
             if (data.type === 'logout') {
                 alert("El profesor ha finalizado y cerrado la sesión.");
                 window.location.reload();
@@ -2415,33 +2436,6 @@
             });
         }
 
-        function toggleMaximize(panelId) {
-            const panel = document.getElementById(panelId);
-            if (!panel) return;
-            if (panel.dataset.maximized === 'true') {
-                panel.style.width = panel.dataset.w;
-                panel.style.height = panel.dataset.h;
-                panel.style.top = panel.dataset.t;
-                panel.style.left = panel.dataset.l;
-                panel.dataset.maximized = 'false';
-            } else {
-                panel.dataset.w = panel.style.width || panel.offsetWidth + 'px';
-                panel.dataset.h = panel.style.height || panel.offsetHeight + 'px';
-                panel.dataset.t = panel.style.top || panel.offsetTop + 'px';
-                panel.dataset.l = panel.style.left || panel.offsetLeft + 'px';
-                
-                panel.style.width = '100vw';
-                panel.style.height = '100vh';
-                panel.style.top = '0px';
-                panel.style.left = '0px';
-                panel.style.maxHeight = 'none';
-                const container = panel.querySelector('div[id$="-render-container"]');
-                if(container) { container.style.maxHeight = 'none'; container.style.height = '100%'; }
-                panel.dataset.maximized = 'true';
-            }
-        }
-        window.toggleMaximize = toggleMaximize;
-
         makeDraggable(document.getElementById('pdf-panel'), document.getElementById('pdf-header'));
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
@@ -2545,6 +2539,7 @@ window.isLaserFadingGlobal = false;
   
   let shapeStartX = 0, shapeStartY = 0;
   window.isSnapEnabled = false;
+  window.strokeSnapAxis = null; // Candado para bloquear el eje elegido
 
   window.drawLaserFadeGlobal = function() {
       const now = Date.now();
@@ -2684,7 +2679,8 @@ window.isLaserFadingGlobal = false;
     const p = pos(ev);
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
-    shapeStartX = p.x; shapeStartY = p.y; // IMPORTANTE: Se inicializa siempre
+    shapeStartX = p.x; shapeStartY = p.y; 
+    window.strokeSnapAxis = null; // Reiniciar eje al apoyar el lápiz
     
     smoothedSpeed = 0;
     lastRenderedSize = mwSize;
@@ -2775,14 +2771,23 @@ window.isLaserFadingGlobal = false;
         let e = events[i];
         let p = pos(e);
         
-        // --- LÓGICA MAGNÉTICA PARA DIBUJO CONTINUO (EJES) ---
+        // --- LÓGICA MAGNÉTICA PARA DIBUJO CONTINUO (EJES SEGUROS) ---
         if (window.isSnapEnabled || ev.shiftKey) {
-            let dx = Math.abs(p.x - shapeStartX);
-            let dy = Math.abs(p.y - shapeStartY);
-            if (dx > dy) {
-                p.y = shapeStartY; // Bloquea vertical, dibuja horizontal
+            if (!window.strokeSnapAxis) {
+                let dxCheck = Math.abs(p.x - shapeStartX);
+                let dyCheck = Math.abs(p.y - shapeStartY);
+                // Espera a moverse un poco para decidir la intención
+                if (dxCheck > 5 || dyCheck > 5) {
+                    window.strokeSnapAxis = (dxCheck > dyCheck) ? 'horizontal' : 'vertical';
+                }
+            }
+            if (window.strokeSnapAxis === 'horizontal') {
+                p.y = shapeStartY;
+            } else if (window.strokeSnapAxis === 'vertical') {
+                p.x = shapeStartX;
             } else {
-                p.x = shapeStartX; // Bloquea horizontal, dibuja vertical
+                p.x = shapeStartX;
+                p.y = shapeStartY;
             }
         }
         
@@ -2921,6 +2926,18 @@ window.isLaserFadingGlobal = false;
     }
   });
 
+  // --- BOTÓN LIMPIAR (REPARADO Y AISLADO) ---
+  const btnClear = document.getElementById('mw-clear');
+  if (btnClear) {
+      btnClear.onclick = () => {
+          if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
+          mCtx.clearRect(0, 0, board.width, board.height); 
+          saveState(); 
+          if (typeof broadcastData === 'function') broadcastData({ type:'clear' });
+      };
+  }
+
+  // --- BOTÓN MAGNÉTICO ---
   const btnSnap = document.getElementById('btn-snap');
   if (btnSnap) {
       btnSnap.addEventListener('click', () => {
@@ -2953,7 +2970,8 @@ window.isLaserFadingGlobal = false;
               break;
           case 'delete':
           case 'backspace':
-              if (typeof window.clearCanvas === 'function') window.clearCanvas();
+              const bClear = document.getElementById('mw-clear');
+              if (bClear) bClear.click();
               break;
       }
   });
