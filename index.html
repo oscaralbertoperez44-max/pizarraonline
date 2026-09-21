@@ -96,16 +96,16 @@
             position: absolute;
             color: #ffffff;
             font-family: 'Georgia', serif;
-            font-size: 1.1rem;
+            font-size: 1.15rem;
             font-style: italic;
-            text-shadow: 2px 2px 8px rgba(0,0,0,0.9);
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
             pointer-events: none;
-            width: 22vw; 
+            max-width: 280px;
             text-align: center;
             z-index: 1;
             line-height: 1.4;
         }
-        @media (max-width: 1100px) { .math-quote { display: none; } }
+        @media (max-width: 1000px) { .math-quote { display: none; } }
 
         .login-box { background: #1a1a1a; color: #fff; padding: 40px; border-radius: 20px; box-shadow: 0 15px 50px rgba(0,0,0,0.8), 0 0 30px rgba(16, 185, 129, 0.2); border: 1px solid #333; text-align: center; width: 90%; max-width: 380px; position: relative; z-index: 2; }
         .login-title { font-size: 2.2rem; margin-bottom: 5px; font-weight: bold; }
@@ -299,7 +299,7 @@
         <div class="resize-handle resize-handle-panel" id="calc-resize-handle" title="Arrastra para redimensionar"></div>
     </div>
 
-    <!-- Visor de Videos Sincronizados con Favoritos -->
+    <!-- Visor de Videos Sincronizados con Favoritos y Captura -->
     <div id="video-panel" class="floating-panel">
         <div class="panel-header" id="video-header">
             <span>📺 Cine Educativo (Video Sincronizado)</span>
@@ -316,11 +316,12 @@
                 <input type="text" id="video-search-input" placeholder="Buscar tema en YouTube (ej: Integrales)" style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="searchMathVideo()" style="background:#8b5cf6; min-width:90px;">🔍 Buscar</button>
             </div>
-            <!-- Transmisor P2P y Favoritos -->
+            <!-- Transmisor P2P y Captura/Favoritos -->
             <div class="hide-student flex-container" style="gap:5px; align-items:center;">
                 <input type="text" id="video-url-input" placeholder="Pega el link de YouTube aquí..." style="flex:1; padding:6px; border-radius:6px; border:1px solid #444; background:#111; color:#fff; font-size:0.8rem;">
                 <button onclick="saveVideoLink()" style="background:#f59e0b; min-width:40px; padding: 6px;" title="Guardar a favoritos">⭐</button>
                 <button onclick="toggleVideoBookmarks()" style="background:#4b5563; min-width:40px; padding: 6px;" title="Ver favoritos">📁</button>
+                <button onclick="captureVideoScreen()" style="background:#8b5cf6; min-width:40px; padding: 6px;" title="Capturar escena del video (Selecciona la pestaña)">📸</button>
                 <button onclick="loadAndShareVideo()" style="background:#10b981; min-width:90px;" title="Carga el video y lo abre en la pantalla de los alumnos">📡 Compartir</button>
                 <button onclick="stopAndCloseVideo()" style="background:#dc2626; min-width:80px;" title="Detener y cerrar el video a todos">🛑 Parar</button>
             </div>
@@ -888,9 +889,6 @@
             document.getElementById('video-frame').src = embedUrl;
             document.getElementById('video-url-input').value = '';
             
-            const ctrlArea = document.getElementById('video-controls-area');
-            if(ctrlArea) ctrlArea.style.display = 'none';
-            
             if (typeof broadcastData === 'function') {
                 broadcastData({ type: 'video_share', url: embedUrl });
             }
@@ -901,9 +899,6 @@
         function stopAndCloseVideo() {
             document.getElementById('video-frame').src = '';
             document.getElementById('video-panel').style.display = 'none';
-            
-            const ctrlArea = document.getElementById('video-controls-area');
-            if(ctrlArea) ctrlArea.style.display = 'flex';
             
             if (typeof broadcastData === 'function') {
                 broadcastData({ type: 'video_stop' });
@@ -980,6 +975,8 @@
             }
         }
         window.removeVideoLink = removeVideoLink;
+
+        window.captureVideoScreen = () => captureScreenSource('video');
 
 
         // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
@@ -1564,6 +1561,7 @@
                         
                         if(panelIdToMinimize === 'dola') toggleDolaMinimize();
                         if(panelIdToMinimize === 'calc') document.getElementById('calc-panel').style.display = 'none';
+                        if(panelIdToMinimize === 'video') toggleVideoMinimize();
                     }, 500);
                 };
             } catch (err) {
@@ -2182,7 +2180,6 @@
         window.toggleMaximize = toggleMaximize;
 
         makeDraggable(document.getElementById('pdf-panel'), document.getElementById('pdf-header'));
-        makeDraggable(document.getElementById('dola-panel'), document.getElementById('dola-header'));
         makeDraggable(document.getElementById('calc-panel'), document.getElementById('calc-header'));
         makeDraggable(document.getElementById('gallery-panel'), document.getElementById('gallery-header'));
         makeDraggable(document.getElementById('resources-panel'), document.getElementById('resources-header'));
@@ -2190,7 +2187,6 @@
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
-        makePanelResizable('dola-panel', 'dola-resize-handle');
         makePanelResizable('calc-panel', 'calc-resize-handle');
         makePanelResizable('gallery-panel', 'gallery-resize-handle');
         makePanelResizable('resources-panel', 'resources-resize-handle');
@@ -2249,7 +2245,6 @@ window.isLaserFadingGlobal = false;
   let lastRenderedSize = mwSize;
   
   let shapeStartX = 0, shapeStartY = 0;
-  const shapePreviewCanvas = document.createElement('canvas');
 
   window.drawLaserFadeGlobal = function() {
       const now = Date.now();
@@ -2333,8 +2328,6 @@ window.isLaserFadingGlobal = false;
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         shapeStartX = p.x; shapeStartY = p.y;
-        shapePreviewCanvas.width = canvas.width; shapePreviewCanvas.height = canvas.height;
-        shapePreviewCanvas.getContext('2d').drawImage(canvas, 0, 0);
     } else if (mwMode === 'laser') {
         if (typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
