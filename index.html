@@ -257,6 +257,13 @@
 </head>
 <body class="theme-grid">
 
+    <!-- ALERTA DE PROTOCOLO FILE:// -->
+    <script>
+        if (window.location.protocol === 'file:') {
+            alert("AVISO DE RED: Estás abriendo el archivo localmente (file://). Los navegadores bloquean el uso del Micrófono y la conexión P2P por seguridad.\n\nPara que la pizarra conecte con los alumnos y grabe audio, debes subir este archivo a un hosting web o usar un servidor local (ej. Live Server).");
+        }
+    </script>
+
     <div id="login-overlay">
         <!-- Citas Matemáticas Periféricas -->
         <div class="math-quote" style="top: 5%; left: 3%; width: 18vw;"><span class="mq-icon">❝</span>La esencia de las matemáticas es su libertad.<span class="mq-icon">❞</span><span class="mq-author">— Georg Cantor</span></div>
@@ -631,15 +638,35 @@
         document.getElementById('adminPin')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') verifyAdmin(); });
         document.getElementById('roomIdInput')?.addEventListener('keydown', (e) => { if (e.key === 'Enter') joinRoom(); });
 
+        // === MOTOR DE AUDIO REFORZADO ===
         async function getMicrophone() {
-            if (!navigator.mediaDevices) return false;
-            try { 
-                localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, latency: 0.01 }, video: false }); 
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            try {
+                // Iniciar AudioContext SIEMPRE, incluso si es silencioso
+                window.AudioContext = window.AudioContext || window.webkitAudioContext;
+                audioContext = new AudioContext();
                 audioDestination = audioContext.createMediaStreamDestination();
-                audioContext.createMediaStreamSource(localStream).connect(audioDestination);
-                return true; 
-            } catch(e) { return false; }
+            } catch(e) {
+                console.warn("AudioContext no soportado en este navegador.");
+            }
+
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                try {
+                    localStream = await navigator.mediaDevices.getUserMedia({
+                        audio: { echoCancellation: true, noiseSuppression: true },
+                        video: false
+                    });
+                    
+                    if (audioContext && audioDestination) {
+                        const localSource = audioContext.createMediaStreamSource(localStream);
+                        localSource.connect(audioDestination);
+                    }
+                    return true;
+                } catch(e) {
+                    console.warn("Permiso de micrófono denegado o dispositivo no disponible.");
+                    return false;
+                }
+            }
+            return false;
         }
 
         function unlockAudio() {
@@ -650,13 +677,14 @@
             btn.innerText = "🔊 Activar Audio de la Clase";
             btn.onclick = () => {
                 document.querySelectorAll('audio').forEach(a => a.play().catch(e=>console.log(e)));
+                if(audioContext && audioContext.state === 'suspended') audioContext.resume();
                 btn.remove();
             };
             document.body.appendChild(btn);
         }
 
         function playAudio(stream, peerId) {
-            if (!peerId || stream.id === localStream?.id) return;
+            if (!peerId || (localStream && stream.id === localStream.id)) return;
             let audioEl = document.getElementById('audio-' + peerId);
             if (!audioEl) {
                 audioEl = document.createElement('audio');
@@ -666,9 +694,18 @@
             }
             if (audioEl.srcObject !== stream) {
                 audioEl.srcObject = stream;
+                
+                // MEZCLAR EL AUDIO DE LOS ALUMNOS HACIA LA GRABACIÓN DEL PROFESOR
+                if (audioContext && audioDestination) {
+                    try {
+                        const remoteSource = audioContext.createMediaStreamSource(stream);
+                        remoteSource.connect(audioDestination);
+                    } catch(err){ console.warn("No se pudo enlazar el audio remoto a la mezcla master"); }
+                }
             }
+            
             audioEl.play().catch(err => {
-                console.warn("Autoplay bloqueado para", peerId, err);
+                console.warn("Autoplay bloqueado para el alumno", peerId, err);
                 unlockAudio();
             });
         }
@@ -686,7 +723,7 @@
                     }
                 }
             } else {
-                alert("El micrófono no está activo.");
+                alert("El micrófono no está activo o denegaste los permisos al inicio.");
             }
         }
         window.toggleMic = toggleMic;
@@ -823,8 +860,13 @@
                 userRole = 'Profesor';
                 myName = document.getElementById('teacherName').value.trim() || 'Profesor';
                 document.getElementById('admin-tools').style.display = 'flex';
+                
+                const status = document.getElementById('status-text');
+                if (status) { status.innerText = "Iniciando Red PeerJS..."; status.style.color = "#fbbf24"; }
+                
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
+                
                 createRoom();
                 updateGalleryGrid();
             } else { alert("PIN Incorrecto."); }
@@ -1852,25 +1894,32 @@
         window.toggleRecording = toggleRecording;
         
         function startRecording() {
-            // Verificar si el micrófono directo está disponible
+            // Despierta el contexto de audio si el navegador lo suspendió
+            if (audioContext && audioContext.state === 'suspended') {
+                audioContext.resume();
+            }
+
             let audioTracks = [];
-            if (localStream && localStream.getAudioTracks().length > 0) {
+            
+            // Toma la MEZCLA MAESTRA (Tu voz + La voz de los alumnos)
+            if (audioDestination && audioDestination.stream.getAudioTracks().length > 0) {
+                audioTracks = audioDestination.stream.getAudioTracks();
+            } else if (localStream && localStream.getAudioTracks().length > 0) {
+                // Fallback de seguridad: Graba al menos tu propia voz
                 audioTracks = localStream.getAudioTracks();
             } else {
-                console.warn("Grabando sin audio: Micrófono no detectado o sin permisos.");
+                console.warn("Grabando sin audio: Verifica los permisos del micrófono.");
             }
-            
+
             isRecording = true;
             document.getElementById('btn-record').classList.add('record-active');
             
             keepRecordingAlive(); 
             
-            // Unir el video de la pizarra con el audio directo del micrófono
             const canvasStream = compositeCanvas.captureStream(30);
             const combinedStream = new MediaStream([ ...canvasStream.getVideoTracks(), ...audioTracks ]);
             
-            // Asegurar formato compatible con audio (WebM con VP9/Opus es el estándar nativo más seguro)
-            const options = { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 4000000 }; 
+            const options = { mimeType: 'video/webm;codecs=vp8,opus' }; 
             if (!MediaRecorder.isTypeSupported(options.mimeType)) {
                 options.mimeType = 'video/webm';
             }
@@ -1878,7 +1927,6 @@
             mediaRecorder = new MediaRecorder(combinedStream, options);
             mediaRecorder.ondataavailable = (e) => { if(e.data.size > 0) recordedChunks.push(e.data); };
             mediaRecorder.onstop = () => {
-                // Guardarlo como WebM asegura que el audio y video no se desfasen ni se pierdan
                 const blob = new Blob(recordedChunks, { type: 'video/webm' });
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a'); a.href = url; 
@@ -2227,6 +2275,12 @@
                 codeDisplay.innerText = randomCode; 
                 codeDisplay.style.display = 'block';
                 
+                const statusText = document.getElementById('status-text');
+                if(statusText) {
+                    statusText.innerText = "¡Conectado! Sala lista.";
+                    statusText.style.color = "#4ade80";
+                }
+                
                 roomUsers[peer.id] = { name: myName, role: 'Profesor' };
                 renderParticipants();
                 setInterval(renderParticipants, 2000);
@@ -2265,6 +2319,11 @@
 
             peer.on('error', (err) => {
                 console.error("Error del Profesor:", err);
+                const statusText = document.getElementById('status-text');
+                if(statusText) {
+                    statusText.innerText = "Error de red: " + err.type;
+                    statusText.style.color = "#dc2626";
+                }
                 if (err.type === 'unavailable-id') {
                     alert("Error de red. Ese código está atascado en el servidor. Recargando...");
                     window.location.reload();
@@ -2829,7 +2888,7 @@ window.isLaserFadingGlobal = false;
             mCtx.globalAlpha = 1;
         } else if(mwMode === 'pencil') {
             mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = data.color;
+            mCtx.strokeStyle = inkColor;
             mCtx.globalAlpha = 0.6; 
             mCtx.shadowBlur = 1;
             mCtx.shadowColor = inkColor;
