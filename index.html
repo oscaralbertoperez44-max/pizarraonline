@@ -229,29 +229,6 @@
         #main-toolbar button.active { outline: 2px solid #3b82f6; background: #2563eb; }
         #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
         #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
-
-        /* Selector compacto de tipos de lápiz: mantiene la barra limpia y muestra las herramientas al seleccionar. */
-        #mw-pen-tools-menu {
-            position: fixed; bottom: 78px; left: 50%; transform: translateX(-50%) translateY(8px);
-            display: none; align-items: stretch; gap: 6px; padding: 8px;
-            background: rgba(15,23,42,.97); border: 1px solid rgba(255,255,255,.14);
-            border-radius: 16px; box-shadow: 0 14px 35px rgba(0,0,0,.35);
-            backdrop-filter: blur(14px); z-index: 10001;
-        }
-        #mw-pen-tools-menu.open { display: flex; animation: pcPenMenuIn .12s ease-out; }
-        #mw-pen-tools-menu button {
-            min-width: 74px !important; min-height: 58px !important; padding: 5px 7px !important;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 2px; font-size: 21px !important; border-radius: 11px !important;
-        }
-        #mw-pen-tools-menu button span { font-size: 10px; line-height: 1; font-weight: 600; opacity: .9; }
-        #mw-pen-tools-menu button.active { outline: 2px solid #3b82f6; background: #2563eb; }
-        @keyframes pcPenMenuIn { from { opacity:0; transform:translateX(-50%) translateY(4px) scale(.98); } to { opacity:1; transform:translateX(-50%) translateY(0) scale(1); } }
-
-        @media (max-width: 700px) {
-            #mw-pen-tools-menu { max-width: 94vw; overflow-x: auto; justify-content: flex-start; }
-            #mw-pen-tools-menu button { min-width: 64px !important; }
-        }
         
         /* Lista de Participantes (Avatares) */
         #participants-chip {
@@ -588,16 +565,13 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         </div>
 
         <!-- Opciones Universales de Dibujo con Atajos de Teclado -->
-        <button type="button" id="mw-pen-tools" onclick="togglePenTools()" title="Tipos de lápiz y escritura">✏️</button>
-        <div id="mw-pen-tools-menu" aria-label="Tipos de lápiz y escritura">
-            <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️<span>Fibrón</span></button>
-            <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️<span>Lápiz</span></button>
-            <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️<span>Marcador</span></button>
-            <button type="button" id="mw-ballpoint" title="Lapicera de tinta [U]">🖊️<span>Lapicera</span></button>
-            <button type="button" id="mw-crayon" title="Crayón con textura [Y]">🖍️<span>Crayón</span></button>
-            <button type="button" id="mw-chalk" title="Tiza realista [H]">🧱<span>Tiza</span></button>
-            <button type="button" id="mw-highlighter" title="Resaltador transparente [J]">🟨<span>Resaltador</span></button>
-        </div>
+        <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
+        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
+        <button type="button" id="mw-ballpoint" title="Lapicera de tinta">🖊️</button>
+        <button type="button" id="mw-crayon" title="Crayón con textura">🖍️</button>
+        <button type="button" id="mw-chalk" title="Tiza realista">🧱</button>
+        <button type="button" id="mw-highlighter" title="Resaltador transparente">🟨</button>
         <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
         <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
         <button type="button" id="btn-snap" title="Regla Magnética (Ejes y ángulos perfectos) [Shift]">📐</button>
@@ -2634,21 +2608,6 @@ window.isLaserFadingGlobal = false;
   
   let smoothedSpeed = 0;
   let lastRenderedSize = mwSize;
-
-  // Cola ligera de sincronización: el trazo local se dibuja a máxima velocidad y
-  // los mensajes de red se limitan a un envío por frame para evitar tirones al escribir.
-  let strokeNetQueued = null;
-  let strokeNetRaf = 0;
-  function queueStrokeBroadcast(data){
-    strokeNetQueued = data;
-    if (strokeNetRaf) return;
-    strokeNetRaf = requestAnimationFrame(() => {
-      strokeNetRaf = 0;
-      const msg = strokeNetQueued;
-      strokeNetQueued = null;
-      if (msg && typeof broadcastData === 'function') broadcastData(msg);
-    });
-  }
   
   let shapeStartX = 0, shapeStartY = 0;
   window.isSnapEnabled = false;
@@ -2989,13 +2948,15 @@ window.isLaserFadingGlobal = false;
         }
         mCtx.stroke();
 
-        queueStrokeBroadcast({ 
-            type:'stroke', 
-            lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
-            lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, 
-            midX: midX / canvas.width, midY: midY / canvas.width, 
-            color: inkColor, size: finalSize / canvas.width, tool: mwMode 
-        });
+        if (typeof broadcastData === 'function') {
+            broadcastData({ 
+                type:'stroke', 
+                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
+                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, 
+                midX: midX / canvas.width, midY: midY / canvas.width, 
+                color: inkColor, size: finalSize / canvas.width, tool: mwMode 
+            });
+        }
 
         mwLastPosX = p.x;
         mwLastPosY = p.y;
@@ -3049,23 +3010,6 @@ window.isLaserFadingGlobal = false;
       if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
   
-  window.togglePenTools = function(){
-      const menu = document.getElementById('mw-pen-tools-menu');
-      if (!menu) return;
-      menu.classList.toggle('open');
-  };
-  document.addEventListener('pointerdown', (e) => {
-      const menu = document.getElementById('mw-pen-tools-menu');
-      const trigger = document.getElementById('mw-pen-tools');
-      if (!menu || !menu.classList.contains('open')) return;
-      if (!menu.contains(e.target) && e.target !== trigger) menu.classList.remove('open');
-  }, true);
-
-  ['mw-pen','mw-pencil','mw-marker','mw-ballpoint','mw-crayon','mw-chalk','mw-highlighter'].forEach(id=>{
-      const b=document.getElementById(id);
-      if(b) b.addEventListener('click',()=>document.getElementById('mw-pen-tools-menu')?.classList.remove('open'));
-  });
-
   const color = document.getElementById('mw-color');
   color && color.addEventListener('input', e => { setMode(mwMode === 'eraser' || mwMode === 'laser' ? 'pen' : mwMode); });
   
