@@ -556,8 +556,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
             <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
-            <button id="btn-pizarracoto" onclick="configurePizarracoto()" title="Configurar carpeta local Pizarracoto">📂</button>
-            <button id="btn-recover-board" onclick="recoverLastBoard()" title="Recuperar la última pizarra segura" style="background:#0ea5e9;display:none;">🛟</button>
             <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4" class="hide-mobile">⏺️</button>
             <button onclick="logoutSession()" title="Cerrar Sesión para Todos" class="danger-btn" style="background:#dc2626;">🚪</button>
             
@@ -568,10 +566,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
         <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
         <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
-        <button type="button" id="mw-ballpoint" title="Lapicera de tinta">🖊️</button>
-        <button type="button" id="mw-crayon" title="Crayón con textura">🖍️</button>
-        <button type="button" id="mw-chalk" title="Tiza realista">🧱</button>
-        <button type="button" id="mw-highlighter" title="Resaltador transparente">🟨</button>
         <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
         <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
         <button type="button" id="btn-snap" title="Regla Magnética (Ejes y ángulos perfectos) [Shift]">📐</button>
@@ -589,7 +583,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         <div class="toolbar-divider"></div>
         
         <!-- Cronómetro y Temas -->
-        <div id="class-timer" style="display:none; color: #fff; font-family: monospace; font-size: 1.1rem; font-weight: bold; background: #10b981; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Tiempo de clase (Profe: Clic para reiniciar)" onclick="resetTimer()">⏱️ 00:00:00</div>
+        <div id="class-timer" style="display:none; color: #fff; font-family: monospace; font-size: 1.1rem; font-weight: bold; background: #10b981; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Tiempo de clase (Profe: Clic para reiniciar)" onclick="resetTimer()">⏱️ 00:00</div>
         
         <button type="button" id="btn-theme" onclick="toggleTheme()" title="Cambiar Fondo (Cuadrícula / Blanca Lisa / Tiza)" style="background:#14b8a6;">🌐</button>
         
@@ -794,11 +788,10 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             if(timerInterval) clearInterval(timerInterval);
             document.getElementById('class-timer').style.display = 'block';
             timerInterval = setInterval(() => {
-                const diff = Math.max(0, Math.floor((Date.now() - classStartTime) / 1000));
-                const h = String(Math.floor(diff / 3600)).padStart(2, '0');
-                const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
+                const diff = Math.floor((Date.now() - classStartTime) / 1000);
+                const m = String(Math.floor(diff / 60)).padStart(2, '0');
                 const s = String(diff % 60).padStart(2, '0');
-                document.getElementById('class-timer').innerText = `⏱️ ${h}:${m}:${s}`;
+                document.getElementById('class-timer').innerText = `⏱️ ${m}:${s}`;
             }, 1000);
         }
 
@@ -1196,7 +1189,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
 
         // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
         let sessionResources = [];
-        window.sessionResources = sessionResources;
         let isPdfSynced = false;
         let currentPdfData = null;
 
@@ -2666,7 +2658,7 @@ window.isLaserFadingGlobal = false;
 
   function setMode(mode){
     mwMode = mode;
-    ['mw-pen','mw-pencil','mw-marker','mw-ballpoint','mw-crayon','mw-chalk','mw-highlighter','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
+    ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
       const b=document.getElementById(id);
       if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
@@ -2877,10 +2869,6 @@ window.isLaserFadingGlobal = false;
         let baseSize;
         if (mwMode === 'marker') baseSize = Math.max(12, mwSize * 2.2);
         else if (mwMode === 'pencil') baseSize = Math.max(1, mwSize * 0.5);
-        else if (mwMode === 'ballpoint') baseSize = Math.max(1.2, mwSize * 0.72);
-        else if (mwMode === 'crayon') baseSize = Math.max(5, mwSize * 1.35);
-        else if (mwMode === 'chalk') baseSize = Math.max(5, mwSize * 1.5);
-        else if (mwMode === 'highlighter') baseSize = Math.max(10, mwSize * 2.8);
         else baseSize = mwSize;
 
         let targetSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
@@ -2909,30 +2897,6 @@ window.isLaserFadingGlobal = false;
             mCtx.globalAlpha = 0.6; 
             mCtx.shadowBlur = 1;
             mCtx.shadowColor = inkColor;
-        } else if (mwMode === 'ballpoint') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.92;
-            mCtx.shadowBlur = 0.4;
-            mCtx.shadowColor = inkColor;
-        } else if (mwMode === 'crayon') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.72;
-            mCtx.shadowBlur = 1.5;
-            mCtx.shadowColor = inkColor;
-            /* Textura de crayón: pequeñas variaciones de presión/alpha */
-        } else if (mwMode === 'chalk') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = isChalk ? 0.82 : 0.55;
-            mCtx.shadowBlur = isChalk ? 3 : 1.5;
-            mCtx.shadowColor = inkColor;
-        } else if (mwMode === 'highlighter') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.22;
-            mCtx.shadowBlur = 0;
         } else {
             mCtx.globalCompositeOperation = 'source-over';
             mCtx.strokeStyle = inkColor;
@@ -3005,7 +2969,7 @@ window.isLaserFadingGlobal = false;
   laserCanvas.addEventListener('pointercancel', end, {passive:false});
   laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
 
-  ['mw-pen','mw-pencil','mw-marker','mw-ballpoint','mw-crayon','mw-chalk','mw-highlighter','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
+  ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
       const btn = document.getElementById(id);
       if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
@@ -3056,10 +3020,6 @@ window.isLaserFadingGlobal = false;
           case 'p': setMode('pen'); break;
           case 'b': setMode('pencil'); break;
           case 'm': setMode('marker'); break;
-          case 'u': setMode('ballpoint'); break;
-          case 'y': setMode('crayon'); break;
-          case 'h': setMode('chalk'); break;
-          case 'j': setMode('highlighter'); break;
           case 'e': setMode('eraser'); break;
           case 't': setMode('text'); break;
           case 'l': setMode('laser'); break;
@@ -3690,173 +3650,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 
   /* Exponer una pequeña API de diagnóstico */
   window.MathBoardUltimateV41={version:'4.1',windows:()=>document.querySelectorAll('.floating-panel').length,bringFront};
-})();
-</script>
-<!-- ================= PIZARRACOTO — CAMBIOS SOLICITADOS ================= -->
-<style id="pizarracoto-patch-style">
-  #pizarracoto-tools{display:flex;align-items:center;gap:5px;margin-left:4px}
-  #pizarracoto-tools button{min-width:42px}
-  .pc-recovery-active{animation:pcRecoveryPulse 1.4s infinite}
-  @keyframes pcRecoveryPulse{50%{box-shadow:0 0 0 5px rgba(14,165,233,.22)}}
-  .pc-pdf-window{width:620px;height:720px;min-width:360px;min-height:300px;display:flex;flex-direction:column}
-  .pc-pdf-window .pc-pdf-body{flex:1;min-height:0;overflow:auto;background:#525659;padding:10px;display:flex;justify-content:center;align-items:flex-start}
-  .pc-pdf-window .pc-pdf-canvas{background:#fff;box-shadow:0 4px 15px rgba(0,0,0,.5);max-width:none}
-  .pc-pdf-window .pc-pdf-controls{display:flex;gap:6px;align-items:center;flex-wrap:wrap;padding:7px;background:#1f1f1f;border-bottom:1px solid #333}
-  .pc-pdf-window .pc-pdf-controls button{padding:5px 9px}
-  .pc-pdf-window .pc-pdf-name{max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .pc-tool-new{position:relative}
-  .pc-tool-new::after{content:'NEW';position:absolute;right:2px;top:1px;font-size:7px;color:#fff;opacity:.65}
-</style>
-<script id="pizarracoto-patch-js">
-(function(){
-'use strict';
-const $=id=>document.getElementById(id);
-const PC={
-  dbName:'pizarracoto-db', dbVersion:1, dir:null, dirName:'',
-  recoveryKey:'pizarracoto_last_safe_board_v1', recoveryLocked:false,
-  recoveryTimer:null, localSaveTimer:null, recorderHookTimer:null, pdfSeq:0
-};
-function pcToast(msg){
-  let t=$('pc-toast'); if(!t){t=document.createElement('div');t.id='pc-toast';t.style.cssText='position:fixed;left:50%;bottom:82px;transform:translateX(-50%);z-index:100001;background:rgba(15,23,42,.96);color:#fff;border:1px solid rgba(255,255,255,.15);padding:9px 14px;border-radius:12px;font:600 13px Segoe UI,sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);pointer-events:none;opacity:0;transition:.2s';document.body.appendChild(t)}
-  t.textContent=msg;t.style.opacity='1';clearTimeout(t._x);t._x=setTimeout(()=>t.style.opacity='0',2200);
-}
-function boardDataUrl(){try{return $('board')?.toDataURL('image/webp',.78)||null}catch(e){return null}}
-function saveRecovery(reason){
-  const board=$('board'); if(!board)return;
-  const image=boardDataUrl(); if(!image)return;
-  try{localStorage.setItem(PC.recoveryKey,JSON.stringify({at:Date.now(),reason,width:board.width,height:board.height,theme:[...document.body.classList].find(x=>/^theme-/.test(x))||'theme-grid',image}));}catch(e){
-    try{localStorage.setItem(PC.recoveryKey,JSON.stringify({at:Date.now(),reason,image}));}catch(_){ }
-  }
-  const b=$('btn-recover-board'); if(b){b.style.display='inline-block';b.classList.add('pc-recovery-active');}
-}
-function recoverLastBoard(){
-  let raw=null;try{raw=localStorage.getItem(PC.recoveryKey)}catch(e){}
-  if(!raw)return pcToast('No hay una pizarra segura disponible.');
-  try{
-    const d=JSON.parse(raw);if(!d.image)return;
-    if(!confirm('¿Recuperar la última pizarra guardada antes del borrado o cambio?'))return;
-    const img=new Image();img.onload=()=>{
-      const c=$('board'),x=c.getContext('2d');x.save();x.globalCompositeOperation='source-over';x.globalAlpha=1;x.clearRect(0,0,c.width,c.height);x.drawImage(img,0,0,c.width,c.height);x.restore();
-      if(d.theme&&typeof window.applyTheme==='function')window.applyTheme(d.theme);
-      PC.recoveryLocked=false;saveRecovery('restaurada');pcToast('Pizarra recuperada ✓');
-      if(typeof window.broadcastData==='function')window.broadcastData({type:'image',src:c.toDataURL('image/webp',.78),x:0,y:0,w:1,h:c.height/Math.max(1,c.width)});
-    };img.src=d.image;
-  }catch(e){pcToast('No se pudo recuperar la pizarra.');}
-}
-window.recoverLastBoard=recoverLastBoard;
-function openDb(){return new Promise((resolve,reject)=>{const r=indexedDB.open(PC.dbName,PC.dbVersion);r.onupgradeneeded=()=>{if(!r.result.objectStoreNames.contains('handles'))r.result.createObjectStore('handles')};r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error)})}
-async function saveDirHandle(h){try{const db=await openDb();await new Promise((res,rej)=>{const tx=db.transaction('handles','readwrite');tx.objectStore('handles').put(h,'pizarracoto');tx.oncomplete=res;tx.onerror=()=>rej(tx.error)});db.close()}catch(e){}}
-async function loadDirHandle(){try{const db=await openDb();const h=await new Promise((res,rej)=>{const tx=db.transaction('handles','readonly');const q=tx.objectStore('handles').get('pizarracoto');q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error)});db.close();return h}catch(e){return null}}
-async function verifyDir(h){try{return await h.queryPermission({mode:'readwrite'})==='granted'}catch(e){return false}}
-async function configurePizarracoto(){
-  if(!window.showDirectoryPicker){alert('Este guardado directo al disco necesita un navegador Chromium/Edge/Chrome actualizado.');return}
-  try{
-    const parent=await window.showDirectoryPicker({mode:'readwrite'});
-    PC.dir=await parent.getDirectoryHandle('pizarracoto',{create:true});PC.dirName='pizarracoto';await saveDirHandle(PC.dir);
-    pcToast('Carpeta Pizarracoto lista ✓');await saveBoardToDisk('pizarra-actual.webp');
-  }catch(e){if(e?.name!=='AbortError')pcToast('No se pudo configurar la carpeta.');}
-}
-window.configurePizarracoto=configurePizarracoto;
-async function ensureDir(){
-  if(PC.dir&&await verifyDir(PC.dir))return PC.dir;
-  const h=await loadDirHandle();if(h){try{if(await verifyDir(h)){PC.dir=h;return h}if((await h.requestPermission({mode:'readwrite'}))==='granted'){PC.dir=h;return h}}catch(e){}}
-  return null;
-}
-async function writeFile(name,blob){const dir=await ensureDir();if(!dir)return false;try{const f=await dir.getFileHandle(name,{create:true});const w=await f.createWritable();await w.write(blob);await w.close();return true}catch(e){return false}}
-async function saveBoardToDisk(name='pizarra-actual.webp'){
-  const board=$('board');if(!board)return false;try{const blob=await new Promise(r=>board.toBlob(r,'image/webp',.86));if(!blob)return false;const ok=await writeFile(name,blob);if(ok)pcToast('Pizarra guardada en Pizarracoto ✓');return ok}catch(e){return false}}
-async function saveTextToDisk(name,text){return writeFile(name,new Blob([text],{type:'text/plain;charset=utf-8'}))}
-async function saveBlobToDisk(name,blob){return writeFile(name,blob)}
-window.pizarracotoSaveBoard=saveBoardToDisk;
-
-// Recuperación automática: mantiene una copia anterior a los accidentes de borrado.
-function installRecovery(){
-  saveRecovery('inicio');
-  clearInterval(PC.recoveryTimer);PC.recoveryTimer=setInterval(()=>{
-    const board=$('board');if(!board)return;
-    // Si hubo un borrado, conservar la copia previa hasta que el usuario vuelva a dibujar.
-    if(PC.recoveryLocked)return;
-    saveRecovery('auto');
-  },1800);
-  const board=$('board');board?.addEventListener('pointerdown',()=>{if(PC.recoveryLocked){PC.recoveryLocked=false;saveRecovery('nuevo-trazo')}} ,true);
-}
-function patchClear(){
-  const btn=$('mw-clear');if(!btn)return;
-  btn.onclick=()=>{
-    if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?\n\nSe conservará una copia de seguridad para poder recuperarla.'))return;
-    saveRecovery('antes-de-borrar');PC.recoveryLocked=true;
-    const b=$('board'),x=b.getContext('2d');x.save();x.globalCompositeOperation='source-over';x.globalAlpha=1;x.clearRect(0,0,b.width,b.height);x.restore();
-    const rb=$('btn-recover-board');if(rb){rb.style.display='inline-block';rb.classList.add('pc-recovery-active')}
-    if(typeof window.broadcastData==='function')window.broadcastData({type:'clear'});
-    pcToast('Pizarra limpia. Podés recuperarla con 🛟');
-  };
-}
-
-// Botón de recuperación visible desde el inicio del modo profesor.
-function updateRecoveryButton(){const b=$('btn-recover-board');if(!b)return;try{b.style.display=localStorage.getItem(PC.recoveryKey)?'inline-block':'none'}catch(e){}}
-
-// Guardado local periódico de la pizarra, si el usuario configuró la carpeta.
-function installDiskAutosave(){clearInterval(PC.localSaveTimer);PC.localSaveTimer=setInterval(()=>{if(PC.dir)saveBoardToDisk('pizarra-actual.webp')},12000)}
-
-// ===== PDF MULTIVENTANA: cada ventana conserva documento, página, zoom y posición =====
-function dataUriToBytes(data){const b64=data.split(',')[1]||'';const bin=atob(b64);const a=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)a[i]=bin.charCodeAt(i);return a}
-async function openPdfWindow(data,name='Documento.pdf',initialPage=1){
-  if(!data)return;
-  const id='pc-pdf-'+(++PC.pdfSeq);let panel=document.createElement('div');panel.className='floating-panel pc-pdf-window mbu-v41-window';panel.id=id;panel.style.left=(40+((PC.pdfSeq-1)*28)%260)+'px';panel.style.top=(80+((PC.pdfSeq-1)*24)%180)+'px';panel.style.zIndex=15000+PC.pdfSeq;
-  panel.innerHTML='<div class="panel-header"><span class="pc-pdf-name"></span><div class="panel-controls-header"><button data-act="max">🗖</button><button data-act="min">_</button><button data-act="close">✕</button></div></div><div class="pc-pdf-controls"><button data-act="prev">◀</button><span>Pág <b class="pc-page">'+initialPage+'</b> / <b class="pc-total">?</b></span><button data-act="next">▶</button><button data-act="out">➖</button><button data-act="in">➕</button><button data-act="fit">↔ Ajustar</button></div><div class="pc-pdf-body"><canvas class="pc-pdf-canvas"></canvas></div><div class="resize-handle" data-act="resize"></div></div>';
-  panel.querySelector('.pc-pdf-name').textContent='📄 '+name;
-  document.body.appendChild(panel);
-  if(typeof window.MathBoardUltimateV41?.bringFront==='function')window.MathBoardUltimateV41.bringFront(panel);
-  // Si el sistema de ventanas ya fue inicializado, aplicamos la misma mecánica básica de arrastre.
-  if(!panel.__mbuV41){panel.classList.add('mbu-v41-window');let h=panel.querySelector('.panel-header');let sx,sy,sl,st,drag=false;h.addEventListener('pointerdown',e=>{if(e.target.closest('button'))return;drag=true;const r=panel.getBoundingClientRect();sx=e.clientX;sy=e.clientY;sl=r.left;st=r.top;panel.setPointerCapture?.(e.pointerId);const mv=ev=>{if(!drag)return;panel.style.left=Math.max(8,sl+ev.clientX-sx)+'px';panel.style.top=Math.max(0,st+ev.clientY-sy)+'px'};const en=()=>{drag=false;panel.removeEventListener('pointermove',mv);panel.removeEventListener('pointerup',en)};panel.addEventListener('pointermove',mv);panel.addEventListener('pointerup',en,{once:true})})}
-  const body=panel.querySelector('.pc-pdf-body'),cv=panel.querySelector('.pc-pdf-canvas'),pageEl=panel.querySelector('.pc-page'),totalEl=panel.querySelector('.pc-total');
-  const state={doc:null,page:Math.max(1,initialPage),scale:1.35,fit:false};
-  try{state.doc=await pdfjsLib.getDocument({data:dataUriToBytes(data)}).promise;totalEl.textContent=state.doc.numPages;state.page=Math.min(state.page,state.doc.numPages)}catch(e){pcToast('No se pudo abrir el PDF.');panel.remove();return}
-  async function render(){const pg=await state.doc.getPage(state.page);let scale=state.scale;if(state.fit){const v0=pg.getViewport({scale:1});const avail=Math.max(200,body.clientWidth-22);scale=Math.max(.35,avail/v0.width);state.scale=scale}const vp=pg.getViewport({scale});cv.width=vp.width;cv.height=vp.height;await pg.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;pageEl.textContent=state.page}
-  const act=async a=>{if(a==='prev'&&state.page>1){state.page--;await render()}if(a==='next'&&state.page<state.doc.numPages){state.page++;await render()}if(a==='out'){state.fit=false;state.scale=Math.max(.35,state.scale-.2);await render()}if(a==='in'){state.fit=false;state.scale=Math.min(5,state.scale+.2);await render()}if(a==='fit'){state.fit=true;await render()}if(a==='min'){panel.style.display='none'}if(a==='close'){panel.remove()}if(a==='max'){panel.style.width='96vw';panel.style.height='90vh';panel.style.left='2vw';panel.style.top='5vh';state.fit=true;await render()}};
-  panel.addEventListener('click',e=>{const b=e.target.closest('button');if(b)act(b.dataset.act)});
-  panel.addEventListener('dblclick',e=>{if(e.target.closest('.panel-header'))act('max')});
-  await render();
-  return panel;
-}
-window.openPdfWindow=openPdfWindow;
-function patchResourceOpen(){
-  const old=window.openResource;
-  window.openResource=async function(idx){
-    const res=window.sessionResources?.[idx];
-    if(res?.type==='pdf'){await openPdfWindow(res.data,res.name,1);if(typeof window.toggleResourcesPanel==='function')window.toggleResourcesPanel();return}
-    if(typeof old==='function')return old(idx);
-  };
-}
-
-// ===== PEGAR CAPTURAS EXTERNAS (Ctrl+V / captura de pantalla del sistema) =====
-function putImageOnStamp(src){
-  const img=$('stamp-img'),sc=$('stamper-content'),st=$('stamper');if(!img||!sc||!st)return;
-  const im=new Image();im.onload=()=>{const maxW=Math.min(900,window.innerWidth*.72),maxH=Math.min(650,window.innerHeight*.68),r=Math.min(1,maxW/im.naturalWidth,maxH/im.naturalHeight);const w=Math.max(80,Math.round(im.naturalWidth*r)),h=Math.max(60,Math.round(im.naturalHeight*r));sc.style.width=w+'px';sc.style.height=h+'px';img.src=src;st.style.left=Math.max(8,(innerWidth-w)/2)+'px';st.style.top=Math.max(40,(innerHeight-h)/2)+'px';st.style.display='block';pcToast('Captura pegada en la pizarra. Ajustala y pulsá ✅ Pegar');};im.src=src;
-}
-function installClipboard(){
-  document.addEventListener('paste',e=>{
-    const items=[...(e.clipboardData?.items||[])];const item=items.find(x=>x.type.startsWith('image/'));if(!item)return;const f=item.getAsFile();if(!f)return;e.preventDefault();const r=new FileReader();r.onload=()=>putImageOnStamp(r.result);r.readAsDataURL(f);
-  },true);
-}
-
-// ===== GRABACIONES: además de la descarga normal, se guardan en Pizarracoto =====
-function hookRecorder(){
-  clearInterval(PC.recorderHookTimer);PC.recorderHookTimer=setInterval(()=>{
-    const mr=window.mediaRecorder;if(!mr||mr.__pcHooked)return;mr.__pcHooked=true;const pcChunks=[];const oldData=mr.ondataavailable;mr.ondataavailable=function(ev){try{if(ev.data&&ev.data.size)pcChunks.push(ev.data)}catch(e){}if(typeof oldData==='function')return oldData.call(mr,ev)};const old=mr.onstop;mr.onstop=async function(ev){
-      try{const mime=mr.mimeType||'video/webm';const ext=mime.includes('mp4')?'mp4':'webm';const blob=new Blob(pcChunks,{type:mime.split(';')[0]});if(blob.size)await saveBlobToDisk('Clase_MathBoard_'+new Date().toISOString().replace(/[:.]/g,'-')+'.'+ext,blob)}catch(e){}finally{if(typeof old==='function')return old.call(mr,ev)}
-    };
-  },250);
-}
-
-function boot(){
-  // Etiquetas y accesos directos para las nuevas herramientas.
-  const ids=['mw-ballpoint','mw-crayon','mw-chalk','mw-highlighter'];ids.forEach(id=>$(id)?.classList.add('pc-tool-new'));
-  patchClear();updateRecoveryButton();installRecovery();installDiskAutosave();installClipboard();hookRecorder();patchResourceOpen();
-  // Intentar recuperar el permiso de la carpeta guardada sin abrir diálogos automáticamente.
-  loadDirHandle().then(async h=>{if(h&&await verifyDir(h)){PC.dir=h;pcToast('Pizarracoto listo ✓')}}).catch(()=>{});
-}
-if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else setTimeout(boot,50);
 })();
 </script>
 </body>
