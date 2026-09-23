@@ -2829,11 +2829,12 @@ window.isLaserFadingGlobal = false;
     }
       
     if(!mwDrawing) return;
-    ev.preventDefault();
-    
+    // pointerrawupdate está diseñado para dibujo de baja latencia.
+    // No hacemos preventDefault ni lecturas del DOM en cada evento.
     let events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
     if (!events || !events.length) events = [ev];
-    const inkColor = document.getElementById('mw-color').value;
+    const inkColor = strokeColor;
+    const hasPeers = connections.length > 0;
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
@@ -2857,7 +2858,7 @@ window.isLaserFadingGlobal = false;
         }
 
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-        drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
+        drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, strokeColor, mwSize);
         mwLastPosX = p.x; mwLastPosY = p.y;
         return; 
     }
@@ -2875,8 +2876,8 @@ window.isLaserFadingGlobal = false;
                 requestAnimationFrame(window.drawLaserFadeGlobal);
             }
 
-            if (typeof broadcastData === 'function') {
-                broadcastData({ type: 'laser', lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+            if (hasPeers) {
+                broadcastQueue.push({type:'laser',lastPosX:mwLastPosX/canvas.width,lastPosY:mwLastPosY/canvas.width,x:p.x/canvas.width,y:p.y/canvas.width,color:'#ef4444',peerId:peer?peer.id:'local',role:userRole,userName:myName});
             }
             mwLastPosX = p.x; mwLastPosY = p.y;
             mwLastMidX = midX; mwLastMidY = midY;
@@ -2912,7 +2913,7 @@ window.isLaserFadingGlobal = false;
         let dy = p.y - mwLastPosY;
         let dist = Math.hypot(dx, dy);
         
-        smoothedSpeed = smoothedSpeed * 0.8 + dist * 0.2;
+        smoothedSpeed = smoothedSpeed * 0.55 + dist * 0.45;
         let speedFactor = Math.max(0.2, 1 - (smoothedSpeed / 50)); 
         
         let rawPressure = e.pointerType === 'pen' ? e.pressure : speedFactor;
@@ -2931,7 +2932,7 @@ window.isLaserFadingGlobal = false;
 
         let targetSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
         
-        let finalSize = lastRenderedSize * 0.78 + targetSize * 0.22;
+        let finalSize = lastRenderedSize * 0.86 + targetSize * 0.14;
         lastRenderedSize = finalSize;
         
         // Trazo directo entre puntos coalescidos: elimina el retraso visual
@@ -2945,13 +2946,16 @@ window.isLaserFadingGlobal = false;
         mCtx.lineTo(p.x, p.y);
         mCtx.stroke();
 
-        if (typeof broadcastData === 'function' && connections.length) {
-            broadcastData({ 
-                type:'stroke', 
-                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
-                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, 
-                midX: midX / canvas.width, midY: midY / canvas.width, 
-                color: inkColor, size: finalSize / canvas.width, tool: mwMode 
+        if (hasPeers) {
+            // Encolado directo: evita la llamada a broadcastData() por cada punto.
+            // El envío real sigue ocurriendo en broadcastLoop() cada ~16 ms.
+            broadcastQueue.push({
+                type:'stroke',
+                lastMidX:mwLastMidX/canvas.width, lastMidY:mwLastMidY/canvas.width,
+                lastPosX:mwLastPosX/canvas.width, lastPosY:mwLastPosY/canvas.width,
+                midX:midX/canvas.width, midY:midY/canvas.width,
+                color:inkColor, size:finalSize/canvas.width, tool:mwMode,
+                peerId:peer?peer.id:'local', role:userRole, userName:myName
             });
         }
 
