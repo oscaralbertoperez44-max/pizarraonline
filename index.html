@@ -229,6 +229,18 @@
         #main-toolbar button.active { outline: 2px solid #3b82f6; background: #2563eb; }
         #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
         #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
+
+        /* === PALETA FLOTANTE DE LÁPICES === */
+        #pen-palette{position:fixed;top:14px;left:14px;z-index:10025;display:none;align-items:center;gap:5px;padding:6px 8px;background:rgba(15,23,42,.94);border:1px solid rgba(255,255,255,.12);border-radius:16px;box-shadow:0 10px 30px rgba(0,0,0,.30);backdrop-filter:blur(14px);touch-action:none;user-select:none}
+        #pen-palette .pen-palette-header{display:flex;align-items:center;justify-content:center;min-width:34px;height:34px;padding:0 4px;color:#cbd5e1;cursor:move;font-size:18px;border-radius:10px}
+        #pen-palette .pen-palette-header:hover{background:rgba(255,255,255,.10);color:#fff}
+        #pen-palette button{min-width:40px;min-height:40px;border:0;border-radius:11px;padding:5px 8px;font-size:17px;color:#fff;background:#334155;cursor:pointer;transition:transform .12s ease,background .12s ease,outline .12s ease;flex-shrink:0}
+        #pen-palette button:hover{background:#475569;transform:translateY(-1px)}
+        #pen-palette button.active{outline:2px solid #60a5fa;background:#2563eb}
+        #pen-palette .pen-palette-divider{width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 2px}
+        body.mbu-immersive #pen-palette{display:none!important}
+        body.mb-clean-fullscreen #pen-palette{opacity:0;pointer-events:none;transform:translateY(20px);transition:.18s}
+        @media(max-width:900px){#pen-palette{top:8px;left:8px;max-width:calc(100vw - 16px);overflow-x:auto}#pen-palette button{min-width:36px;min-height:36px;font-size:15px}}
         
         /* Lista de Participantes (Avatares) */
         #participants-chip {
@@ -535,6 +547,19 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         </div>
     </div>
 
+    <!-- Paleta flotante y movible de lápices -->
+    <div id="pen-palette" aria-label="Paleta de lápices">
+        <div class="pen-palette-header" title="Arrastra para mover la paleta">✋</div>
+        <div class="pen-palette-divider"></div>
+        <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
+        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
+        <button type="button" id="mw-ballpoint" title="Lapicera de tinta">🖊️</button>
+        <button type="button" id="mw-crayon" title="Crayón con textura">🖍️</button>
+        <button type="button" id="mw-chalk" title="Tiza realista">🧱</button>
+        <button type="button" id="mw-highlighter" title="Resaltador transparente">🟨</button>
+    </div>
+
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
@@ -565,13 +590,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         </div>
 
         <!-- Opciones Universales de Dibujo con Atajos de Teclado -->
-        <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
-        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
-        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
-        <button type="button" id="mw-ballpoint" title="Lapicera de tinta">🖊️</button>
-        <button type="button" id="mw-crayon" title="Crayón con textura">🖍️</button>
-        <button type="button" id="mw-chalk" title="Tiza realista">🧱</button>
-        <button type="button" id="mw-highlighter" title="Resaltador transparente">🟨</button>
         <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
         <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
         <button type="button" id="btn-snap" title="Regla Magnética (Ejes y ángulos perfectos) [Shift]">📐</button>
@@ -2281,6 +2299,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         async function createRoom() {
             await getMicrophone();
             document.getElementById('main-toolbar').style.display = 'flex';
+            const penPalette = document.getElementById('pen-palette');
+            if (penPalette) penPalette.style.display = 'flex';
             
             const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
             peer = new Peer('MBPRO_' + randomCode, peerNetworkOptions);
@@ -2291,6 +2311,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 document.getElementById('login-overlay').style.opacity = '0';
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 document.getElementById('main-toolbar').style.display = 'flex';
+            const penPalette = document.getElementById('pen-palette');
+            if (penPalette) penPalette.style.display = 'flex';
 
                 document.getElementById('ui-panel').style.display = 'block';
                 const codeDisplay = document.getElementById('room-code-display');
@@ -2370,6 +2392,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                     document.getElementById('main-toolbar').style.display = 'flex';
+            const penPalette = document.getElementById('pen-palette');
+            if (penPalette) penPalette.style.display = 'flex';
                     
                     document.body.classList.add('student-mode');
                     
@@ -2512,6 +2536,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-header'));
         makeDraggable(document.getElementById('video-panel'), document.getElementById('video-footer'));
         makeDraggable(document.getElementById('stamper'), document.getElementById('stamper-header'));
+        makeDraggable(document.getElementById('pen-palette'), document.querySelector('#pen-palette .pen-palette-header'));
         makeDraggable(document.getElementById('dola-panel'), document.getElementById('dola-header'));
 
         makePanelResizable('pdf-panel', 'pdf-resize-handle');
@@ -2684,7 +2709,7 @@ window.isLaserFadingGlobal = false;
   }
   
   function start(ev){
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar') || ev.target.closest('#pen-palette')) return;
     ev.preventDefault();
 
     // --- INICIO HERRAMIENTA TEXTO ---
@@ -2888,12 +2913,14 @@ window.isLaserFadingGlobal = false;
         let finalSize = lastRenderedSize * 0.6 + targetSize * 0.4;
         lastRenderedSize = finalSize;
         
-        let midX = (mwLastPosX + p.x) * 0.5;
-        let midY = (mwLastPosY + p.y) * 0.5;
+        // Trazo directo entre puntos coalescidos: elimina el retraso visual
+        // que producía esperar al siguiente punto para completar la curva.
+        let midX = p.x;
+        let midY = p.y;
 
         mCtx.beginPath();
-        mCtx.moveTo(mwLastMidX, mwLastMidY);
-        mCtx.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
+        mCtx.moveTo(mwLastPosX, mwLastPosY);
+        mCtx.lineTo(p.x, p.y);
 
         mCtx.lineWidth = finalSize;
         mCtx.shadowBlur = 0;
@@ -2913,13 +2940,13 @@ window.isLaserFadingGlobal = false;
             mCtx.globalCompositeOperation = 'source-over';
             mCtx.strokeStyle = inkColor;
             mCtx.globalAlpha = 0.92;
-            mCtx.shadowBlur = 0.4;
+            mCtx.shadowBlur = 0.2;
             mCtx.shadowColor = inkColor;
         } else if (mwMode === 'crayon') {
             mCtx.globalCompositeOperation = 'source-over';
             mCtx.strokeStyle = inkColor;
             mCtx.globalAlpha = 0.72;
-            mCtx.shadowBlur = 1.5;
+            mCtx.shadowBlur = 0.7;
             mCtx.shadowColor = inkColor;
             /* Textura de crayón: pequeñas variaciones de presión/alpha */
         } else if (mwMode === 'chalk') {
