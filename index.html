@@ -239,7 +239,7 @@
         #pen-palette button.active{outline:2px solid #60a5fa;background:#2563eb}
         #pen-palette .pen-palette-divider{width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 2px}
         body.mbu-immersive #pen-palette{display:none!important}
-        body.mb-clean-fullscreen #pen-palette{opacity:0;pointer-events:none;transform:translateY(20px);transition:.18s}
+        body.mb-clean-fullscreen #pen-palette{opacity:1!important;pointer-events:auto!important;transform:none!important;transition:.18s}
         @media(max-width:900px){#pen-palette{top:8px;left:8px;max-width:calc(100vw - 16px);overflow-x:auto}#pen-palette button{min-width:36px;min-height:36px;font-size:15px}}
         
         /* Lista de Participantes (Avatares) */
@@ -2861,6 +2861,7 @@ window.isLaserFadingGlobal = false;
     }
 
     mCtx.lineCap = 'round'; mCtx.lineJoin = 'round';
+    mCtx.imageSmoothingEnabled = true;
     const isChalk = document.body.classList.contains('theme-chalkboard');
 
     for (let i=0; i<events.length; i++) {
@@ -3021,13 +3022,14 @@ window.isLaserFadingGlobal = false;
   }
 
   board.addEventListener('pointerdown', start, {passive:false});
-  board.addEventListener('pointermove', move, {passive:false});
+  const drawMoveEvent = ('onpointerrawupdate' in window) ? 'pointerrawupdate' : 'pointermove';
+  board.addEventListener(drawMoveEvent, move, {passive:false});
   board.addEventListener('pointerup', end, {passive:false});
   board.addEventListener('pointercancel', end, {passive:false});
   board.addEventListener('contextmenu', e=>e.preventDefault());
   
   laserCanvas.addEventListener('pointerdown', start, {passive:false});
-  laserCanvas.addEventListener('pointermove', move, {passive:false});
+  laserCanvas.addEventListener(drawMoveEvent, move, {passive:false});
   laserCanvas.addEventListener('pointerup', end, {passive:false});
   laserCanvas.addEventListener('pointercancel', end, {passive:false});
   laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
@@ -3309,6 +3311,13 @@ document.addEventListener('keydown', function(e) {
   function syncFullscreenUI() {
     const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
     document.body.classList.toggle('mb-clean-fullscreen', full);
+    const pp = $('pen-palette');
+    if (pp) {
+      pp.style.display = 'flex';
+      pp.style.opacity = '1';
+      pp.style.pointerEvents = 'auto';
+      pp.style.transform = 'none';
+    }
   }
   document.addEventListener('fullscreenchange', syncFullscreenUI);
   document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
