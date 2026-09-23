@@ -2670,6 +2670,94 @@ window.isLaserFadingGlobal = false;
       requestAnimationFrame(window.drawLaserFadeGlobal);
   }
 
+  // ===== PREDICCIÓN DE TRAZO (BAJA LATENCIA PERCIBIDA) =====
+  // Este lienzo nunca se mezcla con la pizarra definitiva: solo muestra
+  // unos milisegundos de trazo estimado y se limpia/recalcula continuamente.
+  const predictionCanvas = document.createElement('canvas');
+  predictionCanvas.id = 'mw-prediction-canvas';
+  predictionCanvas.style.cssText = 'position:absolute;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:4;';
+  document.getElementById('canvas-container').appendChild(predictionCanvas);
+  const predictionCtx = predictionCanvas.getContext('2d', { alpha: true, desynchronized: true });
+  let predictionPointerId = null;
+  let latestPredictedEvents = null;
+  let predictionActive = false;
+  let predictionRaf = 0;
+
+  function resizePredictionCanvas(){
+    predictionCanvas.width = window.innerWidth;
+    predictionCanvas.height = window.innerHeight;
+    clearPrediction();
+  }
+
+  function clearPrediction(){
+    predictionCtx.clearRect(0, 0, predictionCanvas.width, predictionCanvas.height);
+  }
+
+  function predictionAllowed(){
+    return mwDrawing && predictionPointerId !== null &&
+      !['laser','line','arrow','rect','circle','eraser','text'].includes(mwMode);
+  }
+
+  function renderPrediction(){
+    if(!predictionAllowed() || !latestPredictedEvents || !latestPredictedEvents.length){
+      clearPrediction();
+      return;
+    }
+
+    clearPrediction();
+    const first = latestPredictedEvents[0];
+    if(first.pointerId !== predictionPointerId) return;
+
+    predictionCtx.save();
+    predictionCtx.lineCap = 'round';
+    predictionCtx.lineJoin = 'round';
+    predictionCtx.globalCompositeOperation = 'source-over';
+    predictionCtx.globalAlpha = mwMode === 'highlighter' ? 0.22 :
+      (mwMode === 'marker' ? 0.38 : (mwMode === 'pencil' ? 0.6 :
+      (mwMode === 'ballpoint' ? 0.92 : (mwMode === 'crayon' ? 0.72 :
+      (mwMode === 'chalk' ? 0.55 : 0.85)))));
+    predictionCtx.strokeStyle = strokeColor;
+    predictionCtx.lineWidth = Math.max(1, lastRenderedSize);
+
+    let x = mwLastPosX;
+    let y = mwLastPosY;
+    predictionCtx.beginPath();
+    predictionCtx.moveTo(x, y);
+
+    let drew = false;
+    for(let i=0;i<latestPredictedEvents.length;i++){
+      const pe = latestPredictedEvents[i];
+      const p = pos(pe);
+      const dx = p.x - x, dy = p.y - y;
+      if((dx*dx + dy*dy) < 0.25) continue;
+      predictionCtx.lineTo(p.x, p.y);
+      x = p.x; y = p.y;
+      drew = true;
+    }
+    if(drew) predictionCtx.stroke();
+    predictionCtx.restore();
+  }
+
+  function schedulePrediction(){
+    if(predictionRaf) return;
+    predictionRaf = requestAnimationFrame(function(){
+      predictionRaf = 0;
+      renderPrediction();
+    });
+  }
+
+  function predictMove(ev){
+    if(!predictionAllowed() || ev.pointerId !== predictionPointerId ||
+       !ev.getPredictedEvents) return;
+    const predicted = ev.getPredictedEvents();
+    if(!predicted || !predicted.length) return;
+    latestPredictedEvents = predicted;
+    schedulePrediction();
+  }
+
+  resizePredictionCanvas();
+  window.addEventListener('resize', resizePredictionCanvas, { passive: true });
+
   function pos(ev){ return { x: ev.clientX, y: ev.clientY }; }
 
   // No bloquea el primer contacto del lápiz: toBlob serializa el snapshot de forma asíncrona.
@@ -2784,6 +2872,10 @@ window.isLaserFadingGlobal = false;
     const p = pos(ev);
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
+    predictionPointerId = ev.pointerId;
+    latestPredictedEvents = null;
+    predictionActive = true;
+    clearPrediction();
     shapeStartX = p.x; shapeStartY = p.y; 
     window.strokeSnapAxis = null; // Reiniciar eje al apoyar el lápiz
     
@@ -2829,6 +2921,9 @@ window.isLaserFadingGlobal = false;
     }
       
     if(!mwDrawing) return;
+    // El trazo predictivo vive en un lienzo aparte; la pizarra real nunca
+    // recibe puntos estimados.
+    if(!predictionAllowed()) clearPrediction();
     // pointerrawupdate está diseñado para dibujo de baja latencia.
     // No hacemos preventDefault ni lecturas del DOM en cada evento.
     let events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
@@ -2964,12 +3059,20 @@ window.isLaserFadingGlobal = false;
         mwLastMidX = midX;
         mwLastMidY = midY;
     }
+    // Después de confirmar los puntos reales, dibujamos de nuevo la parte
+    // predictiva desde el último punto confirmado.
+    if(predictionAllowed()) schedulePrediction();
   }
 
   function end(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
     mwDrawing=false;
+    clearPrediction();
+    if(predictionRaf){ cancelAnimationFrame(predictionRaf); predictionRaf = 0; }
+    predictionPointerId = null;
+    latestPredictedEvents = null;
+    predictionActive = false;
     
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
@@ -3000,6 +3103,8 @@ window.isLaserFadingGlobal = false;
 
   board.addEventListener('pointerdown', start, {passive:false});
   const drawMoveEvent = ('onpointerrawupdate' in window) ? 'pointerrawupdate' : 'pointermove';
+  // pointermove alimenta la predicción; el dibujo real continúa por rawupdate.
+  board.addEventListener('pointermove', predictMove, {passive:true});
   board.addEventListener(drawMoveEvent, move, {passive:false});
   board.addEventListener('pointerup', end, {passive:false});
   board.addEventListener('pointercancel', end, {passive:false});
