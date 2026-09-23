@@ -239,7 +239,7 @@
         #pen-palette button.active{outline:2px solid #60a5fa;background:#2563eb}
         #pen-palette .pen-palette-divider{width:1px;height:26px;background:rgba(255,255,255,.16);margin:0 2px}
         body.mbu-immersive #pen-palette{display:none!important}
-        body.mb-clean-fullscreen #pen-palette{opacity:1!important;pointer-events:auto!important;transform:none!important;transition:.18s}
+        body.mb-clean-fullscreen #pen-palette{opacity:0;pointer-events:none;transform:translateY(20px);transition:.18s}
         @media(max-width:900px){#pen-palette{top:8px;left:8px;max-width:calc(100vw - 16px);overflow-x:auto}#pen-palette button{min-width:36px;min-height:36px;font-size:15px}}
         
         /* Lista de Participantes (Avatares) */
@@ -2633,7 +2633,6 @@ window.isLaserFadingGlobal = false;
   
   let smoothedSpeed = 0;
   let lastRenderedSize = mwSize;
-  let strokeColor = '#000000';
   
   let shapeStartX = 0, shapeStartY = 0;
   window.isSnapEnabled = false;
@@ -2670,109 +2669,13 @@ window.isLaserFadingGlobal = false;
       requestAnimationFrame(window.drawLaserFadeGlobal);
   }
 
-  // ===== PREDICCIÓN DE TRAZO (BAJA LATENCIA PERCIBIDA) =====
-  // Este lienzo nunca se mezcla con la pizarra definitiva: solo muestra
-  // unos milisegundos de trazo estimado y se limpia/recalcula continuamente.
-  const predictionCanvas = document.createElement('canvas');
-  predictionCanvas.id = 'mw-prediction-canvas';
-  predictionCanvas.style.cssText = 'position:absolute;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:4;';
-  document.getElementById('canvas-container').appendChild(predictionCanvas);
-  const predictionCtx = predictionCanvas.getContext('2d', { alpha: true, desynchronized: true });
-  let predictionPointerId = null;
-  let latestPredictedEvents = null;
-  let predictionActive = false;
-  let predictionRaf = 0;
-
-  function resizePredictionCanvas(){
-    predictionCanvas.width = window.innerWidth;
-    predictionCanvas.height = window.innerHeight;
-    clearPrediction();
-  }
-
-  function clearPrediction(){
-    predictionCtx.clearRect(0, 0, predictionCanvas.width, predictionCanvas.height);
-  }
-
-  function predictionAllowed(){
-    return mwDrawing && predictionPointerId !== null &&
-      !['laser','line','arrow','rect','circle','eraser','text'].includes(mwMode);
-  }
-
-  function renderPrediction(){
-    if(!predictionAllowed() || !latestPredictedEvents || !latestPredictedEvents.length){
-      clearPrediction();
-      return;
-    }
-
-    clearPrediction();
-    const first = latestPredictedEvents[0];
-    if(first.pointerId !== predictionPointerId) return;
-
-    predictionCtx.save();
-    predictionCtx.lineCap = 'round';
-    predictionCtx.lineJoin = 'round';
-    predictionCtx.globalCompositeOperation = 'source-over';
-    predictionCtx.globalAlpha = mwMode === 'highlighter' ? 0.22 :
-      (mwMode === 'marker' ? 0.38 : (mwMode === 'pencil' ? 0.6 :
-      (mwMode === 'ballpoint' ? 0.92 : (mwMode === 'crayon' ? 0.72 :
-      (mwMode === 'chalk' ? 0.55 : 0.85)))));
-    predictionCtx.strokeStyle = strokeColor;
-    predictionCtx.lineWidth = Math.max(1, lastRenderedSize);
-
-    let x = mwLastPosX;
-    let y = mwLastPosY;
-    predictionCtx.beginPath();
-    predictionCtx.moveTo(x, y);
-
-    let drew = false;
-    for(let i=0;i<latestPredictedEvents.length;i++){
-      const pe = latestPredictedEvents[i];
-      const p = pos(pe);
-      const dx = p.x - x, dy = p.y - y;
-      if((dx*dx + dy*dy) < 0.25) continue;
-      predictionCtx.lineTo(p.x, p.y);
-      x = p.x; y = p.y;
-      drew = true;
-    }
-    if(drew) predictionCtx.stroke();
-    predictionCtx.restore();
-  }
-
-  function schedulePrediction(){
-    if(predictionRaf) return;
-    predictionRaf = requestAnimationFrame(function(){
-      predictionRaf = 0;
-      renderPrediction();
-    });
-  }
-
-  function predictMove(ev){
-    if(!predictionAllowed() || ev.pointerId !== predictionPointerId ||
-       !ev.getPredictedEvents) return;
-    const predicted = ev.getPredictedEvents();
-    if(!predicted || !predicted.length) return;
-    latestPredictedEvents = predicted;
-    schedulePrediction();
-  }
-
-  resizePredictionCanvas();
-  window.addEventListener('resize', resizePredictionCanvas, { passive: true });
-
   function pos(ev){ return { x: ev.clientX, y: ev.clientY }; }
 
-  // No bloquea el primer contacto del lápiz: toBlob serializa el snapshot de forma asíncrona.
   function saveState(){
     try{
+      if(window.mwUndo && window.mwUndo.length >= 5) window.mwUndo.shift(); 
       if(!window.mwUndo) window.mwUndo = [];
-      board.toBlob(function(blob){
-        if(!blob) return;
-        const reader = new FileReader();
-        reader.onload = function(){
-          if(window.mwUndo.length >= 5) window.mwUndo.shift();
-          window.mwUndo.push(reader.result);
-        };
-        reader.readAsDataURL(blob);
-      }, 'image/png');
+      window.mwUndo.push(board.toDataURL('image/png'));
     }catch(e){}
   }
   window.saveState = saveState;
@@ -2821,7 +2724,7 @@ window.isLaserFadingGlobal = false;
         input.placeholder = "Escribe aquí...";
         
         const fontSize = Math.max(16, mwSize * 5); 
-        const inkColor = strokeColor;
+        const inkColor = document.getElementById('mw-color').value;
         
         input.style.fontSize = fontSize + 'px';
         input.style.color = inkColor;
@@ -2872,36 +2775,18 @@ window.isLaserFadingGlobal = false;
     const p = pos(ev);
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
-    predictionPointerId = ev.pointerId;
-    latestPredictedEvents = null;
-    predictionActive = true;
-    clearPrediction();
     shapeStartX = p.x; shapeStartY = p.y; 
     window.strokeSnapAxis = null; // Reiniciar eje al apoyar el lápiz
     
     smoothedSpeed = 0;
     lastRenderedSize = mwSize;
-    strokeColor = (document.getElementById('mw-color')?.value) || '#000000';
-
-    // Configuración fija una sola vez por trazo. El evento raw queda dedicado al trazo.
-    mCtx.lineCap = 'round';
-    mCtx.lineJoin = 'round';
-    mCtx.imageSmoothingEnabled = true;
-    mCtx.globalCompositeOperation = mwMode === 'eraser' ? 'destination-out' : 'source-over';
-    mCtx.strokeStyle = mwMode === 'eraser' ? 'rgba(0,0,0,1)' : strokeColor;
-    const chalkTheme = document.body.classList.contains('theme-chalkboard');
-    mCtx.globalAlpha = mwMode === 'eraser' ? 1 : (mwMode === 'pencil' ? 0.6 : (mwMode === 'ballpoint' ? 0.92 : (mwMode === 'crayon' ? 0.72 : (mwMode === 'chalk' ? (chalkTheme ? 0.82 : 0.55) : (mwMode === 'highlighter' ? 0.22 : (mwMode === 'marker' ? 0.38 : (chalkTheme ? 0.9 : 0.85)))))));
-    mCtx.shadowBlur = 0;
-    mCtx.shadowColor = 'transparent';
-    if (mwMode === 'crayon') { mCtx.shadowBlur = 0.35; mCtx.shadowColor = strokeColor; }
-    if (mwMode === 'chalk') { mCtx.shadowBlur = chalkTheme ? 1.2 : 0.5; mCtx.shadowColor = strokeColor; }
 
     if (mwMode === 'laser') {
         if (typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
         }
     } else if (!['line','arrow','rect','circle'].includes(mwMode)) {
-        if (typeof broadcastData === 'function' && connections.length) {
+        if (typeof broadcastData === 'function') {
             broadcastData({ type:'start' });
         }
     }
@@ -2921,15 +2806,10 @@ window.isLaserFadingGlobal = false;
     }
       
     if(!mwDrawing) return;
-    // El trazo predictivo vive en un lienzo aparte; la pizarra real nunca
-    // recibe puntos estimados.
-    if(!predictionAllowed()) clearPrediction();
-    // pointerrawupdate está diseñado para dibujo de baja latencia.
-    // No hacemos preventDefault ni lecturas del DOM en cada evento.
-    let events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
-    if (!events || !events.length) events = [ev];
-    const inkColor = strokeColor;
-    const hasPeers = connections.length > 0;
+    ev.preventDefault();
+    
+    const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
+    const inkColor = document.getElementById('mw-color').value;
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
@@ -2953,7 +2833,7 @@ window.isLaserFadingGlobal = false;
         }
 
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
-        drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, strokeColor, mwSize);
+        drawShapeExact(lCtx, mwMode, shapeStartX, shapeStartY, p.x, p.y, inkColor, mwSize);
         mwLastPosX = p.x; mwLastPosY = p.y;
         return; 
     }
@@ -2971,14 +2851,17 @@ window.isLaserFadingGlobal = false;
                 requestAnimationFrame(window.drawLaserFadeGlobal);
             }
 
-            if (hasPeers) {
-                broadcastQueue.push({type:'laser',lastPosX:mwLastPosX/canvas.width,lastPosY:mwLastPosY/canvas.width,x:p.x/canvas.width,y:p.y/canvas.width,color:'#ef4444',peerId:peer?peer.id:'local',role:userRole,userName:myName});
+            if (typeof broadcastData === 'function') {
+                broadcastData({ type: 'laser', lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
             }
             mwLastPosX = p.x; mwLastPosY = p.y;
             mwLastMidX = midX; mwLastMidY = midY;
         }
         return; 
     }
+
+    mCtx.lineCap = 'round'; mCtx.lineJoin = 'round';
+    const isChalk = document.body.classList.contains('theme-chalkboard');
 
     for (let i=0; i<events.length; i++) {
         let e = events[i];
@@ -3008,7 +2891,7 @@ window.isLaserFadingGlobal = false;
         let dy = p.y - mwLastPosY;
         let dist = Math.hypot(dx, dy);
         
-        smoothedSpeed = smoothedSpeed * 0.55 + dist * 0.45;
+        smoothedSpeed = smoothedSpeed * 0.8 + dist * 0.2;
         let speedFactor = Math.max(0.2, 1 - (smoothedSpeed / 50)); 
         
         let rawPressure = e.pointerType === 'pen' ? e.pressure : speedFactor;
@@ -3027,7 +2910,7 @@ window.isLaserFadingGlobal = false;
 
         let targetSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
         
-        let finalSize = lastRenderedSize * 0.86 + targetSize * 0.14;
+        let finalSize = lastRenderedSize * 0.6 + targetSize * 0.4;
         lastRenderedSize = finalSize;
         
         // Trazo directo entre puntos coalescidos: elimina el retraso visual
@@ -3035,22 +2918,70 @@ window.isLaserFadingGlobal = false;
         let midX = p.x;
         let midY = p.y;
 
-        mCtx.lineWidth = finalSize;
         mCtx.beginPath();
         mCtx.moveTo(mwLastPosX, mwLastPosY);
         mCtx.lineTo(p.x, p.y);
+
+        mCtx.lineWidth = finalSize;
+        mCtx.shadowBlur = 0;
+        mCtx.shadowColor = 'transparent';
+
+        if(mwMode === 'eraser'){
+            mCtx.globalCompositeOperation = 'destination-out';
+            mCtx.strokeStyle = 'rgba(0,0,0,1)';
+            mCtx.globalAlpha = 1;
+        } else if(mwMode === 'pencil') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 0.6; 
+            mCtx.shadowBlur = 1;
+            mCtx.shadowColor = inkColor;
+        } else if (mwMode === 'ballpoint') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 0.92;
+            mCtx.shadowBlur = 0.2;
+            mCtx.shadowColor = inkColor;
+        } else if (mwMode === 'crayon') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 0.72;
+            mCtx.shadowBlur = 0.7;
+            mCtx.shadowColor = inkColor;
+            /* Textura de crayón: pequeñas variaciones de presión/alpha */
+        } else if (mwMode === 'chalk') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = isChalk ? 0.82 : 0.55;
+            mCtx.shadowBlur = isChalk ? 3 : 1.5;
+            mCtx.shadowColor = inkColor;
+        } else if (mwMode === 'highlighter') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 0.22;
+            mCtx.shadowBlur = 0;
+        } else {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            if (mwMode === 'marker') {
+                mCtx.globalAlpha = 0.38;
+            } else if (isChalk) {
+                mCtx.globalAlpha = 0.9;
+                mCtx.shadowBlur = 1; 
+                mCtx.shadowColor = inkColor;
+            } else {
+                mCtx.globalAlpha = 0.85;
+            }
+        }
         mCtx.stroke();
 
-        if (hasPeers) {
-            // Encolado directo: evita la llamada a broadcastData() por cada punto.
-            // El envío real sigue ocurriendo en broadcastLoop() cada ~16 ms.
-            broadcastQueue.push({
-                type:'stroke',
-                lastMidX:mwLastMidX/canvas.width, lastMidY:mwLastMidY/canvas.width,
-                lastPosX:mwLastPosX/canvas.width, lastPosY:mwLastPosY/canvas.width,
-                midX:midX/canvas.width, midY:midY/canvas.width,
-                color:inkColor, size:finalSize/canvas.width, tool:mwMode,
-                peerId:peer?peer.id:'local', role:userRole, userName:myName
+        if (typeof broadcastData === 'function') {
+            broadcastData({ 
+                type:'stroke', 
+                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
+                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, 
+                midX: midX / canvas.width, midY: midY / canvas.width, 
+                color: inkColor, size: finalSize / canvas.width, tool: mwMode 
             });
         }
 
@@ -3059,20 +2990,12 @@ window.isLaserFadingGlobal = false;
         mwLastMidX = midX;
         mwLastMidY = midY;
     }
-    // Después de confirmar los puntos reales, dibujamos de nuevo la parte
-    // predictiva desde el último punto confirmado.
-    if(predictionAllowed()) schedulePrediction();
   }
 
   function end(ev){
     if(!mwDrawing) return;
     ev.preventDefault();
     mwDrawing=false;
-    clearPrediction();
-    if(predictionRaf){ cancelAnimationFrame(predictionRaf); predictionRaf = 0; }
-    predictionPointerId = null;
-    latestPredictedEvents = null;
-    predictionActive = false;
     
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         lCtx.clearRect(0, 0, laserCanvas.width, laserCanvas.height);
@@ -3089,29 +3012,22 @@ window.isLaserFadingGlobal = false;
             });
         }
     } else {
-        if (typeof broadcastData === 'function' && connections.length && mwMode !== 'laser') broadcastData({ type:'stop' });
+        if (typeof broadcastData === 'function' && mwMode !== 'laser') broadcastData({ type:'stop' });
     }
-    mCtx.globalAlpha = 1;
-    mCtx.globalCompositeOperation = 'source-over';
-    mCtx.shadowBlur = 0;
-    mCtx.shadowColor = 'transparent';
     try{ 
         if(mwMode === 'laser') laserCanvas.releasePointerCapture(ev.pointerId);
-        else board.releasePointerCapture(ev.pointerId); 
+        else board.setPointerCapture(ev.pointerId); 
     }catch(e){}
   }
 
   board.addEventListener('pointerdown', start, {passive:false});
-  const drawMoveEvent = ('onpointerrawupdate' in window) ? 'pointerrawupdate' : 'pointermove';
-  // pointermove alimenta la predicción; el dibujo real continúa por rawupdate.
-  board.addEventListener('pointermove', predictMove, {passive:true});
-  board.addEventListener(drawMoveEvent, move, {passive:false});
+  board.addEventListener('pointermove', move, {passive:false});
   board.addEventListener('pointerup', end, {passive:false});
   board.addEventListener('pointercancel', end, {passive:false});
   board.addEventListener('contextmenu', e=>e.preventDefault());
   
   laserCanvas.addEventListener('pointerdown', start, {passive:false});
-  laserCanvas.addEventListener(drawMoveEvent, move, {passive:false});
+  laserCanvas.addEventListener('pointermove', move, {passive:false});
   laserCanvas.addEventListener('pointerup', end, {passive:false});
   laserCanvas.addEventListener('pointercancel', end, {passive:false});
   laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
@@ -3393,13 +3309,6 @@ document.addEventListener('keydown', function(e) {
   function syncFullscreenUI() {
     const full = !!(document.fullscreenElement || document.webkitFullscreenElement);
     document.body.classList.toggle('mb-clean-fullscreen', full);
-    const pp = $('pen-palette');
-    if (pp) {
-      pp.style.display = 'flex';
-      pp.style.opacity = '1';
-      pp.style.pointerEvents = 'auto';
-      pp.style.transform = 'none';
-    }
   }
   document.addEventListener('fullscreenchange', syncFullscreenUI);
   document.addEventListener('webkitfullscreenchange', syncFullscreenUI);
