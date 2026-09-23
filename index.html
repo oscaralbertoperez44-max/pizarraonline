@@ -87,7 +87,7 @@
             white-space: nowrap;
         }
 
-        /* Pantalla de Inicio Premium con Citas en Anillo 360 */
+        /* Pantalla de Inicio Premium */
         #login-overlay { 
             position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; 
             background-color: rgba(30, 86, 49, 0.98); 
@@ -143,7 +143,6 @@
         
         #pdf-render-container, #dola-render-container, #calc-render-container { position: relative; overflow: auto; background: #525659; padding: 10px; display: flex; justify-content: center; align-items: flex-start; flex-grow: 1; min-height: 200px; }
         
-        /* Ajuste para que el PDF escale automáticamente al estirar el panel */
         #pdf-canvas { box-shadow: 0 4px 15px rgba(0,0,0,0.5); background: white; max-width: 100%; width: 100%; height: auto; object-fit: contain;}
         
         #dola-panel { width: 750px; height: 550px; }
@@ -154,10 +153,8 @@
         .pdf-controls { padding: 8px; display: flex; justify-content: space-between; align-items: center; background:#1f1f1f; border-bottom: 1px solid #333; gap: 8px; flex-wrap: wrap; }
         .pdf-controls-group { display: flex; align-items: center; gap: 5px; background: #111; padding: 4px; border-radius: 5px; }
         
-        /* Emuladores Optimizados para Nitidez Suprema */
         iframe { transform: translateZ(0); backface-visibility: hidden; image-rendering: high-quality; }
         
-        /* Motor de Recorte Seguro */
         #crop-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; cursor: crosshair; display: none; z-index: 5; background: rgba(0,0,0,0.3); touch-action: none; }
         #crop-box { position: absolute; border: 2px dashed #3b82f6; background: rgba(59,130,246,0.25); pointer-events: none; display: none; }
         
@@ -170,12 +167,10 @@
 
         #stamp-img { width: 100%; height: 100%; object-fit: fill; display: block; pointer-events: none; border-radius: 0 0 9px 9px; -webkit-user-drag: none; image-rendering: high-quality; }
         
-        /* Controles de Redimensión Genéricos */
         .resize-handle { position: absolute; right: -12px; bottom: -12px; width: 30px; height: 30px; background: #3b82f6; border-radius: 50%; border: 3px solid white; cursor: nwse-resize; box-shadow: 0 3px 12px rgba(0,0,0,0.6); z-index: 21; touch-action: none; }
         .resize-handle:hover { transform: scale(1.1); background: #2563eb; }
         .resize-handle-pdf { right: 5px; bottom: 5px; border: 2px solid white; }
         
-        /* Sistema Multi-Direccional para Esquinas */
         .resize-corner { position: absolute; width: 25px; height: 25px; z-index: 99; touch-action: none; background: transparent; }
         .nw-resize { top: -5px; left: -5px; cursor: nw-resize; }
         .ne-resize { top: -5px; right: -5px; cursor: ne-resize; }
@@ -192,12 +187,10 @@
         
         .hidden-file { display: none; }
         
-        /* Estilo de las Galerías y Recursos */
         .gallery-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; padding: 15px; height: 100%; max-height: 55vh; overflow-y: auto; background: #1a1a1a; }
         .gallery-item { background: #2a2a2a; border-radius: 8px; padding: 8px; text-align: center; border: 1px solid #444; display: flex; flex-direction: column; justify-content: space-between; }
         .gallery-item img { max-width: 100%; height: 80px; object-fit: contain; background: #fff; border-radius: 4px; display: block; margin: 0 auto 8px; pointer-events: none; image-rendering: high-quality;}
 
-        /* Estilo para la herramienta de texto en vivo */
         .canvas-text-input {
             position: absolute;
             z-index: 9999;
@@ -212,7 +205,7 @@
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
         }
 
-        /* === BARRA UNIFICADA - Zona Segura Inferior === */
+        /* === BARRA UNIFICADA === */
         #main-toolbar {
             position: fixed; bottom: 25px; 
             left: 50%; transform: translateX(-50%);
@@ -230,7 +223,6 @@
         #main-toolbar input[type="range"] { width: 90px; cursor: pointer; accent-color: #3b82f6; flex-shrink: 0;}
         #main-toolbar input[type="color"] { width: 38px; height: 38px; border: 0; padding: 0; border-radius: 10px; background: transparent; cursor: pointer; flex-shrink: 0;}
         
-        /* Lista de Participantes (Avatares) */
         #participants-chip {
             display: flex; align-items: center; flex-wrap: nowrap; overflow-x: auto; background: rgba(0,0,0,0.4); padding: 4px 10px; border-radius: 20px; margin: 0 4px; gap: 4px; max-width: 250px;
         }
@@ -447,7 +439,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             <canvas id="pdf-canvas"></canvas>
             <div id="crop-overlay"><div id="crop-box"></div></div>
             
-            <!-- Modal Lector Inteligente Superpuesto -->
             <div id="reader-overlay" style="position:absolute; top:0; left:0; right:0; bottom:0; background:rgba(15, 23, 42, 0.95); display:none; z-index:20; padding:15px; flex-direction:column; gap:10px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <span style="color:#60a5fa; font-weight:bold; font-size:0.9rem;">🔊 Selecciona el texto que deseas escuchar</span>
@@ -490,7 +481,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             <iframe id="dola-frame" src="https://www.cici.com" style="width:100%; height:100%; flex-grow:1; border:none; background:#fff;"></iframe>
         </div>
         
-        <!-- Esquinas para estirar Dola añadidas aquí -->
         <div class="resize-corner nw-resize" data-dir="nw"></div>
         <div class="resize-corner ne-resize" data-dir="ne"></div>
         <div class="resize-corner sw-resize" data-dir="sw"></div>
@@ -535,6 +525,16 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         </div>
     </div>
 
+    <!-- Menú Desplegable de Pinceles Flotante (NUEVO) -->
+    <div id="brush-menu" style="display:none; position:fixed; bottom:85px; left:50%; transform:translateX(-50%); background:rgba(15,23,42,0.95); border:1px solid #3b82f6; border-radius:12px; padding:8px; gap:8px; z-index:10000; box-shadow:0 10px 30px rgba(0,0,0,0.5); flex-wrap: wrap; justify-content: center; max-width: 90vw;">
+        <button type="button" id="mw-pen" title="Fibrón normal [P]">🖋️ Fibrón</button>
+        <button type="button" id="mw-ink" title="Lapicera Fina y Opaca">✒️ Lapicera</button>
+        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️ Lápiz</button>
+        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️ Marcador</button>
+        <button type="button" id="mw-crayon" title="Crayón con textura">🕯️ Crayón</button>
+        <button type="button" id="mw-chalk" title="Tiza Realista con difuminado">🌫️ Tiza</button>
+    </div>
+
     <!-- Barra Única Unificada -->
     <div id="main-toolbar">
         
@@ -543,6 +543,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         <button type="button" onclick="toggleMbuDock()" title="Menú Ultimate" style="background:#eab308;">🚀</button>
         <button onclick="toggleCalcPanel()" title="Calculadora Gráfica Desmos y GeoGebra">🖩</button>
         <button onclick="toggleResourcesPanel()" title="Buscador Académico y Archivos de Clase" style="background:#8b5cf6;">📚</button>
+        <button onclick="togglePdfMinimize()" title="Lector PDF Abierto" style="background:#f59e0b;" class="hide-mobile">📄</button>
         <div class="toolbar-divider"></div>
 
         <!-- Opciones exclusivas de Profesor -->
@@ -555,17 +556,16 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             <input type="file" id="cameraInput" class="hidden-file" accept="image/*" capture="environment">
             <button onclick="document.getElementById('cameraInput').click()" title="Tomar foto de cuaderno">📷</button>
             
-            <button onclick="saveAsPDF()" title="Guardar Clase en PDF" class="hide-mobile">💾</button>
-            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4" class="hide-mobile">⏺️</button>
+            <button onclick="saveAsPDF()" title="Guardar Clase en PDF (Carpeta pizarracoto)" class="hide-mobile">💾</button>
+            <button id="btn-record" onclick="toggleRecording()" title="Grabar Clase Sincronizada en MP4 (Carpeta pizarracoto)" class="hide-mobile">⏺️</button>
             <button onclick="logoutSession()" title="Cerrar Sesión para Todos" class="danger-btn" style="background:#dc2626;">🚪</button>
             
             <div class="toolbar-divider"></div>
         </div>
 
         <!-- Opciones Universales de Dibujo con Atajos de Teclado -->
-        <button type="button" id="mw-pen" class="active" title="Fibrón Fino [P]">🖋️</button>
-        <button type="button" id="mw-pencil" title="Lápiz Real [B]">✏️</button>
-        <button type="button" id="mw-marker" title="Marcador Grueso [M]">🖍️</button>
+        <button type="button" id="btn-brush-toggle" title="Herramientas de Trazo" class="active" onclick="const m=document.getElementById('brush-menu'); m.style.display=m.style.display==='none'?'flex':'none';">🖋️ ▼</button>
+        
         <button type="button" id="mw-line" title="Línea Recta [I]" class="hide-mobile">╱</button>
         <button type="button" id="mw-arrow" title="Flecha [A]" class="hide-mobile">➜</button>
         <button type="button" id="btn-snap" title="Regla Magnética (Ejes y ángulos perfectos) [Shift]">📐</button>
@@ -582,7 +582,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         
         <div class="toolbar-divider"></div>
         
-        <!-- Cronómetro y Temas -->
+        <!-- Cronómetro Expandido y Temas -->
         <div id="class-timer" style="display:none; color: #fff; font-family: monospace; font-size: 1.1rem; font-weight: bold; background: #10b981; padding: 6px 12px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.3);" title="Tiempo de clase (Profe: Clic para reiniciar)" onclick="resetTimer()">⏱️ 00:00</div>
         
         <button type="button" id="btn-theme" onclick="toggleTheme()" title="Cambiar Fondo (Cuadrícula / Blanca Lisa / Tiza)" style="background:#14b8a6;">🌐</button>
@@ -620,7 +620,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
         };
 
-        // Red original y estable de PeerJS
         const peerNetworkOptions = { 
             config: { 
                 'iceServers': [ 
@@ -634,7 +633,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         let isAdmin = false; 
         let peer, connections = [], localStream = null;
         let audioContext, audioDestination;
-        // Exponer referencias dinámicas para módulos de optimización externos.
         Object.defineProperties(window, {
             peer: { configurable:true, get:()=>peer },
             connections: { configurable:true, get:()=>connections },
@@ -646,7 +644,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         let roomUsers = {};
         window.studentsCanShare = false;
         
-        // Timer Variables
         let classStartTime = null;
         let timerInterval = null;
 
@@ -705,8 +702,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
             if (audioEl.srcObject !== stream) {
                 audioEl.srcObject = stream;
-                
-                // Mezclar audio remoto para la grabación
                 if (audioContext && audioDestination) {
                     try {
                         const remoteSource = audioContext.createMediaStreamSource(stream);
@@ -782,16 +777,17 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         window.toggleTheme = toggleTheme;
         window.applyTheme = applyTheme;
 
-        // ================= TEMPORIZADOR DE CLASE =================
+        // ================= TEMPORIZADOR DE CLASE (Expandido) =================
         function startTimer(startTime) {
             classStartTime = startTime || Date.now();
             if(timerInterval) clearInterval(timerInterval);
             document.getElementById('class-timer').style.display = 'block';
             timerInterval = setInterval(() => {
                 const diff = Math.floor((Date.now() - classStartTime) / 1000);
-                const m = String(Math.floor(diff / 60)).padStart(2, '0');
+                const h = Math.floor(diff / 3600);
+                const m = String(Math.floor((diff % 3600) / 60)).padStart(2, '0');
                 const s = String(diff % 60).padStart(2, '0');
-                document.getElementById('class-timer').innerText = `⏱️ ${m}:${s}`;
+                document.getElementById('class-timer').innerText = h > 0 ? `⏱️ ${h}:${m}:${s}` : `⏱️ ${m}:${s}`;
             }, 1000);
         }
 
@@ -960,12 +956,29 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
         }
 
-        // LIMPIAR PIZARRA GLOBAL
+        // LIMPIAR PIZARRA GLOBAL Y RECUPERACIÓN (ANTI-ERRORES)
         function clearCanvas() {
-            if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
+            if(!confirm('¿Limpiar toda la escritura de la pizarra por completo? (Tranquilo, podrás recuperarla con el botón Deshacer)')) return;
+            if(typeof window.pushRedoSnapshot === 'function') window.pushRedoSnapshot();
             if(typeof window.saveState === 'function') window.saveState();
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             broadcastData({ type:'clear' });
+            
+            // Auto-recovery toast
+            let toast = document.getElementById('mb-undo-toast');
+            if(!toast) {
+                toast = document.createElement('div');
+                toast.id = 'mb-undo-toast';
+                toast.style.cssText = 'position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#dc2626;color:#fff;padding:12px 24px;border-radius:20px;cursor:pointer;z-index:10050;box-shadow:0 5px 25px rgba(0,0,0,0.4);font-weight:bold;font-size:1.1rem;transition:0.3s;';
+                toast.innerHTML = '🗑️ Pizarra borrada. Clic aquí para DESHACER y Recuperar';
+                toast.onclick = function() {
+                    if(window.mbUndoPro) window.mbUndoPro(); else if(document.getElementById('mw-undo')) document.getElementById('mw-undo').click();
+                    toast.style.display = 'none';
+                };
+                document.body.appendChild(toast);
+            }
+            toast.style.display = 'block';
+            setTimeout(() => { toast.style.display = 'none'; }, 8000);
         }
         window.clearCanvas = clearCanvas;
 
@@ -1187,10 +1200,11 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         window.captureVideoScreen = () => captureScreenSource('video');
         window.captureDolaScreen = () => captureScreenSource('dola');
 
-        // ================= GESTOR DE ARCHIVOS Y BUSCADOR WEB PDF =================
+        // ================= GESTOR DE ARCHIVOS, PDF MULTIPLES Y BUSCADOR WEB =================
         let sessionResources = [];
         let isPdfSynced = false;
         let currentPdfData = null;
+        window.currentPdfIdx = null;
 
         function searchWebPdf() {
             const q = document.getElementById('pdf-search-input').value.trim();
@@ -1238,12 +1252,13 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 let fileName = url.substring(url.lastIndexOf('/')+1).split('?')[0];
                 if (!fileName || !fileName.toLowerCase().endsWith('.pdf')) fileName = "Documento_Importado.pdf";
                 
-                sessionResources.push({ name: fileName, type: 'pdf', data: dataUri });
+                sessionResources.push({ name: fileName, type: 'pdf', data: dataUri, lastPage: 1 });
                 updateResourcesGrid();
                 
                 currentPdfData = dataUri;
                 pdfDoc = await pdfjsLib.getDocument({ data: bytes }).promise;
                 pageNum = 1; pdfScale = 2.0; 
+                window.currentPdfIdx = sessionResources.length - 1;
                 document.getElementById('pdf-panel').style.display = 'flex';
                 renderPage(pageNum);
                 
@@ -1271,7 +1286,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     sessionResources.push({
                         name: file.name,
                         type: file.type.startsWith('image/') ? 'image' : 'pdf',
-                        data: ev.target.result
+                        data: ev.target.result,
+                        lastPage: 1
                     });
                     updateResourcesGrid();
                 };
@@ -1305,6 +1321,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
 
         function removeResource(idx) {
             sessionResources.splice(idx, 1);
+            if (window.currentPdfIdx === idx) window.currentPdfIdx = null;
             updateResourcesGrid();
         }
 
@@ -1330,6 +1347,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 source.src = res.data;
                 toggleResourcesPanel();
             } else if (res.type === 'pdf') {
+                window.currentPdfIdx = idx;
                 currentPdfData = res.data;
                 const base64Data = res.data.split(',')[1];
                 const binary = atob(base64Data);
@@ -1340,7 +1358,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     view[i] = binary.charCodeAt(i);
                 }
                 pdfDoc = await pdfjsLib.getDocument({ data: view }).promise;
-                pageNum = 1; pdfScale = 2.0; 
+                pageNum = res.lastPage || 1; 
+                pdfScale = 2.0; 
                 document.getElementById('pdf-panel').style.display = 'flex';
                 renderPage(pageNum);
                 toggleResourcesPanel();
@@ -1651,32 +1670,6 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         }
         window.readSelectedOrAll = readSelectedOrAll;
 
-        const pdfInput = document.getElementById('pdfInput');
-        if (pdfInput) pdfInput.addEventListener('change', async function(e) {
-            const file = e.target.files && e.target.files[0];
-            if (!file) return;
-            const reader = new FileReader();
-            reader.onload = async function(ev) {
-                currentPdfData = ev.target.result;
-                const base64Data = currentPdfData.split(',')[1];
-                const binary = atob(base64Data);
-                const len = binary.length;
-                const buffer = new ArrayBuffer(len);
-                const view = new Uint8Array(buffer);
-                for (let i = 0; i < len; i++) {
-                    view[i] = binary.charCodeAt(i);
-                }
-                pdfDoc = await pdfjsLib.getDocument({ data: view }).promise;
-                pageNum = 1; pdfScale = 2.0; pdfPanel.style.display = 'flex';
-                renderPage(pageNum);
-                
-                if (isPdfSynced && (isAdmin || window.studentsCanShare) && typeof broadcastData === 'function') {
-                    broadcastData({ type: 'pdf_share', data: currentPdfData, page: pageNum });
-                }
-            };
-            reader.readAsDataURL(file);
-        });
-
         async function renderPage(num) {
             if (!pdfDoc) return;
             const page = await pdfDoc.getPage(num);
@@ -1684,6 +1677,11 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             pdfAppCanvas.width = viewport.width; pdfAppCanvas.height = viewport.height;
             await page.render({ canvasContext: pdfCtx, viewport }).promise;
             document.getElementById('page-num').textContent = num;
+            
+            // Actualiza la memoria de página del PDF actual
+            if (window.currentPdfIdx !== null && sessionResources[window.currentPdfIdx]) {
+                sessionResources[window.currentPdfIdx].lastPage = num;
+            }
         }
 
         function prevPage() { 
@@ -1706,7 +1704,12 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         window.zoomIn = zoomIn;
         function zoomOut() { if (!pdfDoc) return; if (pdfScale > 0.5) { pdfScale -= 0.5; renderPage(pageNum); } }
         window.zoomOut = zoomOut;
-        function togglePdfMinimize() { pdfPanel.style.display = pdfPanel.style.display === 'none' ? 'flex' : 'none'; }
+        
+        function togglePdfMinimize() { 
+            const p = document.getElementById('pdf-panel');
+            p.style.display = p.style.display === 'none' || p.style.display === '' ? 'flex' : 'none'; 
+            if (p.style.display === 'flex' && pdfDoc) renderPage(pageNum);
+        }
         window.togglePdfMinimize = togglePdfMinimize;
         
         let cropModePdf = false, pStartX, pStartY;
@@ -1844,6 +1847,22 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             };
             reader.readAsDataURL(file);
         }
+        
+        // CAPTURAR EL PORTAPAPELES (Pegar imágenes de Google o PC)
+        window.addEventListener('paste', function(e) {
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+            if (!e.clipboardData) return;
+            const items = e.clipboardData.items;
+            for (let i = 0; i < items.length; i++) {
+                if (items[i].type.indexOf('image') === 0) {
+                    const blob = items[i].getAsFile();
+                    loadImageIntoStamp(blob);
+                    e.preventDefault();
+                    break;
+                }
+            }
+        });
+
         ['cameraInput'].forEach(id => {
             const input = document.getElementById(id);
             if (input) input.addEventListener('change', function(e) {
@@ -1882,7 +1901,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             const orientation = tempCanvas.width > tempCanvas.height ? 'l' : 'p';
             const pdf = new jsPDF({ orientation: orientation, unit: "px", format: [tempCanvas.width, tempCanvas.height] });
             pdf.addImage(tempCanvas.toDataURL("image/jpeg", 0.98), 'JPEG', 0, 0, tempCanvas.width, tempCanvas.height);
-            pdf.save(filename + ".pdf");
+            // GUARDA EN LA CARPETA pizarracoto
+            pdf.save("pizarracoto/" + filename + ".pdf");
         }
         window.saveAsPDF = saveAsPDF;
 
@@ -1937,7 +1957,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                a.download = 'Clase_MathBoard.' + ext;
+                // GUARDA EN LA CARPETA pizarracoto
+                a.download = 'pizarracoto/Clase_MathBoard.' + ext;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -2237,6 +2258,23 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     mCtx.globalAlpha = 0.6; 
                     mCtx.shadowBlur = 1;
                     mCtx.shadowColor = data.color;
+                } else if(data.tool === 'ink') {
+                    mCtx.globalCompositeOperation = 'source-over';
+                    mCtx.strokeStyle = data.color;
+                    mCtx.globalAlpha = 1.0;
+                    mCtx.shadowBlur = 0;
+                } else if(data.tool === 'crayon') {
+                    mCtx.globalCompositeOperation = 'source-over';
+                    mCtx.strokeStyle = data.color;
+                    mCtx.globalAlpha = 0.95;
+                    mCtx.shadowBlur = Math.max(1, finalSize/4);
+                    mCtx.shadowColor = data.color;
+                } else if(data.tool === 'chalk') {
+                    mCtx.globalCompositeOperation = 'source-over';
+                    mCtx.strokeStyle = data.color;
+                    mCtx.globalAlpha = 0.85;
+                    mCtx.shadowBlur = Math.max(3, finalSize/2);
+                    mCtx.shadowColor = data.color;
                 } else {
                     mCtx.globalCompositeOperation = 'source-over';
                     mCtx.strokeStyle = data.color;
@@ -2248,6 +2286,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                         mCtx.shadowColor = data.color;
                     } else {
                         mCtx.globalAlpha = 0.85;
+                        mCtx.shadowBlur = 0;
                     }
                 }
                 mCtx.stroke();
@@ -2603,7 +2642,7 @@ window.isLaserFadingGlobal = false;
   
   let shapeStartX = 0, shapeStartY = 0;
   window.isSnapEnabled = false;
-  window.strokeSnapAxis = null; // Candado para bloquear el eje elegido
+  window.strokeSnapAxis = null; 
 
   window.drawLaserFadeGlobal = function() {
       const now = Date.now();
@@ -2658,10 +2697,13 @@ window.isLaserFadingGlobal = false;
 
   function setMode(mode){
     mwMode = mode;
-    ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
+    ['mw-pen','mw-ink','mw-pencil','mw-marker','mw-crayon','mw-chalk','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
       const b=document.getElementById(id);
       if(b) b.classList.toggle('active', id.replace('mw-','') === mode);
     });
+    
+    const bm = document.getElementById('brush-menu');
+    if(bm) bm.style.display = 'none';
     
     if (mode === 'laser') {
         laserCanvas.style.pointerEvents = 'auto'; 
@@ -2674,12 +2716,12 @@ window.isLaserFadingGlobal = false;
         board.style.cursor = 'url(\'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="none" stroke="%2394a3b8" stroke-width="1.5"/><circle cx="12" cy="12" r="2.5" fill="%233b82f6"/></svg>\') 12 12, crosshair !important';
     }
   }
+  window.setMode = setMode;
   
   function start(ev){
-    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar')) return;
+    if(ev.target.tagName === 'BUTTON' || ev.target.tagName === 'INPUT' || ev.target.tagName === 'TEXTAREA' || ev.target.tagName === 'SELECT' || ev.target.closest('.floating-panel') || ev.target.closest('#main-toolbar') || ev.target.closest('#brush-menu')) return;
     ev.preventDefault();
 
-    // --- INICIO HERRAMIENTA TEXTO ---
     if (mwMode === 'text') {
         if (document.getElementById('canvas-temp-text')) return;
         const p = pos(ev);
@@ -2734,7 +2776,6 @@ window.isLaserFadingGlobal = false;
 
         return;
     }
-    // --- FIN HERRAMIENTA TEXTO ---
 
     if (mwMode !== 'laser') saveState();
 
@@ -2743,7 +2784,7 @@ window.isLaserFadingGlobal = false;
     mwLastPosX = p.x; mwLastPosY = p.y;
     mwLastMidX = p.x; mwLastMidY = p.y;
     shapeStartX = p.x; shapeStartY = p.y; 
-    window.strokeSnapAxis = null; // Reiniciar eje al apoyar el lápiz
+    window.strokeSnapAxis = null; 
     
     smoothedSpeed = 0;
     lastRenderedSize = mwSize;
@@ -2781,7 +2822,6 @@ window.isLaserFadingGlobal = false;
     if (['line','arrow','rect','circle'].includes(mwMode)) {
         let p = pos(events[events.length - 1]);
         
-        // --- LÓGICA MAGNÉTICA PARA FORMAS GEOMÉTRICAS ---
         if (window.isSnapEnabled || ev.shiftKey) {
             let dx = p.x - shapeStartX;
             let dy = p.y - shapeStartY;
@@ -2834,12 +2874,10 @@ window.isLaserFadingGlobal = false;
         let e = events[i];
         let p = pos(e);
         
-        // --- LÓGICA MAGNÉTICA PARA DIBUJO CONTINUO (EJES SEGUROS) ---
         if (window.isSnapEnabled || ev.shiftKey) {
             if (!window.strokeSnapAxis) {
                 let dxCheck = Math.abs(p.x - shapeStartX);
                 let dyCheck = Math.abs(p.y - shapeStartY);
-                // Espera a moverse un poco para decidir la intención
                 if (dxCheck > 5 || dyCheck > 5) {
                     window.strokeSnapAxis = (dxCheck > dyCheck) ? 'horizontal' : 'vertical';
                 }
@@ -2897,6 +2935,23 @@ window.isLaserFadingGlobal = false;
             mCtx.globalAlpha = 0.6; 
             mCtx.shadowBlur = 1;
             mCtx.shadowColor = inkColor;
+        } else if(mwMode === 'ink') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 1.0;
+            mCtx.shadowBlur = 0;
+        } else if(mwMode === 'crayon') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 0.95;
+            mCtx.shadowBlur = Math.max(1, finalSize/4);
+            mCtx.shadowColor = inkColor;
+        } else if(mwMode === 'chalk') {
+            mCtx.globalCompositeOperation = 'source-over';
+            mCtx.strokeStyle = inkColor;
+            mCtx.globalAlpha = 0.85;
+            mCtx.shadowBlur = Math.max(3, finalSize/2);
+            mCtx.shadowColor = inkColor;
         } else {
             mCtx.globalCompositeOperation = 'source-over';
             mCtx.strokeStyle = inkColor;
@@ -2908,6 +2963,7 @@ window.isLaserFadingGlobal = false;
                 mCtx.shadowColor = inkColor;
             } else {
                 mCtx.globalAlpha = 0.85;
+                mCtx.shadowBlur = 0;
             }
         }
         mCtx.stroke();
@@ -2969,7 +3025,7 @@ window.isLaserFadingGlobal = false;
   laserCanvas.addEventListener('pointercancel', end, {passive:false});
   laserCanvas.addEventListener('contextmenu', e=>e.preventDefault());
 
-  ['mw-pen','mw-pencil','mw-marker','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
+  ['mw-pen','mw-ink','mw-pencil','mw-marker','mw-crayon','mw-chalk','mw-line','mw-arrow','mw-rect','mw-circle','mw-eraser','mw-laser','mw-text'].forEach(id=>{
       const btn = document.getElementById(id);
       if(btn) btn.addEventListener('click',()=>setMode(id.replace('mw-','')));
   });
@@ -2989,18 +3045,6 @@ window.isLaserFadingGlobal = false;
     }
   });
 
-  // --- BOTÓN LIMPIAR (REPARADO Y AISLADO) ---
-  const btnClear = document.getElementById('mw-clear');
-  if (btnClear) {
-      btnClear.onclick = () => {
-          if(!confirm('¿Limpiar toda la escritura de la pizarra por completo?')) return;
-          saveState();
-          mCtx.clearRect(0, 0, board.width, board.height);
-          if (typeof broadcastData === 'function') broadcastData({ type:'clear' });
-      };
-  }
-
-  // --- BOTÓN MAGNÉTICO ---
   const btnSnap = document.getElementById('btn-snap');
   if (btnSnap) {
       btnSnap.addEventListener('click', () => {
@@ -3010,7 +3054,6 @@ window.isLaserFadingGlobal = false;
       });
   }
 
-  // --- ATAJOS DE TECLADO INTELIGENTES ---
   window.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.isContentEditable) return;
       if (e.ctrlKey || e.altKey || e.metaKey) return;
@@ -3042,7 +3085,7 @@ window.isLaserFadingGlobal = false;
 </script>
 
 <script>
-/* === ESCUDO DE PROTECCIÓN BÁSICA (ANTI-COPIA) === */
+/* === ESCUDO DE PROTECCIÓN BÁSICA === */
 document.addEventListener('contextmenu', function(e) {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') {
         return; 
@@ -3062,7 +3105,6 @@ document.addEventListener('keydown', function(e) {
 <script>
 /* =========================================================
    MATHBOARD PRO — CAPA DE ROBUSTEZ Y OPTIMIZACIÓN v3
-   No reemplaza el motor original: lo protege y mejora.
    ========================================================= */
 (() => {
   'use strict';
@@ -3082,7 +3124,6 @@ document.addEventListener('keydown', function(e) {
   const board = $('board');
   if (!board) return;
 
-  /* ---------- Estado visual / recuperación ---------- */
   function safeStorageSet(key, value) {
     try { localStorage.setItem(key, value); return true; } catch (_) { return false; }
   }
@@ -3162,7 +3203,6 @@ document.addEventListener('keydown', function(e) {
     } catch (_) {}
   }
 
-  /* ---------- Historial robusto + redo ---------- */
   if (!window.mbRedo) window.mbRedo = [];
   function getUndo() { return Array.isArray(window.mwUndo) ? window.mwUndo : (window.mwUndo = []); }
 
@@ -3172,6 +3212,7 @@ document.addEventListener('keydown', function(e) {
     window.mbRedo.push(data);
     if (window.mbRedo.length > MB.maxHistory) window.mbRedo.shift();
   }
+  window.pushRedoSnapshot = pushRedoSnapshot;
 
   function restoreSnapshot(data) {
     if (!data) return;
@@ -3216,7 +3257,6 @@ document.addEventListener('keydown', function(e) {
   window.mbUndoPro = undo;
   window.mbRedoPro = redo;
 
-  /* ---------- Pantalla completa limpia ---------- */
   const style = document.createElement('style');
   style.textContent = `
     body.mb-clean-fullscreen #main-toolbar{opacity:0;pointer-events:none;transform:translate(-50%,20px);transition:.18s}
@@ -3266,7 +3306,6 @@ document.addEventListener('keydown', function(e) {
     }
   };
 
-  /* ---------- Red: limpieza de conexiones muertas ---------- */
   function sweepConnections() {
     if (!Array.isArray(window.connections)) return;
     const before = window.connections.length;
@@ -3277,7 +3316,6 @@ document.addEventListener('keydown', function(e) {
   }
   MB.roomSweepTimer = setInterval(sweepConnections, 5000);
 
-  /* ---------- Seguridad de PeerJS: handlers de reconexión ---------- */
   function attachPeerGuards() {
     const p = window.peer;
     if (!p || p.__mb3guard) return;
@@ -3311,7 +3349,6 @@ document.addEventListener('keydown', function(e) {
     }
   }, 1200);
 
-  /* ---------- Botón redo ---------- */
   const undoBtn = $('mw-undo');
   if (undoBtn && !$('mb3-redo')) {
     const redoBtn = document.createElement('button');
@@ -3323,7 +3360,6 @@ document.addEventListener('keydown', function(e) {
     undoBtn.insertAdjacentElement('afterend', redoBtn);
   }
 
-  /* ---------- Atajos profesionales ---------- */
   window.addEventListener('keydown', e => {
     const tag = e.target?.tagName;
     if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT' || e.target?.isContentEditable) return;
@@ -3341,6 +3377,8 @@ document.addEventListener('keydown', function(e) {
       document.querySelectorAll('.floating-panel').forEach(p => {
         if (p.id !== 'stamper') p.style.display = 'none';
       });
+      const bm = document.getElementById('brush-menu');
+      if (bm) bm.style.display = 'none';
     }
     if (e.key === 'f' && !mod) {
       e.preventDefault();
@@ -3348,7 +3386,6 @@ document.addEventListener('keydown', function(e) {
     }
   });
 
-  /* ---------- Auto recuperación sin interferir con el dibujo ---------- */
   board.addEventListener('pointerup', scheduleRecoverySave, {passive:true});
   board.addEventListener('pointercancel', scheduleRecoverySave, {passive:true});
   window.addEventListener('beforeunload', () => saveRecovery('exit'));
@@ -3356,7 +3393,6 @@ document.addEventListener('keydown', function(e) {
     if (document.hidden) saveRecovery('background');
   });
 
-  /* ---------- Mejor manejo de cierre de micrófono ---------- */
   window.addEventListener('pagehide', () => {
     try {
       if (window.localStream) window.localStream.getTracks().forEach(t => t.stop());
@@ -3366,7 +3402,6 @@ document.addEventListener('keydown', function(e) {
     } catch (_) {}
   });
 
-  /* ---------- Estado persistente de tema ---------- */
   const themeButtons = $('btn-theme');
   if (themeButtons) themeButtons.addEventListener('click', () => {
     const theme = ['theme-grid','theme-whiteboard','theme-chalkboard']
@@ -3374,7 +3409,6 @@ document.addEventListener('keydown', function(e) {
     if (theme) safeStorageSet(MB.settingsKey, JSON.stringify({theme,at:Date.now()}));
   });
 
-  /* ---------- Reparación de URLs de YouTube ---------- */
   const oldYT = window.extractYouTubeEmbedUrl;
   if (oldYT) {
     window.extractYouTubeEmbedUrl = function(url) {
@@ -3396,7 +3430,6 @@ document.addEventListener('keydown', function(e) {
     };
   }
 
-  /* ---------- API de diagnóstico ---------- */
   window.MathBoardDiagnostics = () => ({
     version: MB.version,
     canvas: {width: board.width, height: board.height},
@@ -3408,7 +3441,6 @@ document.addEventListener('keydown', function(e) {
     pdf: typeof window.pdfjsLib !== 'undefined'
   });
 
-  /* Exponer referencias útiles del motor original sin reemplazarlo. */
   window.mbScheduleRecovery = scheduleRecoverySave;
 
   setTimeout(recoverIfUseful, 900);
@@ -3525,7 +3557,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       : (panel.querySelector('.panel-header,.window-header,.modal-header,.f-tab-header,[data-drag-handle]') || panel.firstElementChild || panel);
     if(handle) handle.classList.add('mbu-v41-drag-zone');
     panel.addEventListener('pointerdown',e=>{
-      /* Solo arrastrar desde una zona de ventana; el estampador permite arrastrar desde su cabecera/imagen. */
       const isStamper=panel.id==='stamper';
       const inHeader=!!e.target.closest('.panel-header,.window-header,.modal-header,.f-tab-header,[data-drag-handle],#stamper-header');
       const inStampImage=isStamper && !!e.target.closest('#stamper-content,#stamp-img');
@@ -3544,7 +3575,6 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
       const move=ev=>{
         ev.preventDefault();
         let left=sl+(ev.clientX-sx), top=st+(ev.clientY-sy);
-        /* Permite recorrer toda la pantalla, pero deja siempre una pequeña zona para recuperarla. */
         const visible=28;
         left=clamp(left,visible-panel.offsetWidth,window.innerWidth-visible);
         top=clamp(top,0,window.innerHeight-visible);
