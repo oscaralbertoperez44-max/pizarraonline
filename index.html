@@ -2808,7 +2808,8 @@ window.isLaserFadingGlobal = false;
     if(!mwDrawing) return;
     ev.preventDefault();
     
-    const events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
+    let events = ev.getCoalescedEvents ? ev.getCoalescedEvents() : [ev];
+    if (!events || !events.length) events = [ev];
     const inkColor = document.getElementById('mw-color').value;
 
     if (['line','arrow','rect','circle'].includes(mwMode)) {
@@ -2860,9 +2861,18 @@ window.isLaserFadingGlobal = false;
         return; 
     }
 
-    mCtx.lineCap = 'round'; mCtx.lineJoin = 'round';
+    mCtx.lineCap = 'round';
+    mCtx.lineJoin = 'round';
     mCtx.imageSmoothingEnabled = true;
     const isChalk = document.body.classList.contains('theme-chalkboard');
+    const fastInk = (mwMode === 'pen' || mwMode === 'ballpoint' || mwMode === 'pencil' || mwMode === 'marker');
+    mCtx.globalCompositeOperation = mwMode === 'eraser' ? 'destination-out' : 'source-over';
+    mCtx.strokeStyle = mwMode === 'eraser' ? 'rgba(0,0,0,1)' : inkColor;
+    mCtx.globalAlpha = mwMode === 'eraser' ? 1 : (mwMode === 'pencil' ? 0.6 : (mwMode === 'ballpoint' ? 0.92 : (mwMode === 'crayon' ? 0.72 : (mwMode === 'chalk' ? (isChalk ? 0.82 : 0.55) : (mwMode === 'highlighter' ? 0.22 : (mwMode === 'marker' ? 0.38 : (isChalk ? 0.9 : 0.85)))))));
+    mCtx.shadowBlur = 0;
+    mCtx.shadowColor = 'transparent';
+    if (!fastInk && mwMode === 'crayon') { mCtx.shadowBlur = 0.35; mCtx.shadowColor = inkColor; }
+    if (!fastInk && mwMode === 'chalk') { mCtx.shadowBlur = isChalk ? 1.2 : 0.5; mCtx.shadowColor = inkColor; }
 
     for (let i=0; i<events.length; i++) {
         let e = events[i];
@@ -2911,7 +2921,7 @@ window.isLaserFadingGlobal = false;
 
         let targetSize = mwMode === 'eraser' ? Math.max(30, mwSize * 6) : baseSize * pFactor;
         
-        let finalSize = lastRenderedSize * 0.6 + targetSize * 0.4;
+        let finalSize = lastRenderedSize * 0.78 + targetSize * 0.22;
         lastRenderedSize = finalSize;
         
         // Trazo directo entre puntos coalescidos: elimina el retraso visual
@@ -2919,61 +2929,10 @@ window.isLaserFadingGlobal = false;
         let midX = p.x;
         let midY = p.y;
 
+        mCtx.lineWidth = finalSize;
         mCtx.beginPath();
         mCtx.moveTo(mwLastPosX, mwLastPosY);
         mCtx.lineTo(p.x, p.y);
-
-        mCtx.lineWidth = finalSize;
-        mCtx.shadowBlur = 0;
-        mCtx.shadowColor = 'transparent';
-
-        if(mwMode === 'eraser'){
-            mCtx.globalCompositeOperation = 'destination-out';
-            mCtx.strokeStyle = 'rgba(0,0,0,1)';
-            mCtx.globalAlpha = 1;
-        } else if(mwMode === 'pencil') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.6; 
-            mCtx.shadowBlur = 1;
-            mCtx.shadowColor = inkColor;
-        } else if (mwMode === 'ballpoint') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.92;
-            mCtx.shadowBlur = 0.2;
-            mCtx.shadowColor = inkColor;
-        } else if (mwMode === 'crayon') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.72;
-            mCtx.shadowBlur = 0.7;
-            mCtx.shadowColor = inkColor;
-            /* Textura de crayón: pequeñas variaciones de presión/alpha */
-        } else if (mwMode === 'chalk') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = isChalk ? 0.82 : 0.55;
-            mCtx.shadowBlur = isChalk ? 3 : 1.5;
-            mCtx.shadowColor = inkColor;
-        } else if (mwMode === 'highlighter') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.22;
-            mCtx.shadowBlur = 0;
-        } else {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            if (mwMode === 'marker') {
-                mCtx.globalAlpha = 0.38;
-            } else if (isChalk) {
-                mCtx.globalAlpha = 0.9;
-                mCtx.shadowBlur = 1; 
-                mCtx.shadowColor = inkColor;
-            } else {
-                mCtx.globalAlpha = 0.85;
-            }
-        }
         mCtx.stroke();
 
         if (typeof broadcastData === 'function') {
