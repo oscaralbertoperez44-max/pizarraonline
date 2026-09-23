@@ -2633,6 +2633,7 @@ window.isLaserFadingGlobal = false;
   
   let smoothedSpeed = 0;
   let lastRenderedSize = mwSize;
+  let strokeColor = '#000000';
   
   let shapeStartX = 0, shapeStartY = 0;
   window.isSnapEnabled = false;
@@ -2671,11 +2672,19 @@ window.isLaserFadingGlobal = false;
 
   function pos(ev){ return { x: ev.clientX, y: ev.clientY }; }
 
+  // No bloquea el primer contacto del lápiz: toBlob serializa el snapshot de forma asíncrona.
   function saveState(){
     try{
-      if(window.mwUndo && window.mwUndo.length >= 5) window.mwUndo.shift(); 
       if(!window.mwUndo) window.mwUndo = [];
-      window.mwUndo.push(board.toDataURL('image/png'));
+      board.toBlob(function(blob){
+        if(!blob) return;
+        const reader = new FileReader();
+        reader.onload = function(){
+          if(window.mwUndo.length >= 5) window.mwUndo.shift();
+          window.mwUndo.push(reader.result);
+        };
+        reader.readAsDataURL(blob);
+      }, 'image/png');
     }catch(e){}
   }
   window.saveState = saveState;
@@ -2724,7 +2733,7 @@ window.isLaserFadingGlobal = false;
         input.placeholder = "Escribe aquí...";
         
         const fontSize = Math.max(16, mwSize * 5); 
-        const inkColor = document.getElementById('mw-color').value;
+        const inkColor = strokeColor;
         
         input.style.fontSize = fontSize + 'px';
         input.style.color = inkColor;
@@ -2780,13 +2789,27 @@ window.isLaserFadingGlobal = false;
     
     smoothedSpeed = 0;
     lastRenderedSize = mwSize;
+    strokeColor = (document.getElementById('mw-color')?.value) || '#000000';
+
+    // Configuración fija una sola vez por trazo. El evento raw queda dedicado al trazo.
+    mCtx.lineCap = 'round';
+    mCtx.lineJoin = 'round';
+    mCtx.imageSmoothingEnabled = true;
+    mCtx.globalCompositeOperation = mwMode === 'eraser' ? 'destination-out' : 'source-over';
+    mCtx.strokeStyle = mwMode === 'eraser' ? 'rgba(0,0,0,1)' : strokeColor;
+    const chalkTheme = document.body.classList.contains('theme-chalkboard');
+    mCtx.globalAlpha = mwMode === 'eraser' ? 1 : (mwMode === 'pencil' ? 0.6 : (mwMode === 'ballpoint' ? 0.92 : (mwMode === 'crayon' ? 0.72 : (mwMode === 'chalk' ? (chalkTheme ? 0.82 : 0.55) : (mwMode === 'highlighter' ? 0.22 : (mwMode === 'marker' ? 0.38 : (chalkTheme ? 0.9 : 0.85)))))));
+    mCtx.shadowBlur = 0;
+    mCtx.shadowColor = 'transparent';
+    if (mwMode === 'crayon') { mCtx.shadowBlur = 0.35; mCtx.shadowColor = strokeColor; }
+    if (mwMode === 'chalk') { mCtx.shadowBlur = chalkTheme ? 1.2 : 0.5; mCtx.shadowColor = strokeColor; }
 
     if (mwMode === 'laser') {
         if (typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
         }
     } else if (!['line','arrow','rect','circle'].includes(mwMode)) {
-        if (typeof broadcastData === 'function') {
+        if (typeof broadcastData === 'function' && connections.length) {
             broadcastData({ type:'start' });
         }
     }
@@ -2861,19 +2884,6 @@ window.isLaserFadingGlobal = false;
         return; 
     }
 
-    mCtx.lineCap = 'round';
-    mCtx.lineJoin = 'round';
-    mCtx.imageSmoothingEnabled = true;
-    const isChalk = document.body.classList.contains('theme-chalkboard');
-    const fastInk = (mwMode === 'pen' || mwMode === 'ballpoint' || mwMode === 'pencil' || mwMode === 'marker');
-    mCtx.globalCompositeOperation = mwMode === 'eraser' ? 'destination-out' : 'source-over';
-    mCtx.strokeStyle = mwMode === 'eraser' ? 'rgba(0,0,0,1)' : inkColor;
-    mCtx.globalAlpha = mwMode === 'eraser' ? 1 : (mwMode === 'pencil' ? 0.6 : (mwMode === 'ballpoint' ? 0.92 : (mwMode === 'crayon' ? 0.72 : (mwMode === 'chalk' ? (isChalk ? 0.82 : 0.55) : (mwMode === 'highlighter' ? 0.22 : (mwMode === 'marker' ? 0.38 : (isChalk ? 0.9 : 0.85)))))));
-    mCtx.shadowBlur = 0;
-    mCtx.shadowColor = 'transparent';
-    if (!fastInk && mwMode === 'crayon') { mCtx.shadowBlur = 0.35; mCtx.shadowColor = inkColor; }
-    if (!fastInk && mwMode === 'chalk') { mCtx.shadowBlur = isChalk ? 1.2 : 0.5; mCtx.shadowColor = inkColor; }
-
     for (let i=0; i<events.length; i++) {
         let e = events[i];
         let p = pos(e);
@@ -2935,7 +2945,7 @@ window.isLaserFadingGlobal = false;
         mCtx.lineTo(p.x, p.y);
         mCtx.stroke();
 
-        if (typeof broadcastData === 'function') {
+        if (typeof broadcastData === 'function' && connections.length) {
             broadcastData({ 
                 type:'stroke', 
                 lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
@@ -2972,11 +2982,15 @@ window.isLaserFadingGlobal = false;
             });
         }
     } else {
-        if (typeof broadcastData === 'function' && mwMode !== 'laser') broadcastData({ type:'stop' });
+        if (typeof broadcastData === 'function' && connections.length && mwMode !== 'laser') broadcastData({ type:'stop' });
     }
+    mCtx.globalAlpha = 1;
+    mCtx.globalCompositeOperation = 'source-over';
+    mCtx.shadowBlur = 0;
+    mCtx.shadowColor = 'transparent';
     try{ 
         if(mwMode === 'laser') laserCanvas.releasePointerCapture(ev.pointerId);
-        else board.setPointerCapture(ev.pointerId); 
+        else board.releasePointerCapture(ev.pointerId); 
     }catch(e){}
   }
 
