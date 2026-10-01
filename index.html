@@ -709,11 +709,16 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 audioEl.srcObject = stream;
                 if (audioContext && audioDestination) {
                     try {
+                        const previous = remoteAudioGates.get(peerId);
+                        if(previous){previous.source.disconnect();previous.gain.disconnect();}
                         const remoteSource = audioContext.createMediaStreamSource(stream);
-                        remoteSource.connect(audioDestination);
+                        const gain = audioContext.createGain();
+                        remoteSource.connect(gain);gain.connect(audioDestination);
+                        remoteAudioGates.set(peerId,{source:remoteSource,gain});
                     } catch(e) {}
                 }
             }
+            applyRemoteMute(peerId);
             audioEl.play().catch(err => {
                 console.warn("Autoplay bloqueado para", peerId, err);
                 unlockAudio();
@@ -2049,6 +2054,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
             if (data.type === 'sync_users') {
                 roomUsers = { ...data.users };
+                syncMicLocks();
                 renderParticipants();
                 return;
             }
@@ -2341,7 +2347,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     roomUsers[conn.peer] = {name:'Conectando…',role:'Alumno',mic:'unknown'};
                     renderParticipants();
                 });
-                conn.on('close',()=>{ closeScreenCall(conn.peer); connections=connections.filter(c=>c!==conn); delete roomUsers[conn.peer]; document.getElementById('audio-'+conn.peer)?.remove(); renderParticipants(); });
+                conn.on('close',()=>{ clearMicRetry(conn.peer); const gate=remoteAudioGates.get(conn.peer);if(gate){gate.source.disconnect();gate.gain.disconnect();remoteAudioGates.delete(conn.peer);} closeScreenCall(conn.peer); connections=connections.filter(c=>c!==conn); delete roomUsers[conn.peer]; document.getElementById('audio-'+conn.peer)?.remove(); renderParticipants(); });
                 conn.on('data', data => receiveUserData(data, conn)); 
             });
 
@@ -3686,18 +3692,56 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 </section>
 <script id="users-management">
 let micLocked=false;
+const remoteAudioGates=new Map(), micControlTimers=new Map();
+let micControlSerial=0;
+function applyRemoteMute(id){
+ const locked=roomUsers[id]?.locked===true;
+ const el=document.getElementById('audio-'+id);if(el)el.muted=locked;
+ const gate=remoteAudioGates.get(id);if(gate)gate.gain.gain.value=locked?0:1;
+}
+function enforceLocalMicLock(){
+ if(!micLocked)return;
+ localStream?.getAudioTracks().forEach(t=>t.enabled=false);
+ // Also silence tracks attached to active audio calls, including replacement tracks.
+ Object.values(peer?.connections||{}).forEach(list=>list.forEach(call=>{
+  if(call.metadata?.kind==='teacher-screen')return;
+  call.peerConnection?.getSenders?.().forEach(sender=>{if(sender.track?.kind==='audio')sender.track.enabled=false;});
+ }));
+}
+function syncMicLocks(){
+ Object.keys(roomUsers).forEach(applyRemoteMute);
+ if(!isAdmin&&peer?.id&&roomUsers[peer.id]){
+  const next=roomUsers[peer.id].locked===true,changed=next!==micLocked;
+  micLocked=next;enforceLocalMicLock();
+  if(changed)publishMic();
+ }
+}
+setInterval(enforceLocalMicLock,300);
+function clearMicRetry(id){const timer=micControlTimers.get(id);if(timer)clearTimeout(timer);micControlTimers.delete(id);}
+function sendMicControl(id,serial,attempt=0){
+ clearMicRetry(id);
+ const u=roomUsers[id],conn=connections.find(c=>c.open&&c.peer===id);
+ if(!u||!conn||u.controlSerial!==serial)return;
+ try{conn.send({type:'user_mic_control',locked:u.locked,serial});}catch(e){}
+ micControlTimers.set(id,setTimeout(()=>{
+  const user=roomUsers[id];if(!user||user.controlSerial!==serial||!user.pending)return;
+  if(attempt<2)sendMicControl(id,serial,attempt+1);
+  else{user.micError=true;renderParticipants();}
+ },1800));
+}
+
 function micState(){const t=localStream?.getAudioTracks().filter(t=>t.readyState==='live')||[];return !t.length?'unavailable':t.some(t=>t.enabled)?'on':'off';}
 function publishMic(){
     const state=micState(), btn=document.getElementById('btn-mic');
     if(btn){btn.textContent=state==='on'?'🎙️':'🔇';btn.style.background=state==='on'?'transparent':'#dc2626';btn.title=micLocked?'Silenciado por el profesor':'Activar / silenciar mi micrófono';}
     if(peer?.id){roomUsers[peer.id]={...roomUsers[peer.id],name:myName,role:userRole,mic:state,locked:micLocked};
-        if(isAdmin)renderParticipants();else{broadcastData({type:'user_mic_state',mic:state});renderUserPanel();}}
+        if(isAdmin)renderParticipants();else{broadcastData({type:'user_mic_state',mic:state,locked:micLocked});renderUserPanel();}}
 }
 function setUserMic(id,locked){
     if(!isAdmin||id===peer?.id)return;
     const conn=connections.find(c=>c.open&&c.peer===id),u=roomUsers[id];if(!conn||!u)return;
-    u.locked=locked;u.pending=true;
-    conn.send({type:'user_mic_control',locked});
+    u.locked=locked;u.pending=true;u.micError=false;u.controlSerial=++micControlSerial;
+    applyRemoteMute(id);sendMicControl(id,u.controlSerial);
     renderParticipants();
 }
 function receiveUserData(data,conn){
@@ -3711,10 +3755,15 @@ function receiveUserData(data,conn){
             roomUsers[conn.peer]={...roomUsers[conn.peer],name:String(data.userName||'Alumno').slice(0,100),role:'Alumno',mic:['on','off','unavailable'].includes(data.mic)?data.mic:'unknown'};
             renderParticipants();sendTeacherScreen(conn.peer);return;
         }
+        if(data.type==='user_mic_ack'){
+            const u=roomUsers[conn.peer];if(!u||data.serial!==u.controlSerial||data.locked!==u.locked)return;
+            if(u.locked&&data.mic==='on')return;
+            u.pending=false;u.micError=false;u.mic=data.mic;clearMicRetry(conn.peer);renderParticipants();return;
+        }
         if(data.type==='user_mic_state'){
             const u=roomUsers[conn.peer];if(!u)return;
-            u.mic=['on','off','unavailable'].includes(data.mic)?data.mic:'unknown';u.pending=false;
-            if(u.locked&&u.mic==='on'){conn.send({type:'user_mic_control',locked:true});u.pending=true;}
+            u.mic=['on','off','unavailable'].includes(data.mic)?data.mic:'unknown';
+            if(u.locked&&u.mic==='on'){u.pending=true;}
             renderParticipants();return;
         }
     }else{
@@ -3722,10 +3771,10 @@ function receiveUserData(data,conn){
         if(data.type==='screen_share_stop'){clearReceivedScreen();return;}
         if(data.type==='user_mic_control'){
             micLocked=data.locked===true;
-            if(micLocked)localStream?.getAudioTracks().forEach(t=>t.enabled=false);
+            enforceLocalMicLock();
             document.getElementById('users-notice').textContent=micLocked?'El profesor silenció tu micrófono.':'El profesor habilitó tu micrófono. Pulsá 🎙️ para activarlo.';
             if(!micLocked){document.getElementById('users-panel').style.display='block';document.getElementById('users-panel').classList.remove('minimized');document.getElementById('users-minimize').textContent='−';document.getElementById('users-minimize').setAttribute('aria-expanded','true');}
-            publishMic();return;
+            publishMic();conn.send({type:'user_mic_ack',serial:data.serial,locked:micLocked,mic:micState()});return;
         }
         if(data.type==='user_mic_state')return;
     }
@@ -3740,7 +3789,7 @@ function renderUserPanel(){
     for(const [id,u] of entries){
         const row=document.createElement('div');row.className='user-control-row';
         const name=document.createElement('strong');name.textContent=(u.name||'Usuario')+(id===peer.id?' (vos)':'');
-        const status=document.createElement('small');status.textContent=(u.role||'Alumno')+' · '+(u.pending?'Esperando confirmación…':u.locked?'🔒 Silenciado por el profesor':({on:'🎙️ Activo',off:'🔇 Apagado',unavailable:'Sin micrófono disponible',unknown:'Estado no informado'}[u.mic]||'Estado no informado'));
+        const status=document.createElement('small');status.textContent=(u.role||'Alumno')+' · '+(u.micError?'Sin confirmación del alumno: debe abrir esta versión. Audio bloqueado en receptores actualizados.':u.pending?'Aplicando cambio de micrófono…':u.locked?'🔒 Silenciado por el profesor':({on:'🎙️ Activo',off:'🔇 Apagado',unavailable:'Sin micrófono disponible',unknown:'Estado no informado'}[u.mic]||'Estado no informado'));
         row.append(name,status);
         if(isAdmin&&id!==peer.id){const b=document.createElement('button');b.textContent=u.locked?'Habilitar micrófono':'Silenciar';b.onclick=()=>setUserMic(id,!u.locked);row.append(b);}
         if(id===peer.id){const b=document.createElement('button');b.textContent=u.mic==='on'?'Apagar mi micrófono':'Activar mi micrófono';b.disabled=micLocked;b.onclick=toggleMic;row.append(b);}
