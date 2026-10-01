@@ -539,6 +539,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
     <div id="main-toolbar">
         
         <!-- Opciones Universales Extras -->
+        <button id="screen-share-view" style="display:none" onclick="showScreenPanel()" title="Ver pantalla compartida">🖥️ Ver pantalla</button>
         <button id="btn-mic" onclick="toggleMic()" title="Micrófono">🎙️</button>
         <button type="button" onclick="toggleMbuDock()" title="Menú Ultimate" style="background:#eab308;">🚀</button>
         <button onclick="toggleCalcPanel()" title="Calculadora Gráfica Desmos y GeoGebra">🖩</button>
@@ -548,6 +549,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
 
         <!-- Opciones exclusivas de Profesor -->
         <div id="admin-tools" style="display:none; align-items:center; gap:8px;">
+            <button id="screen-share-start" onclick="toggleTeacherScreen()" title="Mostrar una pantalla, ventana o pestaña a todos los alumnos">🖥️ Compartir pantalla</button>
             <button onclick="toggleStudentPermissions()" id="btn-permissions" title="Habilitar que los alumnos compartan PDFs/Videos" style="background:#f59e0b; padding: 6px 12px; font-weight: bold; border-radius: 8px; width: 120px;">🔒 Bloqueado</button>
             <button onclick="toggleVideoPanel()" title="Compartir Video de Matemáticas" style="background:#ef4444;">📺</button>
             <button onclick="toggleDolaPanel()" title="Abrir Asistente Dola AI" style="background:#8b5cf6;">🤖</button>
@@ -731,6 +733,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         
         function setupPeerAudio(currentPeer) {
             currentPeer.on('call', (call) => {
+                if(call.metadata?.kind === 'teacher-screen') { receiveTeacherScreen(call); return; }
                 if (localStream) call.answer(localStream);
                 else call.answer();
                 call.on('stream', (stream) => playAudio(stream, call.peer));
@@ -2338,7 +2341,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     roomUsers[conn.peer] = {name:'Conectando…',role:'Alumno',mic:'unknown'};
                     renderParticipants();
                 });
-                conn.on('close',()=>{ connections=connections.filter(c=>c!==conn); delete roomUsers[conn.peer]; document.getElementById('audio-'+conn.peer)?.remove(); renderParticipants(); });
+                conn.on('close',()=>{ closeScreenCall(conn.peer); connections=connections.filter(c=>c!==conn); delete roomUsers[conn.peer]; document.getElementById('audio-'+conn.peer)?.remove(); renderParticipants(); });
                 conn.on('data', data => receiveUserData(data, conn)); 
             });
 
@@ -2375,6 +2378,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 conn.on('open', () => {
                     connections.push(conn);
                     conn.on('data', data => receiveUserData(data, conn));
+                    conn.on('close', clearReceivedScreen);
                     
                     document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
@@ -3701,11 +3705,11 @@ function receiveUserData(data,conn){
     if(data.type==='batch') {if(Array.isArray(data.data)) data.data.slice(0,1000).forEach(d=>receiveUserData(d,conn));return;}
     if(isAdmin){
         // Authority comes from the actual connection, never from a claimed role or peer ID.
-        if(['user_mic_control','sync_users','kick','logout','peer_list'].includes(data.type))return;
+        if(['screen_share_stop','user_mic_control','sync_users','kick','logout','peer_list'].includes(data.type))return;
         data={...data,peerId:conn.peer,role:'Alumno'};
         if(data.type==='hello'){
             roomUsers[conn.peer]={...roomUsers[conn.peer],name:String(data.userName||'Alumno').slice(0,100),role:'Alumno',mic:['on','off','unavailable'].includes(data.mic)?data.mic:'unknown'};
-            renderParticipants();return;
+            renderParticipants();sendTeacherScreen(conn.peer);return;
         }
         if(data.type==='user_mic_state'){
             const u=roomUsers[conn.peer];if(!u)return;
@@ -3715,6 +3719,7 @@ function receiveUserData(data,conn){
         }
     }else{
         if(!connections.includes(conn))return;
+        if(data.type==='screen_share_stop'){clearReceivedScreen();return;}
         if(data.type==='user_mic_control'){
             micLocked=data.locked===true;
             if(micLocked)localStream?.getAudioTracks().forEach(t=>t.enabled=false);
@@ -3745,6 +3750,99 @@ function renderUserPanel(){
     if(isAdmin){const b=document.createElement('button');b.textContent='🔇 Silenciar a todos los alumnos';b.onclick=()=>Object.keys(roomUsers).forEach(id=>{if(id!==peer.id)setUserMic(id,true)});actions.append(b);}
 }
 document.getElementById('users-minimize').onclick=()=>{const p=document.getElementById('users-panel'),mini=p.classList.toggle('minimized'),b=document.getElementById('users-minimize');b.textContent=mini?'+':'−';b.setAttribute('aria-expanded',String(!mini));b.setAttribute('aria-label',mini?'Expandir usuarios':'Minimizar usuarios');};
+</script>
+
+
+<style id="screen-share-css">
+#screen-share-panel{display:none;position:fixed;left:5vw;top:8vh;width:min(850px,90vw);height:min(570px,76vh);min-width:260px;min-height:180px;max-width:96vw;max-height:90vh;z-index:10250;resize:both;overflow:hidden;background:#111827}
+#screen-share-panel .panel-header{flex-shrink:0;gap:8px;flex-wrap:wrap}
+#screen-share-panel button{color:white;background:#334155;border:0;border-radius:6px;padding:6px 9px;cursor:pointer}
+#screen-share-video{width:100%;min-height:0;flex:1;object-fit:contain;background:#000}
+#screen-share-status{padding:6px 10px;font-size:12px;color:#cbd5e1}
+#screen-share-panel:fullscreen{width:100vw!important;height:100vh!important;max-width:none;max-height:none;resize:none}
+</style>
+<div id="screen-share-panel" class="floating-panel">
+<div class="panel-header"><span>🖥️ Pantalla en vivo</span><span>
+<button onclick="screenFullscreen()" title="Pantalla completa">⛶</button>
+<button id="screen-share-stop" onclick="stopTeacherScreen()" style="display:none;background:#b91c1c">Detener</button>
+<button onclick="document.getElementById('screen-share-panel').style.display='none'" title="Minimizar sin detener">−</button></span></div>
+<video id="screen-share-video" autoplay playsinline muted></video>
+<div id="screen-share-status" role="status"></div>
+</div>
+<script id="screen-share-js">
+let teacherScreenStream=null,screenStarting=false,receivedScreenCall=null;
+const teacherScreenCalls=new Map();
+function showScreenPanel(){document.getElementById('screen-share-panel').style.display='flex';}
+function screenStatus(text){document.getElementById('screen-share-status').textContent=text;}
+async function screenFullscreen(){try{await document.getElementById('screen-share-panel').requestFullscreen();}catch(e){screenStatus('No se pudo abrir pantalla completa. Podés ampliar la ventana desde su esquina.');}}
+async function toggleTeacherScreen(){
+ if(!isAdmin||screenStarting)return;
+ if(teacherScreenStream){stopTeacherScreen();return;}
+ if(!peer?.id||peer.destroyed)return alert('Primero iniciá la clase.');
+ if(!navigator.mediaDevices?.getDisplayMedia)return alert('Este navegador no permite compartir pantalla aquí. Abrí la clase en un navegador de escritorio compatible, desde HTTPS o localhost.');
+ screenStarting=true;
+ try{
+  const stream=await navigator.mediaDevices.getDisplayMedia({video:{width:{ideal:1280},height:{ideal:720},frameRate:{ideal:12,max:15}},audio:false});
+  if(!stream.getVideoTracks().length){stream.getTracks().forEach(t=>t.stop());throw Error('No se recibió imagen.');}
+  teacherScreenStream=stream;const track=stream.getVideoTracks()[0];track.contentHint='detail';
+  track.addEventListener('ended',()=>{if(teacherScreenStream===stream)stopTeacherScreen();},{once:true});
+  document.getElementById('screen-share-video').srcObject=stream;
+  document.getElementById('screen-share-video').play().catch(()=>{});
+  document.getElementById('screen-share-start').textContent='⏹ Detener pantalla';
+  document.getElementById('screen-share-start').style.background='#b91c1c';
+  document.getElementById('screen-share-stop').style.display='inline-block';
+  document.getElementById('screen-share-view').style.display='inline-block';
+  showScreenPanel();screenStatus('Compartiendo en vivo. Tu voz sigue usando el micrófono de la clase.');
+  connections.filter(c=>c.open).forEach(c=>sendTeacherScreen(c.peer));
+ }catch(e){if(e.name!=='NotAllowedError'&&e.name!=='AbortError')alert('No se pudo compartir la pantalla: '+(e.message||'revisá los permisos.'));}
+ finally{screenStarting=false;}
+}
+function sendTeacherScreen(id){
+ if(!isAdmin||!teacherScreenStream||teacherScreenCalls.has(id)||!connections.some(c=>c.open&&c.peer===id))return;
+ try{
+  const call=peer.call(id,teacherScreenStream,{metadata:{kind:'teacher-screen'}});
+  if(!call)throw Error('No se pudo iniciar el envío.');teacherScreenCalls.set(id,call);
+  const clear=()=>{if(teacherScreenCalls.get(id)===call)teacherScreenCalls.delete(id);};
+  call.on('close',clear);call.on('error',()=>{clear();screenStatus('Falló el envío a un alumno. Puede volver a ingresar o podés detener y compartir otra vez.');});
+ }catch(e){screenStatus('No se pudo enviar la pantalla a un alumno. Detené y volvé a compartir para reintentar.');}
+}
+function closeScreenCall(id){const call=teacherScreenCalls.get(id);teacherScreenCalls.delete(id);if(call)call.close();}
+function stopTeacherScreen(){
+ if(!isAdmin)return;
+ const stream=teacherScreenStream;teacherScreenStream=null;
+ stream?.getTracks().forEach(t=>t.stop());
+ [...teacherScreenCalls.keys()].forEach(closeScreenCall);
+ broadcastData({type:'screen_share_stop'});
+ document.getElementById('screen-share-video').srcObject=null;
+ document.getElementById('screen-share-panel').style.display='none';
+ document.getElementById('screen-share-view').style.display='none';
+ document.getElementById('screen-share-stop').style.display='none';
+ document.getElementById('screen-share-start').textContent='🖥️ Compartir pantalla';
+ document.getElementById('screen-share-start').style.background='';
+}
+function clearReceivedScreen(){
+ const call=receivedScreenCall;receivedScreenCall=null;if(call)call.close();
+ document.getElementById('screen-share-video').srcObject=null;
+ document.getElementById('screen-share-panel').style.display='none';
+ document.getElementById('screen-share-view').style.display='none';
+}
+function receiveTeacherScreen(call){
+ // Only accept the teacher on the established classroom data connection.
+ if(isAdmin||!connections.some(c=>c.open&&c.peer===call.peer)){call.close();return;}
+ clearReceivedScreen();receivedScreenCall=call;
+ call.on('stream',stream=>{
+  if(receivedScreenCall!==call)return;
+  const video=document.getElementById('screen-share-video');video.srcObject=stream;
+  showScreenPanel();document.getElementById('screen-share-view').style.display='inline-block';
+  screenStatus('Pantalla del profesor en vivo. Podés ampliarla o minimizarla.');
+  video.play().catch(()=>{screenStatus('Tocá la imagen para iniciar la reproducción.');});
+  stream.getVideoTracks().forEach(t=>t.addEventListener('ended',()=>{if(receivedScreenCall===call)clearReceivedScreen();},{once:true}));
+ });
+ const finish=()=>{if(receivedScreenCall===call)clearReceivedScreen();};call.on('close',finish);call.on('error',finish);
+ call.answer(); // Screen-only call: never replaces or returns the student's microphone.
+}
+document.getElementById('screen-share-video').onclick=()=>document.getElementById('screen-share-video').play().catch(()=>{});
+window.addEventListener('pagehide',()=>teacherScreenStream?.getTracks().forEach(t=>t.stop()));
 </script>
 
 </body>
