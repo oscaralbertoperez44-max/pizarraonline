@@ -635,7 +635,10 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         let audioContext, audioDestination;
         Object.defineProperties(window, {
             peer: { configurable:true, get:()=>peer },
-            connections: { configurable:true, get:()=>connections },
+            connections: { configurable:true, get:()=>connections, set:v=>{connections=v;} },
+            roomUsers: { configurable:true, get:()=>roomUsers },
+            myName: { configurable:true, get:()=>myName },
+            userRole: { configurable:true, get:()=>userRole },
             localStream: { configurable:true, get:()=>localStream },
             mediaRecorder: { configurable:true, get:()=>mediaRecorder, set:v=>{ mediaRecorder=v; } }
         });
@@ -717,19 +720,12 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         window.playAudio = playAudio;
 
         function toggleMic() {
-            if (localStream) {
-                const audioTrack = localStream.getAudioTracks()[0];
-                if (audioTrack) {
-                    audioTrack.enabled = !audioTrack.enabled;
-                    const btn = document.getElementById('btn-mic');
-                    if (btn) {
-                        btn.innerHTML = audioTrack.enabled ? '🎙️' : '🔇';
-                        btn.style.background = audioTrack.enabled ? 'transparent' : '#dc2626';
-                    }
-                }
-            } else {
-                alert("El micrófono no está activo.");
-            }
+            if (micLocked) return alert('El profesor ha silenciado tu micrófono.');
+            const tracks = localStream ? localStream.getAudioTracks().filter(t=>t.readyState==='live') : [];
+            if (!tracks.length) return alert('No hay micrófono disponible. Revisá el permiso del navegador y volvé a ingresar.');
+            const enabled = !tracks.some(t=>t.enabled);
+            tracks.forEach(t=>t.enabled=enabled);
+            publishMic();
         }
         window.toggleMic = toggleMic;
         
@@ -800,34 +796,13 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
 
         // ================= SISTEMA DE PARTICIPANTES =================
         function renderParticipants() {
-            const chip = document.getElementById('participants-chip');
-            if(!chip) return;
-            
             if (isAdmin && peer) {
-                const activeIds = connections.filter(c => c.open).map(c => c.peer);
-                Object.keys(roomUsers).forEach(id => {
-                    if (id !== peer.id && !activeIds.includes(id)) {
-                        delete roomUsers[id];
-                    }
-                });
-                roomUsers[peer.id] = { name: myName, role: 'Profesor' };
-                broadcastData({ type: 'sync_users', users: roomUsers });
+                const ids = new Set(connections.filter(c=>c.open).map(c=>c.peer));
+                Object.keys(roomUsers).forEach(id=>{if(id!==peer.id&&!ids.has(id)) delete roomUsers[id];});
+                roomUsers[peer.id] = { ...roomUsers[peer.id], name:myName, role:'Profesor', mic:micState() };
+                broadcastData({type:'sync_users', users:roomUsers});
             }
-
-            chip.style.display = 'flex';
-            let html = '<span style="font-size:1.2rem; margin-right:5px; cursor:default;" title="Usuarios Conectados">👥</span>';
-            
-            const usersArr = Object.keys(roomUsers).map(id => ({ id, ...roomUsers[id] })).sort((a,b) => a.role === 'Profesor' ? -1 : 1);
-            
-            usersArr.forEach(u => {
-                const isProf = u.role === 'Profesor';
-                const initial = u.name ? u.name.charAt(0).toUpperCase() : '?';
-                const clickAction = (isAdmin && !isProf) ? `onclick="kickUser('${u.id}', '${u.name}')" style="cursor:pointer;"` : '';
-                const titleText = `${u.name} (${u.role})${isAdmin && !isProf ? ' - Clic para expulsar' : ''}`;
-                html += `<div class="user-avatar ${isProf ? 'avatar-prof' : 'avatar-alu'}" title="${titleText}" ${clickAction}>${initial}</div>`;
-            });
-            
-            chip.innerHTML = html;
+            renderUserPanel();
         }
 
         window.kickUser = function(peerId, userName) {
@@ -2067,10 +2042,10 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 return;
             }
             if (data.userName && data.peerId && data.type !== 'logout') {
-                roomUsers[data.peerId] = { name: data.userName, role: data.role };
+                roomUsers[data.peerId] = { ...roomUsers[data.peerId], name: data.userName, role: data.role };
             }
             if (data.type === 'sync_users') {
-                roomUsers = { ...roomUsers, ...data.users };
+                roomUsers = { ...data.users };
                 renderParticipants();
                 return;
             }
@@ -2359,9 +2334,12 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                         conn.send({ type: 'pdf_share', data: currentPdfData, page: pageNum });
                     }
                     
-                    connections.push(conn); 
+                    connections.push(conn);
+                    roomUsers[conn.peer] = {name:'Conectando…',role:'Alumno',mic:'unknown'};
+                    renderParticipants();
                 });
-                conn.on('data', drawRemote); 
+                conn.on('close',()=>{ connections=connections.filter(c=>c!==conn); delete roomUsers[conn.peer]; document.getElementById('audio-'+conn.peer)?.remove(); renderParticipants(); });
+                conn.on('data', data => receiveUserData(data, conn)); 
             });
 
             peer.on('error', (err) => {
@@ -2396,7 +2374,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 
                 conn.on('open', () => {
                     connections.push(conn);
-                    conn.on('data', drawRemote);
+                    conn.on('data', data => receiveUserData(data, conn));
                     
                     document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
@@ -2405,7 +2383,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     document.body.classList.add('student-mode');
                     
                     roomUsers[peer.id] = { name: myName, role: 'Alumno' };
-                    conn.send({ type: 'hello', userName: myName, role: userRole });
+                    conn.send({ type: 'hello', userName: myName, role: userRole, mic:micState() });
+                    publishMic();
                     
                     setTimeout(() => {
                         if(localStream) { 
@@ -3682,5 +3661,91 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   window.MathBoardUltimateV41={version:'4.1',windows:()=>document.querySelectorAll('.floating-panel').length,bringFront};
 })();
 </script>
+
+<style id="users-panel-style">
+#users-panel{display:none;position:fixed;right:16px;top:72px;width:min(350px,calc(100vw - 32px));max-height:70vh;z-index:10200;background:#0f172a;color:#fff;border:1px solid #475569;border-radius:12px;box-shadow:0 12px 35px #0006;overflow:hidden;font:14px 'Segoe UI',sans-serif}
+#users-panel header{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:#1e293b}
+#users-panel button{cursor:pointer;background:#334155;color:white;border:1px solid #64748b;border-radius:7px;padding:7px;font:inherit}
+#users-panel button:disabled{opacity:.5;cursor:default}
+#users-body{overflow:auto;max-height:calc(70vh - 50px);padding:12px;touch-action:pan-y}
+.user-control-row{padding:10px 0;border-bottom:1px solid #334155;overflow-wrap:anywhere}
+.user-control-row small{display:block;color:#cbd5e1;margin:5px 0}
+.user-control-row button{margin:3px 5px 0 0}
+#users-panel.minimized #users-body{display:none}
+#users-panel.minimized{width:210px}
+#users-capacity{color:#cbd5e1;font-size:12px;line-height:1.5;margin-top:12px}
+#participants-chip button{white-space:nowrap;background:transparent;color:inherit;border:0;cursor:pointer;font:inherit}
+</style>
+<section id="users-panel" aria-label="Usuarios de la clase">
+<header><strong id="users-title">👥 Usuarios</strong><button id="users-minimize" type="button" aria-label="Minimizar usuarios" aria-expanded="true">−</button></header>
+<div id="users-body"><div id="users-actions"></div><div id="users-list"></div><div id="users-capacity">Sin un máximo configurado. La capacidad real depende de la conexión y del equipo de cada participante; no se ha medido un máximo estable. Todos deben abrir esta versión para utilizar los controles de micrófono.</div><div id="users-notice" role="status" aria-live="polite"></div></div>
+</section>
+<script id="users-management">
+let micLocked=false;
+function micState(){const t=localStream?.getAudioTracks().filter(t=>t.readyState==='live')||[];return !t.length?'unavailable':t.some(t=>t.enabled)?'on':'off';}
+function publishMic(){
+    const state=micState(), btn=document.getElementById('btn-mic');
+    if(btn){btn.textContent=state==='on'?'🎙️':'🔇';btn.style.background=state==='on'?'transparent':'#dc2626';btn.title=micLocked?'Silenciado por el profesor':'Activar / silenciar mi micrófono';}
+    if(peer?.id){roomUsers[peer.id]={...roomUsers[peer.id],name:myName,role:userRole,mic:state,locked:micLocked};
+        if(isAdmin)renderParticipants();else{broadcastData({type:'user_mic_state',mic:state});renderUserPanel();}}
+}
+function setUserMic(id,locked){
+    if(!isAdmin||id===peer?.id)return;
+    const conn=connections.find(c=>c.open&&c.peer===id),u=roomUsers[id];if(!conn||!u)return;
+    u.locked=locked;u.pending=true;
+    conn.send({type:'user_mic_control',locked});
+    renderParticipants();
+}
+function receiveUserData(data,conn){
+    if(!data||typeof data!=='object'||typeof data.type!=='string')return;
+    if(data.type==='batch') {if(Array.isArray(data.data)) data.data.slice(0,1000).forEach(d=>receiveUserData(d,conn));return;}
+    if(isAdmin){
+        // Authority comes from the actual connection, never from a claimed role or peer ID.
+        if(['user_mic_control','sync_users','kick','logout','peer_list'].includes(data.type))return;
+        data={...data,peerId:conn.peer,role:'Alumno'};
+        if(data.type==='hello'){
+            roomUsers[conn.peer]={...roomUsers[conn.peer],name:String(data.userName||'Alumno').slice(0,100),role:'Alumno',mic:['on','off','unavailable'].includes(data.mic)?data.mic:'unknown'};
+            renderParticipants();return;
+        }
+        if(data.type==='user_mic_state'){
+            const u=roomUsers[conn.peer];if(!u)return;
+            u.mic=['on','off','unavailable'].includes(data.mic)?data.mic:'unknown';u.pending=false;
+            if(u.locked&&u.mic==='on'){conn.send({type:'user_mic_control',locked:true});u.pending=true;}
+            renderParticipants();return;
+        }
+    }else{
+        if(!connections.includes(conn))return;
+        if(data.type==='user_mic_control'){
+            micLocked=data.locked===true;
+            if(micLocked)localStream?.getAudioTracks().forEach(t=>t.enabled=false);
+            document.getElementById('users-notice').textContent=micLocked?'El profesor silenció tu micrófono.':'El profesor habilitó tu micrófono. Pulsá 🎙️ para activarlo.';
+            if(!micLocked){document.getElementById('users-panel').style.display='block';document.getElementById('users-panel').classList.remove('minimized');document.getElementById('users-minimize').textContent='−';document.getElementById('users-minimize').setAttribute('aria-expanded','true');}
+            publishMic();return;
+        }
+        if(data.type==='user_mic_state')return;
+    }
+    drawRemote(data);
+}
+function renderUserPanel(){
+    const chip=document.getElementById('participants-chip'),list=document.getElementById('users-list');if(!chip||!list||!peer?.id)return;
+    const entries=Object.entries(roomUsers).sort((a,b)=>(b[1].role==='Profesor')-(a[1].role==='Profesor'));
+    chip.style.display='flex';chip.replaceChildren();
+    const open=document.createElement('button');open.textContent='👥 Usuarios ('+entries.length+')';open.onclick=()=>{const p=document.getElementById('users-panel');p.style.display='block';p.classList.remove('minimized');document.getElementById('users-minimize').textContent='−';document.getElementById('users-minimize').setAttribute('aria-expanded','true');};chip.append(open);
+    document.getElementById('users-title').textContent='👥 Usuarios ('+entries.length+')';list.replaceChildren();
+    for(const [id,u] of entries){
+        const row=document.createElement('div');row.className='user-control-row';
+        const name=document.createElement('strong');name.textContent=(u.name||'Usuario')+(id===peer.id?' (vos)':'');
+        const status=document.createElement('small');status.textContent=(u.role||'Alumno')+' · '+(u.pending?'Esperando confirmación…':u.locked?'🔒 Silenciado por el profesor':({on:'🎙️ Activo',off:'🔇 Apagado',unavailable:'Sin micrófono disponible',unknown:'Estado no informado'}[u.mic]||'Estado no informado'));
+        row.append(name,status);
+        if(isAdmin&&id!==peer.id){const b=document.createElement('button');b.textContent=u.locked?'Habilitar micrófono':'Silenciar';b.onclick=()=>setUserMic(id,!u.locked);row.append(b);}
+        if(id===peer.id){const b=document.createElement('button');b.textContent=u.mic==='on'?'Apagar mi micrófono':'Activar mi micrófono';b.disabled=micLocked;b.onclick=toggleMic;row.append(b);}
+        list.append(row);
+    }
+    const actions=document.getElementById('users-actions');actions.replaceChildren();
+    if(isAdmin){const b=document.createElement('button');b.textContent='🔇 Silenciar a todos los alumnos';b.onclick=()=>Object.keys(roomUsers).forEach(id=>{if(id!==peer.id)setUserMic(id,true)});actions.append(b);}
+}
+document.getElementById('users-minimize').onclick=()=>{const p=document.getElementById('users-panel'),mini=p.classList.toggle('minimized'),b=document.getElementById('users-minimize');b.textContent=mini?'+':'−';b.setAttribute('aria-expanded',String(!mini));b.setAttribute('aria-label',mini?'Expandir usuarios':'Minimizar usuarios');};
+</script>
+
 </body>
 </html>
