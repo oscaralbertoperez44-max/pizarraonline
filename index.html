@@ -308,8 +308,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             </div>
             <div id="form-teacher" class="auth-form">
                 <input type="text" id="teacherName" class="auth-input" placeholder="TU NOMBRE (Ej: Prof. Oscar)">
-                <input type="password" id="adminPin" class="auth-input" placeholder="INGRESA TU PIN">
-                <button class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
+                <input type="password" id="adminPin" class="auth-input" placeholder="CONTRASEÑA DE PROFESOR" autocomplete="current-password" maxlength="128">
+                <button id="teacher-login-btn" class="role-btn btn-teacher" onclick="verifyAdmin()">Acceder</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
             <div class="creator-signature">Creado por Oscar Alberto Perez</div>
@@ -865,8 +865,47 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         }
         window.toggleStudentPermissions = toggleStudentPermissions;
 
-        function verifyAdmin() {
-            if (document.getElementById('adminPin').value === "1977$") {
+        async function verifyAdmin() {
+            const pinInput = document.getElementById('adminPin');
+            const loginBtn = document.getElementById('teacher-login-btn');
+            const pin = pinInput.value;
+
+            if (!pin) {
+                alert("Ingresa la contraseña de profesor.");
+                pinInput.focus();
+                return;
+            }
+
+            const originalText = loginBtn ? loginBtn.innerText : 'Acceder';
+            if (loginBtn) {
+                loginBtn.disabled = true;
+                loginBtn.innerText = 'Verificando...';
+            }
+
+            try {
+                const response = await fetch('/api/teacher-login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'same-origin',
+                    cache: 'no-store',
+                    body: JSON.stringify({ pin })
+                });
+
+                const result = await response.json().catch(() => ({ ok: false }));
+
+                if (!response.ok || !result.ok) {
+                    if (response.status === 429) {
+                        alert("Demasiados intentos. Espera unos minutos y vuelve a intentar.");
+                    } else {
+                        alert("Contraseña incorrecta.");
+                    }
+                    pinInput.value = '';
+                    pinInput.focus();
+                    return;
+                }
+
+                // El secreto real nunca está en este HTML: Vercel ya lo validó en el servidor.
+                pinInput.value = '';
                 isAdmin = true;
                 userRole = 'Profesor';
                 myName = document.getElementById('teacherName').value.trim() || 'Profesor';
@@ -875,7 +914,15 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
                 createRoom();
                 updateGalleryGrid();
-            } else { alert("PIN Incorrecto."); }
+            } catch (error) {
+                console.error('Error de autenticación:', error);
+                alert("No se pudo verificar el acceso de profesor. Abre MathBoard desde tu URL HTTPS de Vercel y vuelve a intentar.");
+            } finally {
+                if (loginBtn) {
+                    loginBtn.disabled = false;
+                    loginBtn.innerText = originalText;
+                }
+            }
         }
 
         function logoutSession() {
@@ -942,6 +989,9 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         broadcastLoop();
 
         function broadcastData(data) { 
+            // Sin participantes no se crean colas ni objetos de red: la escritura
+            // local queda libre de trabajo P2P innecesario.
+            if (!connections.some(conn => conn && conn.open)) return;
             data.peerId = peer ? peer.id : 'local';
             data.role = userRole;
             data.userName = myName;
@@ -2406,10 +2456,13 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         }
 
         function drawRemote(data) {
+            // Se resuelve desde window para que las capas opcionales de rendimiento
+            // puedan procesar cada lote sin alterar el protocolo de la sala.
+            const process = window.processRemoteCommand || processRemoteCommand;
             if (data.type === 'batch') {
-                for(let i=0; i<data.data.length; i++) processRemoteCommand(data.data[i]);
+                for(let i=0; i<data.data.length; i++) process(data.data[i]);
             } else {
-                processRemoteCommand(data);
+                process(data);
             }
             
             if (isAdmin) {
@@ -2783,11 +2836,17 @@ window.isLaserFadingGlobal = false;
   let writingPointerId = null;
   let mwEraserSize = 40;
   let mwDrawing = false;
+  let mwHasPeers = false;
+  // Las muestras se consumen una vez por frame. Así el navegador no compite
+  // entre dibujar y procesar cientos de pointermove por segundo.
+  let queuedFreehandEvents = [];
+  let queuedFreehandColor = '';
+  let queuedFreehandShift = false;
+  let queuedFreehandFrame = 0;
   
   let mwLastPosX = 0, mwLastPosY = 0;
   let mwLastMidX = 0, mwLastMidY = 0;
   
-  let smoothedSpeed = 0;
   let lastRenderedSize = mwSize;
   
   let shapeStartX = 0, shapeStartY = 0;
@@ -2838,6 +2897,10 @@ window.isLaserFadingGlobal = false;
       x:(ev.clientX-inputRect.left)*inputScaleX,
       y:(ev.clientY-inputRect.top)*inputScaleY
     };
+  }
+
+  function hasActivePeers(){
+    return Array.isArray(window.connections) && window.connections.some(conn => conn && conn.open);
   }
 
   // Historial ultrarrápido: durante la escritura NO comprime el canvas a PNG.
@@ -2988,7 +3051,9 @@ window.isLaserFadingGlobal = false;
 
     if (mwMode !== 'laser') saveState();
 
+    resetQueuedFreehandSamples();
     mwDrawing = true;
+    mwHasPeers = hasActivePeers();
     writingPointerId=ev.pointerId;
     refreshInputTransform();
     const p = pos(ev);
@@ -2997,15 +3062,14 @@ window.isLaserFadingGlobal = false;
     shapeStartX = p.x; shapeStartY = p.y; 
     window.strokeSnapAxis = null; 
     
-    smoothedSpeed = 0;
     lastRenderedSize = mwMode==='eraser'?mwEraserSize:mwMode==='pencil'?Math.max(1,mwSize*.5):mwMode==='marker'?Math.max(12,mwSize*2.2):mwSize;
 
     if (mwMode === 'laser') {
-        if (typeof broadcastData === 'function') {
+        if (mwHasPeers && typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.height, color: '#ef4444' });
         }
     } else if (!['line','arrow','rect','circle'].includes(mwMode)) {
-        if (typeof broadcastData === 'function') {
+        if (mwHasPeers && typeof broadcastData === 'function') {
             broadcastData({ type:'start' });
         }
     }
@@ -3015,11 +3079,90 @@ window.isLaserFadingGlobal = false;
     }catch(e){}
   }
 
-  function move(ev){
+  // Configura el pincel una sola vez por lote de muestras. Antes se repetían
+  // varias asignaciones de canvas por cada punto, lo que se nota con lápiz rápido.
+  function configureStrokeStyle(tool, inkColor, isChalk){
+    mCtx.globalCompositeOperation='source-over';
+    mCtx.shadowBlur=0;
+    mCtx.shadowColor='transparent';
+    mCtx.globalAlpha=1;
+    mCtx.strokeStyle=inkColor;
+
+    if(tool==='eraser'){
+      mCtx.globalCompositeOperation='destination-out';
+      mCtx.strokeStyle='rgba(0,0,0,1)';
+      return;
+    }
+    if(tool==='pencil'){
+      mCtx.globalAlpha=.6;
+      mCtx.shadowBlur=1;
+      mCtx.shadowColor=inkColor;
+      return;
+    }
+    if(tool==='ink') return;
+    if(tool==='marker'){
+      mCtx.globalAlpha=.38;
+      return;
+    }
+    if(tool==='crayon'){
+      mCtx.globalAlpha=.95;
+      mCtx.shadowColor=inkColor;
+      return;
+    }
+    if(tool==='chalk'){
+      mCtx.globalAlpha=.9;
+    } else if(isChalk){
+      mCtx.globalAlpha=.9;
+    } else {
+      mCtx.globalAlpha=.85;
+    }
+    if(tool==='chalk'||(isChalk&&tool==='pen')){
+      mCtx.strokeStyle=typeof schoolChalkPattern==='function' ? schoolChalkPattern(mCtx,inkColor) : inkColor;
+      mCtx.shadowBlur=0;
+      mCtx.globalAlpha=.9;
+    }
+  }
+
+  function resetQueuedFreehandSamples(){
+    if (queuedFreehandFrame) cancelAnimationFrame(queuedFreehandFrame);
+    queuedFreehandFrame = 0;
+    queuedFreehandEvents.length = 0;
+    queuedFreehandColor = '';
+    queuedFreehandShift = false;
+  }
+
+  function flushQueuedFreehandSamples(){
+    if (queuedFreehandFrame) cancelAnimationFrame(queuedFreehandFrame);
+    queuedFreehandFrame = 0;
+    if (!mwDrawing || !queuedFreehandEvents.length) {
+      queuedFreehandEvents.length = 0;
+      return;
+    }
+    const samples = queuedFreehandEvents;
+    const color = queuedFreehandColor;
+    const shiftKey = queuedFreehandShift;
+    queuedFreehandEvents = [];
+    queuedFreehandColor = '';
+    queuedFreehandShift = false;
+    renderFreehand(samples, color, shiftKey);
+  }
+
+  function queueFreehandSamples(samples, color, shiftKey){
+    for (let i = 0; i < samples.length; i++) queuedFreehandEvents.push(samples[i]);
+    queuedFreehandColor = color;
+    queuedFreehandShift = shiftKey;
+    if (queuedFreehandFrame) return;
+    queuedFreehandFrame = requestAnimationFrame(() => {
+      queuedFreehandFrame = 0;
+      flushQueuedFreehandSamples();
+    });
+  }
+
+  function move(ev, forceFreehandRender=false){
     if(mwDrawing&&ev.pointerId!==writingPointerId)return;
     if (!mwDrawing && mwMode === 'laser') {
         const p = pos(ev);
-        if (typeof broadcastData === 'function') {
+        if (hasActivePeers() && typeof broadcastData === 'function') {
             broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.height, color: '#ef4444' });
         }
         return;
@@ -3071,7 +3214,7 @@ window.isLaserFadingGlobal = false;
                 requestAnimationFrame(window.drawLaserFadeGlobal);
             }
 
-            if (typeof broadcastData === 'function') {
+            if (mwHasPeers && typeof broadcastData === 'function') {
                 broadcastData({ type: 'laser', lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.height, x: p.x / canvas.width, y: p.y / canvas.height, color: '#ef4444' });
             }
             mwLastPosX = p.x; mwLastPosY = p.y;
@@ -3080,14 +3223,33 @@ window.isLaserFadingGlobal = false;
         return; 
     }
 
+    if (!forceFreehandRender) {
+        queueFreehandSamples(events, inkColor, ev.shiftKey);
+        return;
+    }
+    renderFreehand(events, inkColor, ev.shiftKey);
+  }
+
+  function renderFreehand(events, inkColor, shiftKey){
     mCtx.lineCap = 'round'; mCtx.lineJoin = 'round';
     const isChalk = (document.body.classList.contains('theme-chalkboard') || document.body.classList.contains('theme-school'));
+    const syncStroke = mwHasPeers && typeof broadcastData === 'function';
+    configureStrokeStyle(mwMode, inkColor, isChalk);
+
+    // Ratón y táctil no cambian el grosor entre muestras. Se pueden trazar todos
+    // los segmentos coalescidos con UNA sola operación de canvas por cuadro.
+    // El lápiz con presión conserva el renderizado individual para no perder la
+    // variación natural de grosor.
+    const batchLocalStroke = !events.some(event => event.pointerType === 'pen');
+    let batchHasSegment = false;
+    let batchRemoteStroke = null;
+    if (batchLocalStroke) mCtx.beginPath();
 
     for (let i=0; i<events.length; i++) {
         let e = events[i];
         let p = pos(e);
         
-        if (window.isSnapEnabled || ev.shiftKey) {
+        if (window.isSnapEnabled || shiftKey) {
             if (!window.strokeSnapAxis) {
                 let dxCheck = Math.abs(p.x - shapeStartX);
                 let dyCheck = Math.abs(p.y - shapeStartY);
@@ -3108,10 +3270,9 @@ window.isLaserFadingGlobal = false;
         let dx = p.x - mwLastPosX;
         let dy = p.y - mwLastPosY;
         let dist = Math.hypot(dx, dy);
-        if (dist < 0.02) continue;
-        
-        smoothedSpeed = smoothedSpeed * 0.8 + dist * 0.2;
-        let speedFactor = Math.max(0.2, 1 - (smoothedSpeed / 50)); 
+        // Elimina micro-muestras invisibles que sólo consumen CPU. El umbral es
+        // menor que medio píxel, por lo que no cambia la forma visible del trazo.
+        if (dist < (batchLocalStroke ? 0.35 : 0.12)) continue;
         
         let rawPressure = e.pointerType === 'pen' ? e.pressure : 1;
         if (rawPressure === 0) rawPressure = .5; 
@@ -3131,66 +3292,49 @@ window.isLaserFadingGlobal = false;
         let midX = (mwLastPosX + p.x) * 0.5;
         let midY = (mwLastPosY + p.y) * 0.5;
 
-        mCtx.beginPath();
-        mCtx.moveTo(mwLastMidX, mwLastMidY);
-        mCtx.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
-
-        mCtx.lineWidth = finalSize;
-        mCtx.shadowBlur = 0;
-        mCtx.shadowColor = 'transparent';
-
-        if(mwMode === 'eraser'){
-            mCtx.globalCompositeOperation = 'destination-out';
-            mCtx.strokeStyle = 'rgba(0,0,0,1)';
-            mCtx.globalAlpha = 1;
-        } else if(mwMode === 'pencil') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.6; 
-            mCtx.shadowBlur = 1;
-            mCtx.shadowColor = inkColor;
-        } else if(mwMode === 'ink') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 1.0;
-            mCtx.shadowBlur = 0;
-        } else if(mwMode === 'crayon') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.95;
-            mCtx.shadowBlur = Math.max(1, finalSize/4);
-            mCtx.shadowColor = inkColor;
-        } else if(mwMode === 'chalk') {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            mCtx.globalAlpha = 0.85;
-            mCtx.shadowBlur = Math.max(3, finalSize/2);
-            mCtx.shadowColor = inkColor;
+        if (batchLocalStroke) {
+            mCtx.moveTo(mwLastMidX, mwLastMidY);
+            mCtx.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
+            batchHasSegment = true;
         } else {
-            mCtx.globalCompositeOperation = 'source-over';
-            mCtx.strokeStyle = inkColor;
-            if (mwMode === 'marker') {
-                mCtx.globalAlpha = 0.38;
-            } else if (isChalk) {
-                mCtx.globalAlpha = 0.9;
-                mCtx.shadowBlur = 1; 
-                mCtx.shadowColor = inkColor;
-            } else {
-                mCtx.globalAlpha = 0.85;
-                mCtx.shadowBlur = 0;
-            }
+            mCtx.beginPath();
+            mCtx.moveTo(mwLastMidX, mwLastMidY);
+            mCtx.quadraticCurveTo(mwLastPosX, mwLastPosY, midX, midY);
+            mCtx.lineWidth = finalSize;
+            if(mwMode==='crayon') mCtx.shadowBlur=Math.max(1, finalSize/4);
+            mCtx.stroke();
         }
-        if(mwMode==='chalk'||(isChalk&&mwMode==='pen')){mCtx.strokeStyle=schoolChalkPattern(mCtx,inkColor);mCtx.shadowBlur=0;mCtx.globalAlpha=.9;}
-        mCtx.stroke();
 
-        if (typeof broadcastData === 'function') {
-            broadcastData({ 
-                type:'stroke', 
-                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.height, 
-                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.height, 
-                midX: midX / canvas.width, midY: midY / canvas.height, 
-                color: inkColor, size: finalSize / canvas.width, tool: mwMode 
-            });
+        if (syncStroke) {
+            // La red sólo necesita el primer ancla y el último punto del lote.
+            // Así se reduce aún más la creación de mensajes sin afectar el trazo
+            // local ni el suavizado de los demás participantes.
+            if (batchLocalStroke) {
+                if (!batchRemoteStroke) {
+                    batchRemoteStroke = {
+                        type:'stroke',
+                        lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.height,
+                        lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.height,
+                        midX: midX / canvas.width, midY: midY / canvas.height,
+                        color: inkColor, size: finalSize / canvas.width, tool: mwMode
+                    };
+                }
+                else {
+                    batchRemoteStroke.lastPosX = mwLastPosX / canvas.width;
+                    batchRemoteStroke.lastPosY = mwLastPosY / canvas.height;
+                    batchRemoteStroke.midX = midX / canvas.width;
+                    batchRemoteStroke.midY = midY / canvas.height;
+                    batchRemoteStroke.size = finalSize / canvas.width;
+                }
+            } else {
+                broadcastData({
+                    type:'stroke',
+                    lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.height,
+                    lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.height,
+                    midX: midX / canvas.width, midY: midY / canvas.height,
+                    color: inkColor, size: finalSize / canvas.width, tool: mwMode
+                });
+            }
         }
 
         mwLastPosX = p.x;
@@ -3198,21 +3342,32 @@ window.isLaserFadingGlobal = false;
         mwLastMidX = midX;
         mwLastMidY = midY;
     }
+
+    if (batchLocalStroke && batchHasSegment) {
+        mCtx.lineWidth = lastRenderedSize;
+        if(mwMode==='crayon') mCtx.shadowBlur=Math.max(1, lastRenderedSize/4);
+        mCtx.stroke();
+    }
+    if (batchRemoteStroke) broadcastData(batchRemoteStroke);
   }
 
   function end(ev){
     if(!mwDrawing||ev.pointerId!==writingPointerId) return;
     ev.preventDefault();
-    if(ev.type!=='pointercancel')move(ev);
+    flushQueuedFreehandSamples();
+    if(ev.type!=='pointercancel')move(ev, true);
     // Finish the midpoint-smoothed curve exactly at the last sampled position.
     if(!['line','arrow','rect','circle','laser','text'].includes(mwMode)){
       const color=document.getElementById('mw-color').value;
       const dot=Math.hypot(mwLastPosX-shapeStartX,mwLastPosY-shapeStartY)<.01;
       const endX=mwLastPosX+(dot?.001:0),endY=mwLastPosY;
       const width=mwMode==='eraser'?mwEraserSize:lastRenderedSize;
+      const isChalk=(document.body.classList.contains('theme-chalkboard')||document.body.classList.contains('theme-school'));
+      configureStrokeStyle(mwMode,color,isChalk);
+      if(mwMode==='crayon')mCtx.shadowBlur=Math.max(1,width/4);
       mCtx.lineCap='round';mCtx.lineJoin='round';mCtx.lineWidth=width;
       mCtx.beginPath();mCtx.moveTo(mwLastMidX,mwLastMidY);mCtx.quadraticCurveTo(mwLastPosX,mwLastPosY,endX,endY);mCtx.stroke();
-      broadcastData({type:'stroke',lastMidX:mwLastMidX/canvas.width,lastMidY:mwLastMidY/canvas.height,lastPosX:mwLastPosX/canvas.width,lastPosY:mwLastPosY/canvas.height,midX:endX/canvas.width,midY:endY/canvas.height,color,size:width/canvas.width,tool:mwMode});
+      if(mwHasPeers && typeof broadcastData==='function')broadcastData({type:'stroke',lastMidX:mwLastMidX/canvas.width,lastMidY:mwLastMidY/canvas.height,lastPosX:mwLastPosX/canvas.width,lastPosY:mwLastPosY/canvas.height,midX:endX/canvas.width,midY:endY/canvas.height,color,size:width/canvas.width,tool:mwMode});
     }
     mwDrawing=false;writingPointerId=null;
     inputRect=null;
@@ -3223,7 +3378,7 @@ window.isLaserFadingGlobal = false;
         mCtx.globalAlpha = 1;
         mCtx.shadowBlur = 0;
         drawShapeExact(mCtx, mwMode, shapeStartX, shapeStartY, mwLastPosX, mwLastPosY, document.getElementById('mw-color').value, mwSize);
-        if (typeof broadcastData === 'function') {
+        if (mwHasPeers && typeof broadcastData === 'function') {
             broadcastData({ 
                 type: 'shape', shape: mwMode,
                 x1: shapeStartX / canvas.width, y1: shapeStartY / canvas.height,
@@ -3232,17 +3387,18 @@ window.isLaserFadingGlobal = false;
             });
         }
     } else {
-        if (typeof broadcastData === 'function' && mwMode !== 'laser') broadcastData({ type:'stop' });
+        if (mwHasPeers && typeof broadcastData === 'function' && mwMode !== 'laser') broadcastData({ type:'stop' });
     }
     try{ 
         if(mwMode === 'laser') laserCanvas.releasePointerCapture(ev.pointerId);
         else board.releasePointerCapture(ev.pointerId); 
     }catch(e){}
+    mwHasPeers=false;
   }
 
-  // pointerrawupdate entrega muestras antes que pointermove en navegadores compatibles.
-  // Mientras se escribe usamos raw; pointermove queda como respaldo y para hover.
-  const hasRawPointer = ('onpointerrawupdate' in window);
+  // pointermove con muestras coalescidas conserva el trazo suave y evita que una
+  // netbook procese cientos de eventos crudos por segundo.
+  const hasRawPointer = false;
   let lastRawPointerAt = 0;
   const normalMove = ev => {
     if(hasRawPointer && mwDrawing && (performance.now()-lastRawPointerAt)<24) return;
@@ -4282,7 +4438,11 @@ function toggleWritingPencil(){const on=document.body.classList.toggle('visual-p
  else{cursor.style.width=cursor.style.height='64px';cursor.style.transform=`translate(${point.x-4}px,${point.y-60}px)`;}
  cursor.classList.add('visible');
  }
- function move(e){if(!['board','laser-board'].includes(e.target.id)){hide();return;}point={x:e.clientX,y:e.clientY};if(!raf)raf=requestAnimationFrame(paint);}
+ function move(e){
+  const tool=document.body.dataset.writingTool||'pen';
+  if(tool!=='eraser'&&!document.body.classList.contains('visual-pencil-active')){hide();return;}
+  if(!['board','laser-board'].includes(e.target.id)){hide();return;}point={x:e.clientX,y:e.clientY};if(!raf)raf=requestAnimationFrame(paint);
+ }
  area.addEventListener('pointermove',move,{passive:true});area.addEventListener('pointerdown',move,{passive:true});area.addEventListener('pointerleave',hide);area.addEventListener('pointercancel',hide);area.addEventListener('pointerup',e=>{if(e.pointerType!=='mouse')hide();});
  document.addEventListener('pointerover',e=>{if(!area.contains(e.target))hide();},{passive:true});window.addEventListener('blur',hide);
 })();
@@ -4998,6 +5158,186 @@ else requestAnimationFrame(init);
 .mb-live-protractor::after{content:'0°       45°       90°       135°       180°';position:absolute;left:12px;bottom:8px;white-space:pre;font-size:10px;color:#1e293b}
 @media(max-width:600px){.mb-live-ruler{width:300px}.mb-live-ruler::after{transform:scale(.7);transform-origin:left bottom}.mb-live-protractor{transform:scale(.82);transform-origin:top left}}
 </style>
+
+<script id="mathboard-ink-performance">
+/* Capa de rendimiento: mantiene el dibujo local inmediato y adapta solo el tráfico remoto. */
+(function () {
+  'use strict';
+  const NORMAL_SEND_DELAY = 8;
+  const CONSTRAINED_SEND_DELAY = 26;
+
+  // Este camino se ejecuta mientras se escribe: no crear arrays temporales evita
+  // presión de memoria y pausas de GC, especialmente en equipos modestos.
+  function hasOpenConnections() {
+    const list = Array.isArray(window.connections) ? window.connections : [];
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] && list[i].open) return true;
+    }
+    return false;
+  }
+
+  function openConnectionCount() {
+    const list = Array.isArray(window.connections) ? window.connections : [];
+    let total = 0;
+    for (let i = 0; i < list.length; i++) {
+      if (list[i] && list[i].open) total++;
+    }
+    return total;
+  }
+
+  function constrainedNetwork() {
+    const network = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    const declaredSlow = !!network && (network.saveData || /(^|-)2g/.test(network.effectiveType || ''));
+    if (declaredSlow) return true;
+    const list = Array.isArray(window.connections) ? window.connections : [];
+    for (let i = 0; i < list.length; i++) {
+      const conn = list[i];
+      if (!conn || !conn.open) continue;
+      const channel = conn.dataChannel || conn._dc;
+      if (Number(channel?.bufferedAmount || 0) > 180000) return true;
+    }
+    return false;
+  }
+
+  // Fusiona segmentos del MISMO trazo dentro de unos milisegundos. La pizarra
+  // propia sigue dibujando todos los puntos; se reduce solamente el tráfico P2P.
+  function sameStroke(a, b) {
+    return a && b && a.type === 'stroke' && b.type === 'stroke' && a.tool === b.tool && a.color === b.color;
+  }
+
+  function mergeStroke(previous, next) {
+    if (!sameStroke(previous, next)) return next;
+    previous.lastPosX = next.lastPosX;
+    previous.lastPosY = next.lastPosY;
+    previous.midX = next.midX;
+    previous.midY = next.midY;
+    previous.size = next.size;
+    return previous;
+  }
+
+  function mergeLaser(previous, next) {
+    if (!previous || previous.type !== 'laser' || next.type !== 'laser') return next;
+    if (previous.lastPosX !== undefined && next.lastPosX !== undefined) {
+      next.lastPosX = previous.lastPosX;
+      next.lastPosY = previous.lastPosY;
+    }
+    return next;
+  }
+
+  function installAdaptiveSender() {
+    const originalBroadcast = window.broadcastData;
+    if (typeof originalBroadcast !== 'function' || originalBroadcast.__mbAdaptiveSender) return;
+
+    let pendingStroke = null;
+    let pendingLaser = null;
+    let sendTimer = 0;
+
+    function flushPending() {
+      if (sendTimer) clearTimeout(sendTimer);
+      sendTimer = 0;
+      const queued = [pendingStroke, pendingLaser].filter(Boolean);
+      pendingStroke = null;
+      pendingLaser = null;
+      queued.forEach(message => originalBroadcast(message));
+    }
+
+    function scheduleSend() {
+      if (sendTimer) return;
+      sendTimer = setTimeout(flushPending, constrainedNetwork() ? CONSTRAINED_SEND_DELAY : NORMAL_SEND_DELAY);
+    }
+
+    function adaptiveBroadcast(data) {
+      // Sin participantes no se crea cola ni se invoca otra capa de red.
+      if (!hasOpenConnections()) return;
+      if (data?.type === 'stroke') {
+        pendingStroke = mergeStroke(pendingStroke, data);
+        scheduleSend();
+        return;
+      }
+      if (data?.type === 'laser') {
+        pendingLaser = mergeLaser(pendingLaser, data);
+        scheduleSend();
+        return;
+      }
+      flushPending();
+      return originalBroadcast(data);
+    }
+
+    adaptiveBroadcast.__mbAdaptiveSender = true;
+    adaptiveBroadcast.flush = flushPending;
+    window.broadcastData = adaptiveBroadcast;
+  }
+
+  function installRemoteFrameQueue() {
+    const originalProcess = window.processRemoteCommand;
+    if (typeof originalProcess !== 'function' || originalProcess.__mbRemoteFrameQueue) return;
+
+    const pending = new Map();
+    let frame = 0;
+
+    function keyFor(data) {
+      return [data.peerId || 'remote', data.type, data.tool || '', data.color || ''].join('|');
+    }
+
+    function flushRemote() {
+      if (frame) cancelAnimationFrame(frame);
+      frame = 0;
+      const messages = [...pending.values()];
+      pending.clear();
+      messages.forEach(message => originalProcess(message));
+    }
+
+    function queueRemote(data) {
+      const key = keyFor(data);
+      const previous = pending.get(key);
+      pending.set(key, data.type === 'stroke' ? mergeStroke(previous, data) : mergeLaser(previous, data));
+      if (!frame) frame = requestAnimationFrame(flushRemote);
+    }
+
+    function frameQueuedProcess(data) {
+      if (data?.type === 'stroke' || data?.type === 'laser') {
+        queueRemote(data);
+        return;
+      }
+      if (pending.size) flushRemote();
+      return originalProcess(data);
+    }
+
+    frameQueuedProcess.__mbRemoteFrameQueue = true;
+    window.processRemoteCommand = frameQueuedProcess;
+  }
+
+  function installResizeScheduler() {
+    const resize = window.resizeCanvas;
+    if (typeof resize !== 'function' || resize.__mbScheduledResize) return;
+    window.removeEventListener('resize', resize);
+    let pendingFrame = 0;
+    const scheduledResize = () => {
+      if (pendingFrame) return;
+      pendingFrame = requestAnimationFrame(() => {
+        pendingFrame = 0;
+        resize();
+      });
+    };
+    resize.__mbScheduledResize = true;
+    window.addEventListener('resize', scheduledResize, { passive: true });
+  }
+
+  function install() {
+    installAdaptiveSender();
+    installRemoteFrameQueue();
+    installResizeScheduler();
+    window.MathBoardInkPerformance = {
+      onlineDelayMs: () => constrainedNetwork() ? CONSTRAINED_SEND_DELAY : NORMAL_SEND_DELAY,
+      activeConnections: openConnectionCount,
+      flush: () => window.broadcastData?.flush?.()
+    };
+  }
+
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', install, { once: true });
+  else install();
+})();
+</script>
 
 </body>
 </html>
