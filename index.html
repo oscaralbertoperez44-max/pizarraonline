@@ -302,7 +302,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             </div>
             <div id="form-student" class="auth-form">
                 <input type="text" id="studentName" class="auth-input" placeholder="TU NOMBRE (Ej: Juan)">
-                <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO (4 DÍGITOS)" maxlength="4">
+                <input type="text" id="roomIdInput" class="auth-input" placeholder="CÓDIGO (6 DÍGITOS)" inputmode="numeric" maxlength="6">
                 <button class="role-btn btn-student" onclick="joinRoom()">Entrar a la Clase</button>
                 <button class="back-btn" onclick="goBack()">Volver atrás</button>
             </div>
@@ -627,14 +627,22 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
         };
 
-        const peerNetworkOptions = { 
-            config: { 
-                'iceServers': [ 
-                    { urls: 'stun:stun.l.google.com:19302' }, 
+        // Se pueden añadir servidores TURN propios antes de cargar la página:
+        // window.MATHBOARD_TURN_SERVERS = [{ urls:'turn:tu-servidor:3478', username:'...', credential:'...' }];
+        // Sin un TURN con credenciales reales, algunas redes escolares o móviles pueden impedir una conexión P2P.
+        const configuredTurnServers = Array.isArray(window.MATHBOARD_TURN_SERVERS)
+            ? window.MATHBOARD_TURN_SERVERS.filter(server => server && server.urls)
+            : [];
+        const peerNetworkOptions = {
+            config: {
+                iceCandidatePoolSize: 10,
+                'iceServers': [
+                    { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun.cloudflare.com:3478' }
-                ] 
-            } 
+                    { urls: 'stun:stun.cloudflare.com:3478' },
+                    ...configuredTurnServers
+                ]
+            }
         };
         
         let isAdmin = false; 
@@ -662,6 +670,12 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             const stored = localStorage.getItem('mathboard_gallery');
             if(stored) savedCaptures = JSON.parse(stored);
         } catch(e) {}
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
 
         function showStudentForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-student').style.display = 'block'; document.getElementById('login-msg').innerText = "Ingresa tu nombre y el código de la clase"; }
         function showTeacherForm() { document.getElementById('role-selection').style.display = 'none'; document.getElementById('form-teacher').style.display = 'block'; document.getElementById('login-msg').innerText = "Acceso seguro"; }
@@ -949,6 +963,31 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
         }
 
+        // Envía una foto liviana de la hoja actual a quien entra tarde. Los trazos
+        // posteriores siguen llegando como siempre, pero nadie inicia con la pizarra vacía.
+        function sendCurrentBoardSnapshot(conn) {
+            if (!conn || !conn.open) return;
+            try {
+                window.MathBoardPages?.save?.();
+                const source = document.getElementById('board');
+                if (!source) return;
+                const maxPixels = 1600000;
+                const scale = Math.min(1, Math.sqrt(maxPixels / Math.max(1, source.width * source.height)));
+                let snapshot = source;
+                if (scale < 1) {
+                    snapshot = document.createElement('canvas');
+                    snapshot.width = Math.max(1, Math.round(source.width * scale));
+                    snapshot.height = Math.max(1, Math.round(source.height * scale));
+                    snapshot.getContext('2d', { alpha: true }).drawImage(source, 0, 0, snapshot.width, snapshot.height);
+                }
+                const theme = ['theme-grid', 'theme-whiteboard', 'theme-chalkboard', 'theme-school']
+                    .find(name => document.body.classList.contains(name)) || 'theme-grid';
+                conn.send({ type: 'board_snapshot_v2', image: snapshot.toDataURL('image/webp', 0.80), theme });
+            } catch (error) {
+                console.warn('No se pudo sincronizar la pizarra al nuevo participante.', error);
+            }
+        }
+
         // LIMPIAR PIZARRA GLOBAL Y RECUPERACIÓN (ANTI-ERRORES)
         function clearCanvas() {
             if(!confirm('¿Limpiar toda la escritura de la pizarra por completo? (Tranquilo, podrás recuperarla con el botón Deshacer)')) return;
@@ -1114,7 +1153,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 row.style.border = '1px solid #444';
                 
                 row.innerHTML = `
-                    <div style="font-size:0.85rem; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;" title="${vid.topic}">📘 <b>${vid.topic}</b></div>
+                    <div style="font-size:0.85rem; color:#fff; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; max-width:60%;" title="${escapeHtml(vid.topic)}">📘 <b>${escapeHtml(vid.topic)}</b></div>
                     <div style="display:flex; gap:5px;">
                         <button onclick="useVideoLink(${idx})" style="background:#2563eb; font-size:0.75rem; padding:4px 8px;">Cargar</button>
                         <button onclick="removeVideoLink(${idx})" style="background:#dc2626; font-size:0.75rem; padding:4px 8px;">🗑️</button>
@@ -1302,7 +1341,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 const icon = res.type === 'pdf' ? '📄' : '🖼️';
                 item.innerHTML = `
                     <div style="font-size:2rem; margin-bottom:10px;">${icon}</div>
-                    <div style="font-size:0.75rem; word-break:break-all; margin-bottom:10px; color:#ccc;">${res.name}</div>
+                    <div style="font-size:0.75rem; word-break:break-all; margin-bottom:10px; color:#ccc;">${escapeHtml(res.name)}</div>
                     <div style="display:flex; gap:5px;">
                         <button onclick="openResource(${idx})" style="background:#2563eb; flex:1; font-size:0.75rem; padding:4px;">Abrir</button>
                         <button onclick="removeResource(${idx})" style="background:#dc2626; font-size:0.75rem; padding:4px;">🗑️</button>
@@ -1439,18 +1478,28 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 tctx.drawImage(tempImg, 0, 0, tcvs.width, tcvs.height);
                 
                 const compressedSrc = tcvs.toDataURL('image/jpeg', 0.65);
-                savedCaptures.unshift(compressedSrc);
-                
+                const previousCaptures = savedCaptures.slice();
+                let candidate = [compressedSrc, ...previousCaptures];
                 let saved = false;
-                while(!saved && savedCaptures.length > 0) {
-                    try { 
-                        localStorage.setItem('mathboard_gallery', JSON.stringify(savedCaptures)); 
+                while(!saved && candidate.length > 0) {
+                    try {
+                        localStorage.setItem('mathboard_gallery', JSON.stringify(candidate));
                         saved = true;
-                    } catch(e) { 
-                        savedCaptures.pop();
+                    } catch(e) {
+                        // Solo descartamos una copia temporal. La galería anterior no se pierde si el guardado falla.
+                        candidate.pop();
                     }
                 }
-                if(saved) alert("¡Captura guardada! Estará disponible incluso si cierras la ventana.");
+                if(saved) {
+                    const trimmed = candidate.length < previousCaptures.length + 1;
+                    savedCaptures = candidate;
+                    alert(trimmed
+                        ? "¡Captura guardada! Se liberó espacio eliminando capturas antiguas de esta galería local."
+                        : "¡Captura guardada! Estará disponible en este navegador.");
+                } else {
+                    savedCaptures = previousCaptures;
+                    alert("No se pudo guardar la captura: el almacenamiento local está lleno o bloqueado.");
+                }
                 updateGalleryGrid();
             };
             tempImg.src = img.src;
@@ -1508,7 +1557,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             
             if(window.refreshCtxState) window.refreshCtxState();
             
-            broadcastData({ type: 'image', src: img.src, x: realX / canvas.width, y: realY / canvas.width, w: realW / canvas.width, h: realH / canvas.width });
+            broadcastData({ type: 'image', src: img.src, x: realX / canvas.width, y: realY / canvas.height, w: realW / canvas.width, h: realH / canvas.height });
             
             document.getElementById('stamper').style.display = 'none';
             if(typeof window.saveState === 'function') window.saveState(); 
@@ -1870,6 +1919,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         function saveAsPDF() {
             const filename = prompt("Nombre del archivo PDF:", "Clase_MathBoard");
             if (!filename) return;
+            const safeFilename = filename.trim().replace(/[\\\\/:*?\"<>|]+/g, '_').slice(0, 100) || 'Clase_MathBoard';
 
             // Asegura que la pizarra visible quede guardada antes de exportar.
             try { window.MathBoardPages?.save?.(); } catch (_) {}
@@ -1928,7 +1978,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             });
 
             // Un PDF con una página por cada pizarra del cuaderno.
-            pdf.save("pizarracoto/" + filename + ".pdf");
+            // El navegador no puede crear carpetas dentro de Descargas desde JavaScript.
+            pdf.save(safeFilename + ".pdf");
         }
         window.saveAsPDF = saveAsPDF;
 
@@ -1983,8 +2034,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
-                // GUARDA EN LA CARPETA pizarracoto
-                a.download = 'pizarracoto/Clase_MathBoard.' + ext;
+                a.download = 'Clase_MathBoard.' + ext;
                 document.body.appendChild(a);
                 a.click();
                 a.remove();
@@ -2005,6 +2055,18 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             const isChalk = (document.body.classList.contains('theme-chalkboard') || document.body.classList.contains('theme-school'));
             compositeCtx.fillStyle = isChalk ? '#1e5631' : '#ffffff';
             compositeCtx.fillRect(0, 0, compositeCanvas.width, compositeCanvas.height);
+
+            const isGrid = document.body.classList.contains('theme-grid') || isChalk;
+            if (isGrid) {
+                compositeCtx.save();
+                compositeCtx.strokeStyle = isChalk ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.05)';
+                compositeCtx.lineWidth = 1.5;
+                compositeCtx.beginPath();
+                for (let x = 0; x < compositeCanvas.width; x += 35) { compositeCtx.moveTo(x, 0); compositeCtx.lineTo(x, compositeCanvas.height); }
+                for (let y = 0; y < compositeCanvas.height; y += 35) { compositeCtx.moveTo(0, y); compositeCtx.lineTo(compositeCanvas.width, y); }
+                compositeCtx.stroke();
+                compositeCtx.restore();
+            }
             
             compositeCtx.drawImage(canvas, 0, 0);
             
@@ -2030,12 +2092,16 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 cursor = document.createElement('div');
                 cursor.id = 'cursor-' + data.peerId;
                 cursor.className = 'remote-cursor';
-                cursor.innerHTML = `<div class="cursor-dot"></div><div class="cursor-label">${data.userName || data.role}</div>`;
+                const dot = document.createElement('div');
+                dot.className = 'cursor-dot';
+                const label = document.createElement('div');
+                label.className = 'cursor-label';
+                cursor.append(dot, label);
                 document.getElementById('canvas-container').appendChild(cursor);
             }
             
-            const realX = (data.lastPosX || data.x) * canvas.width;
-            const realY = (data.lastPosY || data.y) * canvas.width;
+            const realX = (data.lastPosX ?? data.x ?? 0) * canvas.width;
+            const realY = (data.lastPosY ?? data.y ?? 0) * canvas.height;
             
             cursor.style.transform = `translate(${realX}px, ${realY}px)`;
             
@@ -2088,6 +2154,24 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         }
 
         function processRemoteCommand(data) {
+            if (data.type === 'board_snapshot_v2') {
+                if (data.theme) applyTheme(data.theme);
+                if (typeof data.image !== 'string' || !data.image.startsWith('data:image/')) return;
+                const img = new Image();
+                img.onload = () => {
+                    const boardCtx = document.getElementById('board').getContext('2d');
+                    boardCtx.save();
+                    boardCtx.globalCompositeOperation = 'source-over';
+                    boardCtx.globalAlpha = 1;
+                    boardCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    boardCtx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    boardCtx.restore();
+                    window.MathBoardPages?.save?.();
+                    window.mbScheduleRecovery?.();
+                };
+                img.src = data.image;
+                return;
+            }
             if (data.type === 'sync_timer') {
                 startTimer(data.startTime);
                 return;
@@ -2209,8 +2293,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             }
             
             if (data.type === 'laser') {
-                if(data.lastPosX !== undefined && typeof drawLaserFade === 'function') {
-                    window.laserPathsGlobal.push({ x1: data.lastPosX * canvas.width, y1: data.lastPosY * canvas.width, x2: data.x * canvas.width, y2: data.y * canvas.width, cX: data.x * canvas.width, cY: data.y * canvas.width, time: Date.now() });
+                if(data.lastPosX !== undefined && typeof window.drawLaserFadeGlobal === 'function') {
+                    window.laserPathsGlobal.push({ x1: data.lastPosX * canvas.width, y1: data.lastPosY * canvas.height, x2: data.x * canvas.width, y2: data.y * canvas.height, cX: data.x * canvas.width, cY: data.y * canvas.height, time: Date.now() });
                     if(!window.isLaserFadingGlobal) {
                         window.isLaserFadingGlobal = true;
                         requestAnimationFrame(window.drawLaserFadeGlobal);
@@ -2224,7 +2308,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             if (data.type === 'text') {
                 const mCtx = document.getElementById('board').getContext('2d');
                 const realX = data.x * canvas.width;
-                const realY = data.y * canvas.width;
+                const realY = data.y * canvas.height;
                 const realSize = data.fontSize * canvas.width;
                 
                 mCtx.save();
@@ -2252,13 +2336,13 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 img.onload = () => { 
                     const mCtx = document.getElementById('board').getContext('2d');
                     mCtx.globalAlpha=1; 
-                    mCtx.drawImage(img, data.x * canvas.width, data.y * canvas.width, data.w * canvas.width, data.h * canvas.width); 
+                    mCtx.drawImage(img, data.x * canvas.width, data.y * canvas.height, data.w * canvas.width, data.h * canvas.height); 
                 };
                 img.src = data.src; return;
             }
             if (data.type === 'shape') {
                 const mCtx = document.getElementById('board').getContext('2d');
-                drawShapeExact(mCtx, data.shape, data.x1 * canvas.width, data.y1 * canvas.width, data.x2 * canvas.width, data.y2 * canvas.width, data.color, data.size * canvas.width);
+                drawShapeExact(mCtx, data.shape, data.x1 * canvas.width, data.y1 * canvas.height, data.x2 * canvas.width, data.y2 * canvas.height, data.color, data.size * canvas.width);
                 return;
             }
             if (data.type === 'stroke') {
@@ -2268,8 +2352,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                 const isChalk = (document.body.classList.contains('theme-chalkboard') || document.body.classList.contains('theme-school'));
                 
                 mCtx.beginPath();
-                mCtx.moveTo(data.lastMidX * canvas.width, data.lastMidY * canvas.width);
-                mCtx.quadraticCurveTo(data.lastPosX * canvas.width, data.lastPosY * canvas.width, data.midX * canvas.width, data.midY * canvas.width);
+                mCtx.moveTo(data.lastMidX * canvas.width, data.lastMidY * canvas.height);
+                mCtx.quadraticCurveTo(data.lastPosX * canvas.width, data.lastPosY * canvas.height, data.midX * canvas.width, data.midY * canvas.height);
 
                 mCtx.lineWidth = finalSize;
                 mCtx.shadowBlur = 0;
@@ -2341,7 +2425,15 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             await getMicrophone();
             document.getElementById('main-toolbar').style.display = 'flex';
             
-            const randomCode = Math.floor(1000 + Math.random() * 9000).toString();
+            const randomCode = (() => {
+                try {
+                    const value = new Uint32Array(1);
+                    crypto.getRandomValues(value);
+                    return String(100000 + (value[0] % 900000));
+                } catch (_) {
+                    return String(Math.floor(100000 + Math.random() * 900000));
+                }
+            })();
             peer = new Peer('MBPRO_' + randomCode, peerNetworkOptions);
             
             setupPeerAudio(peer);
@@ -2390,6 +2482,8 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                     connections.push(conn);
                     roomUsers[conn.peer] = {name:'Conectando…',role:'Alumno',mic:'unknown'};
                     renderParticipants();
+                    // Espera a que el alumno registre sus listeners para evitar que pierda la foto inicial.
+                    setTimeout(() => sendCurrentBoardSnapshot(conn), 250);
                 });
                 conn.on('close',()=>{ clearMicRetry(conn.peer); const gate=remoteAudioGates.get(conn.peer);if(gate){gate.source.disconnect();gate.gain.disconnect();remoteAudioGates.delete(conn.peer);} closeScreenCall(conn.peer); connections=connections.filter(c=>c!==conn); delete roomUsers[conn.peer]; document.getElementById('audio-'+conn.peer)?.remove(); renderParticipants(); });
                 conn.on('data', data => receiveUserData(data, conn)); 
@@ -2407,7 +2501,7 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
         async function joinRoom() {
             const roomIdInput = document.getElementById('roomIdInput');
             const roomId = roomIdInput.value.toUpperCase().trim();
-            if (!roomId || roomId.length !== 4) return alert("Ingresa un código válido de 4 dígitos.");
+            if (!/^\d{6}$/.test(roomId)) return alert("Ingresa el código válido de 6 dígitos.");
             
             myName = document.getElementById('studentName').value.trim() || 'Alumno';
             
@@ -2424,11 +2518,28 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
             peer.on('open', () => {
                 const targetId = 'MBPRO_' + roomId;
                 const conn = peer.connect(targetId, { reliable: true }); 
+                let joined = false;
+                let joinFailed = false;
+                const failJoin = (message) => {
+                    if (joined || joinFailed) return;
+                    joinFailed = true;
+                    clearTimeout(joinTimeout);
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    try { conn.close(); } catch (_) {}
+                    alert(message);
+                };
+                const joinTimeout = setTimeout(() => {
+                    if (!conn.open) failJoin('La conexión tardó demasiado. Revisá el código, la red e intentá nuevamente.');
+                }, 12000);
                 
                 conn.on('open', () => {
+                    joined = true;
+                    clearTimeout(joinTimeout);
                     connections.push(conn);
                     conn.on('data', data => receiveUserData(data, conn));
                     conn.on('close', clearReceivedScreen);
+                    conn.on('error', () => clearReceivedScreen());
                     
                     document.getElementById('login-overlay').style.opacity = '0';
                     setTimeout(() => document.getElementById('login-overlay').style.display = 'none', 500);
@@ -2446,6 +2557,10 @@ body.mbu-immersive #main-toolbar,body.mbu-immersive #ui-panel,body.mbu-immersive
                             if(call) call.on('stream', (stream) => playAudio(stream, targetId)); 
                         }
                     }, 1000);
+                });
+                conn.on('error', () => failJoin('No se pudo conectar con la clase. Revisá el código o intentá nuevamente.'));
+                conn.on('close', () => {
+                    if (!joined) failJoin('La conexión con la clase se cerró antes de completarse. Intentá nuevamente.');
                 });
             });
 
@@ -2854,7 +2969,7 @@ window.isLaserFadingGlobal = false;
                 if (typeof broadcastData === 'function') {
                     broadcastData({
                         type: 'text', text: val,
-                        x: (p.x + 6) / canvas.width, y: (p.y + 2) / canvas.width,
+                        x: (p.x + 6) / canvas.width, y: (p.y + 2) / canvas.height,
                         color: inkColor, fontSize: fontSize / canvas.width
                     });
                 }
@@ -2887,7 +3002,7 @@ window.isLaserFadingGlobal = false;
 
     if (mwMode === 'laser') {
         if (typeof broadcastData === 'function') {
-            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.height, color: '#ef4444' });
         }
     } else if (!['line','arrow','rect','circle'].includes(mwMode)) {
         if (typeof broadcastData === 'function') {
@@ -2905,7 +3020,7 @@ window.isLaserFadingGlobal = false;
     if (!mwDrawing && mwMode === 'laser') {
         const p = pos(ev);
         if (typeof broadcastData === 'function') {
-            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+            broadcastData({ type: 'laser', x: p.x / canvas.width, y: p.y / canvas.height, color: '#ef4444' });
         }
         return;
     }
@@ -2957,7 +3072,7 @@ window.isLaserFadingGlobal = false;
             }
 
             if (typeof broadcastData === 'function') {
-                broadcastData({ type: 'laser', lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, x: p.x / canvas.width, y: p.y / canvas.width, color: '#ef4444' });
+                broadcastData({ type: 'laser', lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.height, x: p.x / canvas.width, y: p.y / canvas.height, color: '#ef4444' });
             }
             mwLastPosX = p.x; mwLastPosY = p.y;
             mwLastMidX = midX; mwLastMidY = midY;
@@ -3071,9 +3186,9 @@ window.isLaserFadingGlobal = false;
         if (typeof broadcastData === 'function') {
             broadcastData({ 
                 type:'stroke', 
-                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.width, 
-                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.width, 
-                midX: midX / canvas.width, midY: midY / canvas.width, 
+                lastMidX: mwLastMidX / canvas.width, lastMidY: mwLastMidY / canvas.height, 
+                lastPosX: mwLastPosX / canvas.width, lastPosY: mwLastPosY / canvas.height, 
+                midX: midX / canvas.width, midY: midY / canvas.height, 
                 color: inkColor, size: finalSize / canvas.width, tool: mwMode 
             });
         }
@@ -3097,7 +3212,7 @@ window.isLaserFadingGlobal = false;
       const width=mwMode==='eraser'?mwEraserSize:lastRenderedSize;
       mCtx.lineCap='round';mCtx.lineJoin='round';mCtx.lineWidth=width;
       mCtx.beginPath();mCtx.moveTo(mwLastMidX,mwLastMidY);mCtx.quadraticCurveTo(mwLastPosX,mwLastPosY,endX,endY);mCtx.stroke();
-      broadcastData({type:'stroke',lastMidX:mwLastMidX/canvas.width,lastMidY:mwLastMidY/canvas.width,lastPosX:mwLastPosX/canvas.width,lastPosY:mwLastPosY/canvas.width,midX:endX/canvas.width,midY:endY/canvas.width,color,size:width/canvas.width,tool:mwMode});
+      broadcastData({type:'stroke',lastMidX:mwLastMidX/canvas.width,lastMidY:mwLastMidY/canvas.height,lastPosX:mwLastPosX/canvas.width,lastPosY:mwLastPosY/canvas.height,midX:endX/canvas.width,midY:endY/canvas.height,color,size:width/canvas.width,tool:mwMode});
     }
     mwDrawing=false;writingPointerId=null;
     inputRect=null;
@@ -3111,8 +3226,8 @@ window.isLaserFadingGlobal = false;
         if (typeof broadcastData === 'function') {
             broadcastData({ 
                 type: 'shape', shape: mwMode,
-                x1: shapeStartX / canvas.width, y1: shapeStartY / canvas.width,
-                x2: mwLastPosX / canvas.width, y2: mwLastPosY / canvas.width,
+                x1: shapeStartX / canvas.width, y1: shapeStartY / canvas.height,
+                x2: mwLastPosX / canvas.width, y2: mwLastPosY / canvas.height,
                 color: document.getElementById('mw-color').value, size: mwSize / canvas.width 
             });
         }
@@ -3171,7 +3286,7 @@ window.isLaserFadingGlobal = false;
         restoreData(last);
         if (typeof broadcastData === 'function') {
             const src = window.mbSnapshotToDataURL ? window.mbSnapshotToDataURL(last) : last;
-            if(src) broadcastData({ type: 'image', src, x: 0, y: 0, w: 1, h: canvas.height/canvas.width });
+            if(src) broadcastData({ type: 'image', src, x: 0, y: 0, w: 1, h: 1 });
         }
     }
   });
@@ -3375,7 +3490,7 @@ document.addEventListener('keydown', function(e) {
     restoreSnapshot(previous);
     if (typeof window.broadcastData === 'function' && previous) {
       const src = window.mbSnapshotToDataURL ? window.mbSnapshotToDataURL(previous) : previous;
-      if(src) window.broadcastData({type:'image', src, x:0, y:0, w:1, h:board.height/Math.max(1,board.width)});
+      if(src) window.broadcastData({type:'image', src, x:0, y:0, w:1, h:1});
     }
     showStatus('Deshacer ↩');
   }
@@ -3387,7 +3502,7 @@ document.addEventListener('keydown', function(e) {
     const next = window.mbRedo.pop();
     restoreSnapshot(next);
     if (typeof window.broadcastData === 'function' && next) {
-      window.broadcastData({type:'image', src:next, x:0, y:0, w:1, h:board.height/Math.max(1,board.width)});
+      window.broadcastData({type:'image', src:next, x:0, y:0, w:1, h:1});
     }
     showStatus('Rehacer ↪');
   }
@@ -3605,8 +3720,8 @@ function open(name){M.openPanels.forEach(n=>{const e=$('mbu-panel-'+n);if(e)e.st
 function closeAll(){M.openPanels.forEach(n=>{const e=$('mbu-panel-'+n);if(e)e.style.display='none'})}
 function toggleImmersive(){document.body.classList.toggle('mbu-immersive');if(!document.body.classList.contains('mbu-immersive'))$('mbu-dock').style.display='flex'}
 function instrument(kind){if(kind==='grid'||kind==='axes'){const c=$('board');if(!c)return;let ov=document.getElementById('mbu-overlay');if(!ov){ov=document.createElement('canvas');ov.id='mbu-overlay';ov.style.cssText='position:absolute;inset:0;pointer-events:none;z-index:3';$('canvas-container').appendChild(ov)}ov.width=c.width;ov.height=c.height;const x=ov.getContext('2d');x.clearRect(0,0,ov.width,ov.height);x.strokeStyle='rgba(59,130,246,.16)';x.lineWidth=1;const step=kind==='grid'?40:80;for(let i=0;i<ov.width;i+=step){x.beginPath();x.moveTo(i,0);x.lineTo(i,ov.height);x.stroke()}for(let i=0;i<ov.height;i+=step){x.beginPath();x.moveTo(0,i);x.lineTo(ov.width,i);x.stroke()}if(kind==='axes'){x.strokeStyle='rgba(239,68,68,.55)';x.lineWidth=2;x.beginPath();x.moveTo(ov.width/2,0);x.lineTo(ov.width/2,ov.height);x.moveTo(0,ov.height/2);x.lineTo(ov.width,ov.height/2);x.stroke()}toast(kind==='grid'?'Cuadrícula activada':'Ejes activados');return} toast(kind==='ruler'?'Regla: usá la herramienta de línea para medir':'Transportador preparado')}
-function zoom(f){M.viewScale=Math.max(.5,Math.min(2.5,M.viewScale*f));const c=$('board');if(c){c.style.transformOrigin='center center';c.style.transform=`translate(${M.viewX}px,${M.viewY}px) scale(${M.viewScale})`};toast('Zoom '+Math.round(M.viewScale*100)+'%')}
-function resetView(){M.viewScale=1;M.viewX=M.viewY=0;const c=$('board');if(c)c.style.transform='none';toast('Vista restablecida')}
+function zoom(f){M.viewScale=Math.max(.5,Math.min(2.5,M.viewScale*f));const surface=$('canvas-container');if(surface){surface.style.transformOrigin='center center';surface.style.transform=`translate(${M.viewX}px,${M.viewY}px) scale(${M.viewScale})`};toast('Zoom '+Math.round(M.viewScale*100)+'%')}
+function resetView(){M.viewScale=1;M.viewX=M.viewY=0;const surface=$('canvas-container');if(surface)surface.style.transform='none';toast('Vista restablecida')}
 function saveSnapshot(){try{const c=$('board');localStorage.setItem('mbu_manual_snapshot',c.toDataURL('image/webp',.82));toast('Estado guardado')}catch(e){toast('No se pudo guardar')}}
 function restoreSnapshot(){try{const d=localStorage.getItem('mbu_manual_snapshot');if(!d)return toast('No hay recuperación manual');const im=new Image();im.onload=()=>{const c=$('board'),x=c.getContext('2d');x.clearRect(0,0,c.width,c.height);x.drawImage(im,0,0,c.width,c.height);toast('Estado recuperado')};im.src=d}catch(e){toast('No se pudo recuperar')}}
 function solve(){let s=$('mbu-equation').value.trim(),out='';let m=s.match(/^\s*([+-]?\d*\.?\d*)\s*x\s*([+-]\s*\d*\.?\d*)?\s*=\s*([+-]?\d*\.?\d*)\s*$/i);if(m){let a=parseFloat(m[1]||'1'),b=parseFloat((m[2]||'0').replace(/\s/g,'')),c=parseFloat(m[3]);if(a!==0){let x=(c-b)/a;out=`<b>1.</b> Pasamos el término independiente: ${a}x = ${c-b}.<br><b>2.</b> Dividimos por ${a}.<br><b>Resultado:</b> x = ${x}`}}else{let q=s.match(/^\s*x\s*\^\s*2\s*([+-]\s*\d*\.?\d*)\s*x\s*([+-]\s*\d*\.?\d*)\s*=\s*0\s*$/i);if(q){let b=parseFloat(q[1].replace(/\s/g,'')),c=parseFloat(q[2].replace(/\s/g,'')),D=b*b-4*c;if(D>=0){let x1=(-b+Math.sqrt(D))/2,x2=(-b-Math.sqrt(D))/2;out=`<b>Discriminante:</b> Δ = ${D}<br><b>Raíces:</b> x₁ = ${x1}, x₂ = ${x2}`}}}if(!out)out='Probá con una ecuación lineal como <b>2x + 5 = 15</b> o una cuadrática como <b>x^2 - 5x + 6 = 0</b>.';$('mbu-solution').innerHTML=out}
@@ -3769,7 +3884,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   function boardZoom(f){
     if(window.MBU && typeof window.MBU.zoom==='function') window.MBU.zoom(f);
     else {
-      const c=$('board'); if(!c)return;
+      const c=$('canvas-container'); if(!c)return;
       const cur=parseFloat(c.dataset.mbuZoom||'1'); const n=clamp(cur*f,.5,3);
       c.dataset.mbuZoom=n; c.style.transformOrigin='center center'; c.style.transform=`scale(${n})`;
     }
@@ -3777,12 +3892,12 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
   }
   function boardReset(){
     if(window.MBU && typeof window.MBU.resetView==='function') window.MBU.resetView();
-    else {const c=$('board');if(c)c.style.transform='none';}
+    else {const c=$('canvas-container');if(c)c.style.transform='none';}
     updateZoomLabel();
   }
   function updateZoomLabel(){
     const e=$('mbu-v41-zoom'); if(!e)return;
-    const c=$('board'); let n=1;
+    const c=$('canvas-container'); let n=1;
     if(c && c.style.transform && c.style.transform.includes('scale(')){
       const m=c.style.transform.match(/scale\(([^)]+)\)/); if(m)n=parseFloat(m[1])||1;
     } else if(c && c.dataset.mbuZoom)n=parseFloat(c.dataset.mbuZoom)||1;
@@ -3896,13 +4011,27 @@ function receiveUserData(data,conn){
     if(!data||typeof data!=='object'||typeof data.type!=='string')return;
     if(data.type==='batch') {if(Array.isArray(data.data)) data.data.slice(0,1000).forEach(d=>receiveUserData(d,conn));return;}
     if(isAdmin){
-        // Authority comes from the actual connection, never from a claimed role or peer ID.
-        if(['screen_share_stop','user_mic_control','sync_users','kick','logout','peer_list'].includes(data.type))return;
+        // La autoridad proviene de la conexión real, no del rol declarado por el navegador.
+        // Los alumnos pueden colaborar en la pizarra y conversar, pero no controlar la clase.
+        const studentAlwaysAllowed = new Set([
+          'hello','user_mic_ack','user_mic_state','start','stop','stroke','shape','text','image','laser','mbu_chat','mbu_hand'
+        ]);
+        const studentWhenUnlocked = new Set(['pdf_share','pdf_page','video_share']);
+        if(!studentAlwaysAllowed.has(data.type) && !(window.studentsCanShare && studentWhenUnlocked.has(data.type))) return;
+        if(data.type==='pdf_share' && (typeof data.data!=='string' || !data.data.startsWith('data:application/pdf;base64,') || data.data.length>8*1024*1024)) return;
+        if(data.type==='image' && (typeof data.src!=='string' || data.src.length>6*1024*1024)) return;
+        if(data.type==='video_share'){
+            try { if(new URL(String(data.url)).protocol!=='https:') return; } catch (_) { return; }
+        }
         data={...data,peerId:conn.peer,role:'Alumno'};
         if(data.type==='hello'){
-            roomUsers[conn.peer]={...roomUsers[conn.peer],name:String(data.userName||'Alumno').slice(0,100),role:'Alumno',mic:['on','off','unavailable'].includes(data.mic)?data.mic:'unknown'};
+            const safeName=String(data.userName||'Alumno').replace(/[\u0000-\u001F<>]/g,'').trim().slice(0,60)||'Alumno';
+            roomUsers[conn.peer]={...roomUsers[conn.peer],name:safeName,role:'Alumno',mic:['on','off','unavailable'].includes(data.mic)?data.mic:'unknown'};
             renderParticipants();sendTeacherScreen(conn.peer);return;
         }
+        // No permitimos que un alumno cambie su identidad en cada mensaje.
+        data.userName=roomUsers[conn.peer]?.name||'Alumno';
+        if(data.type==='mbu_chat') data.text=String(data.text||'').slice(0,1000);
         if(data.type==='user_mic_ack'){
             const u=roomUsers[conn.peer];if(!u||data.serial!==u.controlSerial||data.locked!==u.locked)return;
             if(u.locked&&data.mic==='on')return;
@@ -4757,6 +4886,118 @@ else requestAnimationFrame(init);
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>
+
+<script id="mathboard-corrections">
+/* Correcciones de funcionamiento: mantiene la interfaz y las funciones originales. */
+(function () {
+  'use strict';
+  let formulaInsertCount = 0;
+
+  window.addTextToCanvas = function (value) {
+    const text = String(value ?? '').trim();
+    const board = document.getElementById('board');
+    if (!text || !board) return;
+
+    const boardCtx = board.getContext('2d');
+    const fontSize = Math.max(22, Math.min(64, Math.round(board.width * 0.03)));
+    const x = Math.round(board.width * 0.08);
+    const row = formulaInsertCount++ % 6;
+    const y = Math.min(board.height - fontSize, Math.round(board.height * 0.16) + row * Math.round(fontSize * 1.35));
+    const color = document.getElementById('mw-color')?.value || '#0f172a';
+
+    try { window.saveState?.(); } catch (_) {}
+    boardCtx.save();
+    boardCtx.globalCompositeOperation = 'source-over';
+    boardCtx.globalAlpha = 1;
+    boardCtx.font = `bold ${fontSize}px 'Segoe UI', sans-serif`;
+    boardCtx.fillStyle = color;
+    boardCtx.textBaseline = 'middle';
+    if (document.body.classList.contains('theme-chalkboard') || document.body.classList.contains('theme-school')) {
+      boardCtx.shadowBlur = 1;
+      boardCtx.shadowColor = color;
+    }
+    boardCtx.fillText(text, x, y);
+    boardCtx.restore();
+
+    try {
+      window.broadcastData?.({
+        type: 'text', text,
+        x: x / board.width, y: y / board.height,
+        color, fontSize: fontSize / board.width
+      });
+    } catch (_) {}
+    try { window.MathBoardPages?.save?.(); window.mbScheduleRecovery?.(); } catch (_) {}
+  };
+
+  function createInstrument(kind) {
+    const surface = document.getElementById('canvas-container');
+    if (!surface) return;
+    const previous = document.getElementById('mb-instrument-' + kind);
+    if (previous) { previous.remove(); return; }
+
+    const tool = document.createElement('div');
+    tool.id = 'mb-instrument-' + kind;
+    tool.className = 'mb-live-instrument mb-live-' + kind;
+    tool.setAttribute('role', 'dialog');
+    tool.setAttribute('aria-label', kind === 'ruler' ? 'Regla móvil' : 'Transportador móvil');
+    tool.innerHTML = `<span class="mb-instrument-title">${kind === 'ruler' ? '📏 Regla' : '📐 Transportador'}</span><button type="button" aria-label="Cerrar instrumento">×</button>`;
+    tool.style.left = kind === 'ruler' ? '18%' : '55%';
+    tool.style.top = kind === 'ruler' ? '18%' : '16%';
+    tool.querySelector('button').onclick = event => { event.stopPropagation(); tool.remove(); };
+
+    let drag = null;
+    tool.addEventListener('pointerdown', event => {
+      if (event.target.closest('button') || event.button !== 0) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const rect = tool.getBoundingClientRect();
+      drag = { pointerId: event.pointerId, x: event.clientX, y: event.clientY, left: rect.left, top: rect.top };
+      tool.setPointerCapture?.(event.pointerId);
+    });
+    tool.addEventListener('pointermove', event => {
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      event.preventDefault();
+      const parent = surface.getBoundingClientRect();
+      const scale = parent.width / Math.max(1, surface.offsetWidth);
+      tool.style.left = Math.max(0, (drag.left + event.clientX - drag.x - parent.left) / Math.max(scale, 0.01)) + 'px';
+      tool.style.top = Math.max(0, (drag.top + event.clientY - drag.y - parent.top) / Math.max(scale, 0.01)) + 'px';
+    });
+    const stopDrag = event => {
+      if (drag?.pointerId !== event.pointerId) return;
+      drag = null;
+      if (tool.hasPointerCapture?.(event.pointerId)) tool.releasePointerCapture(event.pointerId);
+    };
+    tool.addEventListener('pointerup', stopDrag);
+    tool.addEventListener('pointercancel', stopDrag);
+    surface.appendChild(tool);
+  }
+
+  function installInstrumentActions() {
+    if (!window.MBU || window.MBU.__correctedInstruments) return;
+    const originalInstrument = window.MBU.instrument;
+    window.MBU.instrument = function (kind) {
+      if (kind === 'ruler' || kind === 'protractor') return createInstrument(kind);
+      return originalInstrument?.(kind);
+    };
+    window.MBU.__correctedInstruments = true;
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', installInstrumentActions, { once: true });
+  } else {
+    installInstrumentActions();
+  }
+})();
+</script>
+<style id="mathboard-corrections-css">
+.mb-live-instrument{position:absolute;z-index:8;box-sizing:border-box;touch-action:none;cursor:grab;user-select:none;color:#102a43;font:700 12px/1 system-ui,sans-serif;filter:drop-shadow(0 6px 12px rgba(15,23,42,.28))}
+.mb-live-instrument:active{cursor:grabbing}.mb-live-instrument button{position:absolute;right:6px;top:5px;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:#0f172a;color:#fff;font:700 16px/1 system-ui;cursor:pointer}.mb-instrument-title{position:absolute;left:9px;top:8px;opacity:.85}
+.mb-live-ruler{width:420px;height:58px;border:2px solid #475569;border-radius:7px;background:repeating-linear-gradient(90deg,rgba(15,23,42,.72) 0 1px,transparent 1px 10px),linear-gradient(#fef3c7,#fde68a)}
+.mb-live-ruler::after{content:'0     1     2     3     4     5     6     7     8     9    10';position:absolute;left:45px;bottom:7px;white-space:pre;color:#1e293b;letter-spacing:12px;font-size:10px}
+.mb-live-protractor{width:250px;height:126px;border:3px solid #475569;border-bottom:0;border-radius:250px 250px 0 0;background:repeating-conic-gradient(from 270deg at 50% 100%,rgba(15,23,42,.7) 0deg .7deg,transparent .7deg 5deg),rgba(253,230,138,.82)}
+.mb-live-protractor::after{content:'0°       45°       90°       135°       180°';position:absolute;left:12px;bottom:8px;white-space:pre;font-size:10px;color:#1e293b}
+@media(max-width:600px){.mb-live-ruler{width:300px}.mb-live-ruler::after{transform:scale(.7);transform-origin:left bottom}.mb-live-protractor{transform:scale(.82);transform-origin:top left}}
+</style>
 
 </body>
 </html>
