@@ -5456,6 +5456,7 @@ else requestAnimationFrame(init);
             <div class="mbx-graph-actions">
               <button id="mbx-add-function" class="mbx-secondary" type="button">+ Agregar función</button>
               <button id="mbx-draw-graph" class="mbx-action" type="button">Graficar</button>
+              <button id="mbx-paste-graph" class="mbx-secondary" type="button">🖼️ Pegar en pizarra</button>
             </div>
             <p class="mbx-note" style="margin-top:14px">Funciones disponibles: sin, cos, tan, sqrt, abs, ln, log, exp, asin, acos y atan. La unidad angular es radianes.</p>
           </div>
@@ -5787,9 +5788,8 @@ else requestAnimationFrame(init);
       var drawing=false,lastY=null;
       item.samples.forEach(function(point){
         var sy=toY(point.y),sx=toX(point.x);
-        var breakLine=!Number.isFinite(point.y)||Math.abs(sy)>h*3||lastY===null||Math.abs(sy-lastY)>h*.75;
-        if(breakLine){drawing=false;lastY=null;return;}
-        if(!drawing){ctx.moveTo(sx,sy);drawing=true;}else ctx.lineTo(sx,sy);
+        if(!Number.isFinite(point.y)||Math.abs(sy)>h*3){drawing=false;lastY=null;return;}
+        if(!drawing||lastY===null||Math.abs(sy-lastY)>h*.75){ctx.moveTo(sx,sy);drawing=true;}else ctx.lineTo(sx,sy);
         lastY=sy;
       });
       ctx.stroke();
@@ -5801,6 +5801,30 @@ else requestAnimationFrame(init);
   function scheduleGraph(){
     if(state.graphFrame) return;
     state.graphFrame=requestAnimationFrame(drawGraph);
+  }
+  function pasteGraphToBoard(){
+    var plot=get('mbx-plot-canvas'),board=document.getElementById('board');
+    if(!plot||!board) return;
+    drawGraph();
+    var maxPixels=1100000,scale=Math.min(1,Math.sqrt(maxPixels/Math.max(1,plot.width*plot.height)));
+    var exportCanvas=document.createElement('canvas');
+    exportCanvas.width=Math.max(1,Math.round(plot.width*scale));exportCanvas.height=Math.max(1,Math.round(plot.height*scale));
+    exportCanvas.getContext('2d').drawImage(plot,0,0,exportCanvas.width,exportCanvas.height);
+    var source=exportCanvas.toDataURL('image/png'),image=new Image();
+    image.onload=function(){
+      var ratio=Math.min(1,board.width*.72/image.naturalWidth,board.height*.68/image.naturalHeight);
+      var width=Math.max(120,Math.round(image.naturalWidth*ratio)),height=Math.max(80,Math.round(image.naturalHeight*ratio));
+      var x=Math.round((board.width-width)/2),y=Math.round((board.height-height)/2),boardCtx=board.getContext('2d');
+      try{window.saveState?.();}catch(_){}
+      boardCtx.save();boardCtx.globalCompositeOperation='source-over';boardCtx.globalAlpha=1;boardCtx.drawImage(image,x,y,width,height);boardCtx.restore();
+      try{window.refreshCtxState?.();}catch(_){}
+      try{window.broadcastData?.({type:'image',src:source,x:x/board.width,y:y/board.height,w:width/board.width,h:height/board.height});}catch(_){}
+      try{window.MathBoardPages?.save?.();window.mbScheduleRecovery?.();}catch(_){}
+      get('mbx-plot-summary').textContent='✓ Gráfico pegado en la pizarra.';
+      close();
+    };
+    image.onerror=function(){get('mbx-plot-summary').textContent='No se pudo preparar el gráfico para pegar.';};
+    image.src=source;
   }
   function installCircleChips(){
     var box=get('mbx-angle-chips');box.textContent='';
@@ -5850,6 +5874,7 @@ else requestAnimationFrame(init);
   get('mbx-circle-canvas').addEventListener('pointermove',function(event){if(event.buttons) circlePointer(event);});
   get('mbx-add-function').addEventListener('click',function(){addFunctionRow('sin(x)','#ef476f');scheduleGraph();});
   get('mbx-draw-graph').addEventListener('click',scheduleGraph);
+  get('mbx-paste-graph').addEventListener('click',pasteGraphToBoard);
   get('mbx-graph-rows').addEventListener('input',scheduleGraph);
   get('mbx-xmin').addEventListener('input',scheduleGraph);get('mbx-xmax').addEventListener('input',scheduleGraph);
   document.addEventListener('keydown',function(event){
@@ -5867,7 +5892,7 @@ else requestAnimationFrame(init);
     observer.observe(get('mbx-circle-canvas').parentElement);observer.observe(get('mbx-plot-canvas').parentElement);
   }
   installCircleChips();renderKeyboard();
-  window.MBX={open:open,close:close,show:showView,setAngle:setAngle,drawGraph:scheduleGraph,evaluate:function(expression,scope){return compileExpression(expression)(scope||{ans:state.answer});}};
+  window.MBX={open:open,close:close,show:showView,setAngle:setAngle,drawGraph:scheduleGraph,pasteGraph:pasteGraphToBoard,evaluate:function(expression,scope){return compileExpression(expression)(scope||{ans:state.answer});}};
 })();
 </script>
 
