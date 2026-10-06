@@ -5344,24 +5344,32 @@ else requestAnimationFrame(init);
 <style id="mbx-mathlab-style">
   #mbx-shell{position:fixed;inset:0;z-index:10120;display:none;isolation:isolate;color:#eafff4;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:rgba(1,11,8,.96)}
   #mbx-shell.mbx-open{display:block}
+  #mbx-shell.mbx-minimized{inset:auto 16px 94px auto;width:min(390px,calc(100vw - 32px));height:auto;background:transparent;pointer-events:none}
+  #mbx-shell.mbx-minimized .mbx-frame{height:auto;min-height:0;overflow:visible;border:1px solid rgba(112,255,181,.48);border-radius:17px;background:linear-gradient(135deg,rgba(2,35,21,.97),rgba(4,75,45,.96));box-shadow:0 18px 42px rgba(0,0,0,.42);pointer-events:auto}
+  #mbx-shell.mbx-minimized .mbx-tabs,#mbx-shell.mbx-minimized .mbx-content{display:none}
+  #mbx-shell.mbx-minimized .mbx-topbar{min-height:54px;padding:9px 11px;border:0;border-bottom:1px solid rgba(130,255,196,.14);border-radius:17px 17px 0 0}
+  #mbx-shell.mbx-minimized .mbx-brand-copy span{display:none}
+  #mbx-shell.mbx-minimized #mbx-native-fullscreen{display:none}
   html.mbx-active,body.mbx-active{touch-action:pan-y!important}
   #mbx-shell *{box-sizing:border-box}
   #mbx-shell button,#mbx-shell input{font:inherit}
   .mbx-frame{height:100%;height:100dvh;display:flex;flex-direction:column;overflow:hidden;background:radial-gradient(circle at 15% 8%,rgba(36,241,156,.18),transparent 30%),radial-gradient(circle at 83% 88%,rgba(0,180,120,.15),transparent 35%),linear-gradient(135deg,#02140d 0%,#061e16 46%,#020907 100%)}
   .mbx-topbar{min-height:68px;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px clamp(14px,3vw,34px);border-bottom:1px solid rgba(130,255,196,.18);background:rgba(2,19,13,.78);backdrop-filter:blur(18px);flex-shrink:0}
   .mbx-brand{display:flex;align-items:center;gap:11px;min-width:0}.mbx-orb{display:grid;place-items:center;width:36px;height:36px;border:1px solid #63ffc0;border-radius:50%;color:#9effcf;background:radial-gradient(circle at 30% 25%,#baffd9,#0a9a5e 50%,#013c27);box-shadow:0 0 24px rgba(62,255,168,.42);font-size:20px}.mbx-brand-copy{display:flex;flex-direction:column;min-width:0}.mbx-brand-copy b{font-size:15px;letter-spacing:.12em;color:#dcffeb}.mbx-brand-copy span{font-size:11px;letter-spacing:.06em;color:#7bbf99;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .mbx-top-actions{display:flex;align-items:center;gap:8px}.mbx-icon-btn{border:1px solid rgba(130,255,196,.24);border-radius:11px;background:rgba(6,52,33,.75);color:#d9ffea;min-height:38px;padding:7px 11px;cursor:pointer;transition:.18s}.mbx-icon-btn:hover,.mbx-icon-btn:focus-visible{background:#08784b;outline:2px solid rgba(123,255,178,.75);outline-offset:2px}.mbx-close{font-size:22px;line-height:1;padding:5px 12px}
+  .mbx-top-actions{display:flex;align-items:center;gap:8px}.mbx-icon-btn{border:1px solid rgba(130,255,196,.24);border-radius:11px;background:rgba(6,52,33,.75);color:#d9ffea;min-height:38px;padding:7px 11px;cursor:pointer;transition:.18s}.mbx-icon-btn:hover,.mbx-icon-btn:focus-visible{background:#08784b;outline:2px solid rgba(123,255,178,.75);outline-offset:2px}.mbx-close{font-size:22px;line-height:1;padding:5px 12px}.mbx-mini-strip{display:none;align-items:center;gap:8px;padding:9px 11px;border-radius:0 0 17px 17px;background:rgba(1,25,15,.72)}.mbx-mini-summary{min-width:0;flex:1;color:#c8fbe0;font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.mbx-mini-paste{flex-shrink:0;border:1px solid rgba(151,255,204,.36);border-radius:9px;background:#10aa68;color:#012b18;padding:7px 9px;font-size:12px;font-weight:850;cursor:pointer}.mbx-mini-paste:hover,.mbx-mini-paste:focus-visible{filter:brightness(1.1);outline:2px solid rgba(163,255,210,.68);outline-offset:2px}#mbx-shell.mbx-minimized .mbx-mini-strip{display:flex}
   .mbx-tabs{display:flex;gap:7px;padding:10px clamp(14px,3vw,34px);overflow-x:auto;border-bottom:1px solid rgba(130,255,196,.12);background:rgba(1,14,9,.72);scrollbar-width:none;flex-shrink:0}.mbx-tabs::-webkit-scrollbar{display:none}.mbx-tab{border:1px solid rgba(130,255,196,.18);border-radius:999px;background:rgba(10,62,41,.48);color:#a9d8bd;white-space:nowrap;padding:8px 13px;cursor:pointer;font-size:13px;font-weight:750;transition:.18s}.mbx-tab:hover,.mbx-tab:focus-visible{color:#fff;background:rgba(17,138,85,.7);outline:none}.mbx-tab.is-active{background:linear-gradient(135deg,#0ca765,#12d987);color:#012617;border-color:#8fffc7;box-shadow:0 0 18px rgba(32,241,143,.24)}
   .mbx-content{min-height:0;flex:1;overflow:auto;overscroll-behavior:contain;padding:clamp(14px,2.4vw,30px);touch-action:pan-y}.mbx-view{max-width:1320px;min-height:100%;margin:0 auto}.mbx-view[hidden]{display:none!important}
   .mbx-kicker{margin:0 0 7px;color:#79edaf;font-size:12px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}.mbx-title{margin:0;color:#f2fff7;font-size:clamp(24px,3.4vw,44px);line-height:1.05;letter-spacing:-.04em}.mbx-lead{max-width:740px;margin:12px 0 22px;color:#a6c8b5;font-size:clamp(14px,1.6vw,17px);line-height:1.55}
   .mbx-home-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.mbx-home-card{position:relative;min-height:240px;display:flex;flex-direction:column;align-items:flex-start;padding:22px;border:1px solid rgba(128,255,190,.2);border-radius:20px;overflow:hidden;background:linear-gradient(145deg,rgba(12,73,47,.72),rgba(3,26,17,.86));box-shadow:0 22px 40px rgba(0,0,0,.16)}.mbx-home-card:before{content:"";position:absolute;right:-50px;bottom:-75px;width:180px;height:180px;border-radius:50%;background:radial-gradient(circle,rgba(84,255,174,.28),transparent 68%);pointer-events:none}.mbx-card-icon{display:grid;place-items:center;width:46px;height:46px;border:1px solid rgba(159,255,208,.42);border-radius:15px;background:rgba(10,97,61,.56);color:#b8ffda;font-size:25px;box-shadow:inset 0 0 18px rgba(95,255,175,.16)}.mbx-home-card h3{margin:17px 0 7px;color:#f2fff7;font-size:20px}.mbx-home-card p{position:relative;margin:0 0 20px;color:#a5cbb4;line-height:1.5;font-size:14px}.mbx-action{position:relative;margin-top:auto;border:1px solid rgba(170,255,211,.35);border-radius:11px;background:linear-gradient(135deg,#0b9259,#15d886);color:#012717;padding:10px 13px;font-weight:850;cursor:pointer;transition:.18s}.mbx-action:hover,.mbx-action:focus-visible{filter:brightness(1.08);outline:2px solid rgba(160,255,207,.8);outline-offset:2px}
   .mbx-panel{border:1px solid rgba(130,255,196,.18);border-radius:20px;background:rgba(3,29,19,.78);box-shadow:0 22px 54px rgba(0,0,0,.2)}.mbx-panel-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:16px 18px;border-bottom:1px solid rgba(130,255,196,.13)}.mbx-panel-header h2{margin:0;color:#edfff5;font-size:18px}.mbx-panel-header p{margin:4px 0 0;color:#91b6a1;font-size:13px;line-height:1.45}
   .mbx-circle-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(280px,.72fr);gap:16px}.mbx-canvas-card{display:flex;min-height:min(66vh,680px);padding:12px}.mbx-canvas-card canvas{width:100%;height:100%;display:block;border:1px solid rgba(124,255,185,.2);border-radius:16px;background:radial-gradient(circle at 50% 50%,rgba(17,96,62,.28),rgba(1,15,9,.25));touch-action:none}.mbx-circle-side{display:flex;flex-direction:column;gap:13px;padding:16px}.mbx-angle-big{margin:0;color:#f4fff8;font-size:clamp(32px,5vw,52px);font-weight:850;letter-spacing:-.05em}.mbx-angle-rad{color:#86f4b9;font-size:18px;font-weight:800}.mbx-coordinate-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.mbx-coordinate{padding:10px;border:1px solid rgba(132,255,195,.16);border-radius:12px;background:rgba(9,75,47,.45)}.mbx-coordinate span{display:block;color:#83b99d;font-size:11px;font-weight:800;letter-spacing:.1em;text-transform:uppercase}.mbx-coordinate b{display:block;margin-top:4px;color:#f0fff6;font-size:18px;word-break:break-word}.mbx-range-label{display:flex;justify-content:space-between;gap:10px;color:#bde9ce;font-size:12px;font-weight:700}.mbx-range{width:100%;accent-color:#37ef96}.mbx-angle-input{width:100%;border:1px solid rgba(137,255,198,.3);border-radius:11px;background:#031d12;color:#ecfff5;padding:10px 11px;outline:none}.mbx-angle-input:focus{border-color:#78ffb6;box-shadow:0 0 0 3px rgba(56,234,144,.17)}.mbx-angle-chips{display:flex;flex-wrap:wrap;gap:6px}.mbx-angle-chip{border:1px solid rgba(134,255,195,.22);border-radius:999px;background:rgba(8,86,52,.38);color:#d8ffea;padding:6px 9px;font-size:12px;font-weight:750;cursor:pointer}.mbx-angle-chip:hover,.mbx-angle-chip:focus-visible{background:#108b57;outline:none}.mbx-note{margin:0;color:#89ad98;font-size:12px;line-height:1.5}
-  .mbx-graph-layout{display:grid;grid-template-columns:minmax(265px,.58fr) minmax(0,1.42fr);gap:16px}.mbx-graph-controls{padding:16px}.mbx-label{display:block;margin:0 0 5px;color:#a6d7b8;font-size:12px;font-weight:800;letter-spacing:.04em}.mbx-field{width:100%;border:1px solid rgba(130,255,196,.23);border-radius:10px;background:#031a10;color:#ecfff5;padding:9px 10px;outline:none}.mbx-field:focus,.mbx-field.mbx-expression-active{border-color:#75f9b0;box-shadow:0 0 0 3px rgba(64,241,151,.15)}.mbx-field[readonly]{cursor:default}.mbx-bounds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0}.mbx-fn-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}.mbx-fn-row{display:grid;grid-template-columns:23px minmax(0,1fr) 39px 34px;align-items:center;gap:6px}.mbx-fn-tag{display:grid;place-items:center;width:23px;height:34px;color:#80ffc0;font-size:12px;font-weight:900}.mbx-color{width:39px;height:34px;padding:2px;border:1px solid rgba(133,255,196,.27);border-radius:9px;background:#082f20;cursor:pointer}.mbx-row-remove{width:34px;height:34px;border:1px solid rgba(255,153,153,.32);border-radius:9px;background:rgba(116,25,25,.42);color:#ffdede;font-weight:900;cursor:pointer}.mbx-secondary{border:1px solid rgba(130,255,196,.24);border-radius:10px;background:rgba(9,76,47,.65);color:#d7ffea;padding:9px 11px;font-weight:800;cursor:pointer}.mbx-secondary:hover,.mbx-secondary:focus-visible{background:#0b985b;outline:2px solid rgba(156,255,208,.65);outline-offset:2px}.mbx-secondary:disabled{opacity:.4;cursor:not-allowed}.mbx-graph-actions{display:flex;gap:8px;flex-wrap:wrap}.mbx-graph-keyboard-wrap{margin-top:14px;padding:11px;border:1px solid rgba(130,255,196,.16);border-radius:13px;background:rgba(4,49,30,.46)}.mbx-graph-keyboard-title{display:flex;justify-content:space-between;gap:8px;margin:0 0 9px;color:#c9ffe0;font-size:12px;font-weight:800}.mbx-graph-keyboard-title span{color:#83b99d;font-weight:650}.mbx-graph-keyboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.mbx-graph-key{min-width:0;min-height:38px;border:1px solid rgba(145,255,202,.2);border-radius:10px;background:rgba(10,85,53,.72);color:#e6fff0;font-weight:850;cursor:pointer;transition:transform .12s,background .12s}.mbx-graph-key:hover,.mbx-graph-key:focus-visible{background:#0eaa65;outline:2px solid rgba(163,255,210,.68);outline-offset:2px}.mbx-graph-key:active{transform:translateY(1px)}.mbx-graph-key.mbx-key-danger{background:rgba(129,40,40,.68);border-color:rgba(255,176,176,.25)}.mbx-plot-card{display:flex;flex-direction:column;min-width:0}.mbx-plot-wrap{position:relative;min-height:min(64vh,650px);padding:12px}.mbx-plot-wrap canvas{display:block;width:100%;height:100%;border:1px solid rgba(127,255,191,.18);border-radius:14px;background:#f7fff9}.mbx-plot-summary{padding:0 16px 16px;color:#a3c9b1;font-size:12px;line-height:1.45}
+  .mbx-graph-layout{display:grid;grid-template-columns:minmax(265px,.58fr) minmax(0,1.42fr);gap:16px}.mbx-graph-controls{padding:16px}.mbx-label{display:block;margin:0 0 5px;color:#a6d7b8;font-size:12px;font-weight:800;letter-spacing:.04em}.mbx-field{width:100%;border:1px solid rgba(130,255,196,.23);border-radius:10px;background:#031a10;color:#ecfff5;padding:9px 10px;outline:none}.mbx-field:focus,.mbx-field.mbx-expression-active{border-color:#75f9b0;box-shadow:0 0 0 3px rgba(64,241,151,.15)}.mbx-field[readonly]{cursor:default}.mbx-bounds{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:13px 0}.mbx-fn-list{display:flex;flex-direction:column;gap:8px;margin:12px 0}.mbx-fn-row{display:grid;grid-template-columns:23px minmax(0,1fr) 39px 34px;align-items:center;gap:6px}.mbx-fn-tag{display:grid;place-items:center;width:23px;height:34px;color:#80ffc0;font-size:12px;font-weight:900}.mbx-color{width:39px;height:34px;padding:2px;border:1px solid rgba(133,255,196,.27);border-radius:9px;background:#082f20;cursor:pointer}.mbx-row-remove{width:34px;height:34px;border:1px solid rgba(255,153,153,.32);border-radius:9px;background:rgba(116,25,25,.42);color:#ffdede;font-weight:900;cursor:pointer}.mbx-secondary{border:1px solid rgba(130,255,196,.24);border-radius:10px;background:rgba(9,76,47,.65);color:#d7ffea;padding:9px 11px;font-weight:800;cursor:pointer}.mbx-secondary:hover,.mbx-secondary:focus-visible{background:#0b985b;outline:2px solid rgba(156,255,208,.65);outline-offset:2px}.mbx-secondary:disabled{opacity:.4;cursor:not-allowed}.mbx-graph-actions{display:flex;gap:8px;flex-wrap:wrap}.mbx-graph-keyboard-wrap{margin-top:14px;padding:11px;border:1px solid rgba(130,255,196,.16);border-radius:13px;background:rgba(4,49,30,.46)}.mbx-graph-keyboard-title{display:flex;justify-content:space-between;gap:8px;margin:0 0 9px;color:#c9ffe0;font-size:12px;font-weight:800}.mbx-graph-keyboard-title span{color:#83b99d;font-weight:650}.mbx-graph-keyboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:6px}.mbx-graph-key{min-width:0;min-height:38px;border:1px solid rgba(145,255,202,.2);border-radius:10px;background:rgba(10,85,53,.72);color:#e6fff0;font-weight:850;cursor:pointer;transition:transform .12s,background .12s}.mbx-graph-key:hover,.mbx-graph-key:focus-visible{background:#0eaa65;outline:2px solid rgba(163,255,210,.68);outline-offset:2px}.mbx-graph-key:active{transform:translateY(1px)}.mbx-graph-key.mbx-key-danger{background:rgba(129,40,40,.68);border-color:rgba(255,176,176,.25)}.mbx-function-bank{margin-top:10px;padding-top:10px;border-top:1px solid rgba(130,255,196,.13)}.mbx-function-bank-title{margin:0 0 8px;color:#c9ffe0;font-size:12px;font-weight:800}.mbx-function-bank-title span{color:#83b99d;font-weight:650}.mbx-function-chips{display:flex;flex-wrap:wrap;gap:6px}.mbx-function-chip{border:1px solid rgba(143,255,201,.22);border-radius:999px;background:rgba(9,91,54,.54);color:#dcffeb;padding:6px 9px;font-size:12px;font-weight:800;cursor:pointer}.mbx-function-chip:hover,.mbx-function-chip:focus-visible{background:#0eaa65;outline:2px solid rgba(163,255,210,.68);outline-offset:2px}.mbx-plot-card{display:flex;flex-direction:column;min-width:0}.mbx-plot-wrap{position:relative;min-height:min(64vh,650px);padding:12px}.mbx-plot-wrap canvas{display:block;width:100%;height:100%;border:1px solid rgba(127,255,191,.18);border-radius:14px;background:#f7fff9}.mbx-plot-summary{padding:0 16px 16px;color:#a3c9b1;font-size:12px;line-height:1.45}
   .mbx-analysis-panel{margin-top:14px;padding:12px;border:1px solid rgba(130,255,196,.18);border-radius:14px;background:linear-gradient(145deg,rgba(5,64,39,.52),rgba(2,29,18,.62))}.mbx-analysis-heading{display:flex;justify-content:space-between;gap:10px;align-items:baseline}.mbx-analysis-heading b{color:#e5fff0;font-size:14px}.mbx-analysis-heading span{color:#8ec5a4;font-size:11px;font-weight:700}.mbx-analysis-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:10px}.mbx-analysis-grid .mbx-label{margin:0}.mbx-analysis-grid .mbx-field{margin-top:5px}.mbx-analysis-apply{width:100%;margin-top:10px}.mbx-analysis-result{min-height:20px;margin-top:9px;color:#b7f6d1;font-family:"SFMono-Regular",Consolas,monospace;font-size:12px;line-height:1.45;word-break:break-word}.mbx-analysis-result.is-error{color:#ffd1d1}
   .mbx-console-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(290px,.9fr);gap:16px}.mbx-console-card{padding:16px}.mbx-console-screen{min-height:222px;display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid rgba(124,255,186,.27);border-radius:16px;background:linear-gradient(155deg,#02150c,#06331e);box-shadow:inset 0 0 35px rgba(0,0,0,.35)}.mbx-console-label{color:#75e9aa;font-size:11px;font-weight:850;letter-spacing:.13em}.mbx-console-input{width:100%;border:0;border-bottom:1px solid rgba(131,255,194,.26);border-radius:0;background:transparent;color:#f3fff7;padding:7px 0;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:clamp(18px,2.4vw,28px);outline:none}.mbx-console-result{min-height:44px;color:#c4ffe0;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:clamp(20px,3vw,34px);line-height:1.3;word-break:break-word}.mbx-console-hint{margin-top:auto;color:#8cad9b;font-size:12px;line-height:1.5}.mbx-keyboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:100%;margin-top:14px}.mbx-key{min-width:0;min-height:48px;border:1px solid rgba(145,255,202,.2);border-radius:12px;background:rgba(10,85,53,.72);color:#e6fff0;font-weight:850;cursor:pointer;box-shadow:0 5px 12px rgba(0,0,0,.12);transition:transform .12s,background .12s}.mbx-key:hover,.mbx-key:focus-visible{background:#0eaa65;outline:2px solid rgba(163,255,210,.68);outline-offset:2px}.mbx-key:active{transform:translateY(1px)}.mbx-key.mbx-key-primary{background:linear-gradient(135deg,#0bb96d,#28e78d);color:#01311d}.mbx-key.mbx-key-danger{background:rgba(129,40,40,.68);border-color:rgba(255,176,176,.25)}.mbx-help-list{display:grid;gap:10px;padding:16px}.mbx-help-row{padding:12px;border:1px solid rgba(130,255,196,.14);border-radius:12px;background:rgba(7,64,40,.4)}.mbx-help-row b{display:block;color:#dcffea;font-size:13px}.mbx-help-row span{display:block;margin-top:4px;color:#95baa3;font-family:"SFMono-Regular",Consolas,monospace;font-size:12px}
-  @media (max-width:980px){.mbx-home-grid{grid-template-columns:1fr}.mbx-home-card{min-height:180px}.mbx-circle-layout,.mbx-graph-layout,.mbx-console-layout{grid-template-columns:1fr}.mbx-canvas-card{min-height:min(55svh,560px)}.mbx-plot-wrap{min-height:min(53svh,560px)}}
-  @media (max-width:640px){.mbx-topbar{min-height:59px;padding:9px 12px}.mbx-brand-copy span{display:none}.mbx-top-actions .mbx-icon-btn:first-child{display:none}.mbx-tabs{padding:8px 12px}.mbx-content{padding:12px}.mbx-title{font-size:27px}.mbx-lead{margin-bottom:16px}.mbx-home-card{padding:18px;border-radius:16px}.mbx-panel{border-radius:16px}.mbx-panel-header{padding:14px}.mbx-canvas-card{min-height:47svh;padding:8px}.mbx-circle-side,.mbx-graph-controls,.mbx-console-card{padding:13px}.mbx-coordinate b{font-size:16px}.mbx-plot-wrap{min-height:46svh;padding:8px}.mbx-keyboard{gap:6px;margin-top:10px}.mbx-key{min-height:45px;border-radius:10px;font-size:13px}.mbx-console-screen{min-height:190px;padding:12px}.mbx-console-input{font-size:20px}.mbx-console-result{font-size:27px}.mbx-fn-row{grid-template-columns:20px minmax(0,1fr) 37px 32px}.mbx-fn-tag{width:20px}.mbx-color{width:37px}.mbx-row-remove{width:32px}.mbx-graph-actions{display:grid;grid-template-columns:1fr 1fr}.mbx-graph-actions .mbx-action{width:100%}.mbx-graph-key{min-height:42px;font-size:12px}.mbx-graph-keyboard-title{display:block;line-height:1.45}.mbx-graph-keyboard-title span{display:block;margin-top:2px}}
+  .mbx-console-layout{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(290px,.9fr);gap:16px}.mbx-console-card{padding:16px}.mbx-console-screen{min-height:222px;display:flex;flex-direction:column;gap:10px;padding:14px;border:1px solid rgba(124,255,186,.27);border-radius:16px;background:linear-gradient(155deg,#02150c,#06331e);box-shadow:inset 0 0 35px rgba(0,0,0,.35)}.mbx-console-label{color:#75e9aa;font-size:11px;font-weight:850;letter-spacing:.13em}.mbx-console-input{width:100%;border:0;border-bottom:1px solid rgba(131,255,194,.26);border-radius:0;background:transparent;color:#f3fff7;padding:7px 0;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:clamp(18px,2.4vw,28px);outline:none}.mbx-console-result{min-height:44px;color:#c4ffe0;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:clamp(20px,3vw,34px);line-height:1.3;word-break:break-word}.mbx-console-hint{margin-top:auto;color:#8cad9b;font-size:12px;line-height:1.5}.mbx-keyboard{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;width:100%;margin-top:14px}.mbx-key{min-width:0;min-height:48px;border:1px solid rgba(145,255,202,.2);border-radius:12px;background:rgba(10,85,53,.72);color:#e6fff0;font-weight:850;cursor:pointer;box-shadow:0 5px 12px rgba(0,0,0,.12);transition:transform .12s,background .12s}.mbx-key:hover,.mbx-key:focus-visible{background:#0eaa65;outline:2px solid rgba(163,255,210,.68);outline-offset:2px}.mbx-key:active{transform:translateY(1px)}.mbx-key.mbx-key-primary{background:linear-gradient(135deg,#0bb96d,#28e78d);color:#01311d}.mbx-key.mbx-key-danger{background:rgba(129,40,40,.68);border-color:rgba(255,176,176,.25)}.mbx-help-list{display:grid;gap:10px;padding:16px}.mbx-help-row{padding:12px;border:1px solid rgba(130,255,196,.14);border-radius:12px;background:rgba(7,64,40,.4)}.mbx-help-row b{display:block;color:#dcffea;font-size:13px}.mbx-help-row span{display:block;margin-top:4px;color:#95baa3;font-family:"SFMono-Regular",Consolas,monospace;font-size:12px}
+  .mbx-tool-layout{display:grid;grid-template-columns:minmax(0,1.18fr) minmax(260px,.82fr);gap:16px}.mbx-tool-card{padding:16px}.mbx-tool-fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;margin-top:12px}.mbx-tool-fields .mbx-label{margin:0}.mbx-tool-fields .mbx-field{margin-top:5px}.mbx-tool-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.mbx-tool-result{min-height:135px;margin-top:12px;padding:13px;border:1px solid rgba(133,255,196,.2);border-radius:13px;background:rgba(1,23,14,.72);color:#d7ffea;font-family:"SFMono-Regular",Consolas,"Liberation Mono",monospace;font-size:13px;line-height:1.55;white-space:pre-wrap;word-break:break-word}.mbx-tool-result.is-error{color:#ffd1d1}.mbx-tool-note{margin:0;padding:13px;border:1px solid rgba(130,255,196,.14);border-radius:13px;background:rgba(7,64,40,.4);color:#a4cab2;font-size:13px;line-height:1.55}.mbx-tool-note b{color:#dcffea}.mbx-inline-select{margin-top:5px}.mbx-paste-calculation{background:rgba(8,88,53,.8)}
+  @media (max-width:980px){.mbx-home-grid{grid-template-columns:1fr}.mbx-home-card{min-height:180px}.mbx-circle-layout,.mbx-graph-layout,.mbx-console-layout,.mbx-tool-layout{grid-template-columns:1fr}.mbx-canvas-card{min-height:min(55svh,560px)}.mbx-plot-wrap{min-height:min(53svh,560px)}}
+  @media (max-width:640px){.mbx-topbar{min-height:59px;padding:9px 12px}.mbx-brand-copy span{display:none}.mbx-top-actions .mbx-icon-btn:first-child{display:none}.mbx-tabs{padding:8px 12px}.mbx-content{padding:12px}.mbx-title{font-size:27px}.mbx-lead{margin-bottom:16px}.mbx-home-card{padding:18px;border-radius:16px}.mbx-panel{border-radius:16px}.mbx-panel-header{padding:14px}.mbx-canvas-card{min-height:47svh;padding:8px}.mbx-circle-side,.mbx-graph-controls,.mbx-console-card,.mbx-tool-card{padding:13px}.mbx-coordinate b{font-size:16px}.mbx-plot-wrap{min-height:46svh;padding:8px}.mbx-keyboard{gap:6px;margin-top:10px}.mbx-key{min-height:45px;border-radius:10px;font-size:13px}.mbx-console-screen{min-height:190px;padding:12px}.mbx-console-input{font-size:20px}.mbx-console-result{font-size:27px}.mbx-fn-row{grid-template-columns:20px minmax(0,1fr) 37px 32px}.mbx-fn-tag{width:20px}.mbx-color{width:37px}.mbx-row-remove{width:32px}.mbx-graph-actions{display:grid;grid-template-columns:1fr 1fr}.mbx-graph-actions .mbx-action{width:100%}.mbx-graph-key{min-height:42px;font-size:12px}.mbx-graph-keyboard-title{display:block;line-height:1.45}.mbx-graph-keyboard-title span{display:block;margin-top:2px}.mbx-tool-fields{grid-template-columns:repeat(2,minmax(0,1fr))}#mbx-shell.mbx-minimized{right:10px;bottom:84px;width:min(360px,calc(100vw - 20px))}#mbx-shell.mbx-minimized .mbx-top-actions{gap:5px}#mbx-shell.mbx-minimized .mbx-icon-btn{min-height:33px;padding:5px 8px;font-size:12px}}
   @media (max-width:640px){.mbx-analysis-grid{grid-template-columns:1fr}.mbx-analysis-heading{display:block}.mbx-analysis-heading span{display:block;margin-top:2px}}
   @media (max-width:370px){.mbx-tab{padding:7px 10px;font-size:12px}.mbx-key{min-height:42px;font-size:12px}.mbx-top-actions{gap:5px}.mbx-icon-btn{min-height:34px;padding:5px 8px}}
 </style>
@@ -5375,14 +5383,21 @@ else requestAnimationFrame(init);
       </div>
       <div class="mbx-top-actions">
         <button id="mbx-native-fullscreen" class="mbx-icon-btn" type="button" title="Pantalla completa">⛶ Pantalla completa</button>
+        <button id="mbx-minimize" class="mbx-icon-btn" type="button" title="Dejar MathLab visible mientras escribís">▁ Minimizar</button>
         <button id="mbx-close" class="mbx-icon-btn mbx-close" type="button" title="Cerrar MathLab" aria-label="Cerrar MathLab">×</button>
       </div>
     </header>
+    <div id="mbx-mini-strip" class="mbx-mini-strip" hidden>
+      <span id="mbx-mini-summary" class="mbx-mini-summary">MathLab listo para acompañar tu pizarra.</span>
+      <button id="mbx-mini-paste" class="mbx-mini-paste" type="button">🖼️ Pegar</button>
+    </div>
     <nav class="mbx-tabs" aria-label="Herramientas de MathLab">
       <button class="mbx-tab is-active" type="button" data-mbx-view="home">Inicio</button>
       <button class="mbx-tab" type="button" data-mbx-view="circle">◉ Círculo unitario</button>
       <button class="mbx-tab" type="button" data-mbx-view="graph">📈 Gráficos</button>
       <button class="mbx-tab" type="button" data-mbx-view="console">⌨ Consola</button>
+      <button class="mbx-tab" type="button" data-mbx-view="algebra">✦ Álgebra</button>
+      <button class="mbx-tab" type="button" data-mbx-view="probability">◌ Probabilidad</button>
     </nav>
     <div class="mbx-content">
       <section class="mbx-view" data-mbx-section="home">
@@ -5407,6 +5422,18 @@ else requestAnimationFrame(init);
             <h3>Consola sin teclado emergente</h3>
             <p>Calculá expresiones de forma segura con un teclado matemático que ocupa correctamente todo el ancho en celular.</p>
             <button class="mbx-action" type="button" data-mbx-open="console">Abrir consola</button>
+          </article>
+          <article class="mbx-home-card">
+            <div class="mbx-card-icon" aria-hidden="true">✦</div>
+            <h3>Álgebra paso a paso</h3>
+            <p>Resolvé ecuaciones lineales, cuadráticas y sistemas 2×2 con discriminante, raíces y verificación.</p>
+            <button class="mbx-action" type="button" data-mbx-open="algebra">Abrir álgebra</button>
+          </article>
+          <article class="mbx-home-card">
+            <div class="mbx-card-icon" aria-hidden="true">◌</div>
+            <h3>Probabilidad y datos</h3>
+            <p>Binomial, Poisson, normal, combinatoria y estadística descriptiva para explicar resultados en clase.</p>
+            <button class="mbx-action" type="button" data-mbx-open="probability">Abrir probabilidad</button>
           </article>
         </div>
       </section>
@@ -5465,6 +5492,24 @@ else requestAnimationFrame(init);
             <div class="mbx-graph-keyboard-wrap">
               <p class="mbx-graph-keyboard-title">Teclado de funciones <span>Elegí una función y tocá las teclas.</span></p>
               <div id="mbx-graph-keyboard" class="mbx-graph-keyboard" aria-label="Teclado para escribir funciones"></div>
+              <div id="mbx-function-bank" class="mbx-function-bank" aria-label="Funciones adicionales">
+                <p class="mbx-function-bank-title">Más funciones <span>Se insertan donde está el cursor.</span></p>
+                <div class="mbx-function-chips">
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="," title="Separar argumentos">, argumentos</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="e" title="Constante de Euler">e</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="sinc(" title="sinc(x)">sinc</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="gauss(" title="gauss(x, media, desvío)">gauss</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="normalcdf(" title="normalcdf(x, media, desvío)">normal CDF</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="sigmoid(" title="sigmoid(x)">sigmoid</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="step(" title="step(x)">step</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="square(" title="square(x)">onda cuadrada</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="triangle(" title="triangle(x)">onda triangular</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="saw(" title="saw(x)">onda sierra</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="erf(" title="erf(x)">erf</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="mean(" title="mean(a, b, ...)">media</button>
+                  <button class="mbx-function-chip" type="button" data-mbx-graph-insert="comb(" title="comb(n, k)">combinación</button>
+                </div>
+              </div>
             </div>
             <div class="mbx-analysis-panel">
               <div class="mbx-analysis-heading"><b>Integral y límite</b><span>Se dibujan sobre la función elegida.</span></div>
@@ -5497,12 +5542,74 @@ else requestAnimationFrame(init);
               <button id="mbx-run-analysis" class="mbx-secondary mbx-analysis-apply" type="button">Aplicar al gráfico</button>
               <div id="mbx-analysis-result" class="mbx-analysis-result" aria-live="polite">Elegí una integral o un límite para explorarlo.</div>
             </div>
-            <p class="mbx-note" style="margin-top:14px">Por partes: <b>x&lt;0:-x; x&gt;=0:x^2</b>. Separá los casos con <b>;</b> y usá <b>otro:</b> para el último. Incluye trigonométricas, inversas, hiperbólicas, raíces, logaritmos, exponenciales, min y max. La unidad angular es radianes; con seno o coseno, el eje x se marca en múltiplos de π.</p>
+            <p class="mbx-note" style="margin-top:14px">Por partes: <b>x&lt;0:-x; x&gt;=0:x^2</b>. Separá los casos con <b>;</b> y usá <b>otro:</b> para el último. También hay trigonométricas, inversas, hiperbólicas, raíces, logaritmos, estadísticas, combinatoria, distribución normal y ondas. La unidad angular es radianes; con seno o coseno, el eje x se marca en múltiplos de π.</p>
           </div>
           <div class="mbx-panel mbx-plot-card">
             <div class="mbx-plot-wrap"><canvas id="mbx-plot-canvas" aria-label="Gráfico de las funciones"></canvas></div>
             <div id="mbx-plot-summary" class="mbx-plot-summary" aria-live="polite">Listo para graficar.</div>
           </div>
+        </div>
+      </section>
+
+      <section class="mbx-view" data-mbx-section="algebra" hidden>
+        <div class="mbx-panel-header">
+          <div><h2>Álgebra paso a paso</h2><p>Elegí el tipo de problema, completá los coeficientes y obtené un procedimiento listo para explicar o pegar.</p></div>
+          <button class="mbx-secondary" type="button" data-mbx-open="home">← Inicio</button>
+        </div>
+        <div class="mbx-tool-layout">
+          <div class="mbx-panel mbx-tool-card">
+            <label class="mbx-label" for="mbx-algebra-mode">Tipo de problema
+              <select id="mbx-algebra-mode" class="mbx-field mbx-inline-select">
+                <option value="linear">Ecuación lineal: ax + b = 0</option>
+                <option value="quadratic">Ecuación cuadrática: ax² + bx + c = 0</option>
+                <option value="system">Sistema 2×2: ax + by = c</option>
+              </select>
+            </label>
+            <div id="mbx-algebra-fields" class="mbx-tool-fields" aria-live="polite"></div>
+            <div class="mbx-tool-actions">
+              <button id="mbx-solve-algebra" class="mbx-action" type="button">Resolver paso a paso</button>
+              <button id="mbx-paste-algebra" class="mbx-secondary mbx-paste-calculation" type="button">🖼️ Pegar cálculo</button>
+            </div>
+            <div id="mbx-algebra-result" class="mbx-tool-result" aria-live="polite">Elegí un tipo de ecuación y completá los coeficientes.</div>
+          </div>
+          <aside class="mbx-panel mbx-tool-card">
+            <p class="mbx-tool-note"><b>Lineal.</b> Aísla x en una ecuación del tipo ax + b = 0.</p>
+            <p class="mbx-tool-note" style="margin-top:10px"><b>Cuadrática.</b> Muestra Δ = b² − 4ac, las raíces y el vértice de la parábola.</p>
+            <p class="mbx-tool-note" style="margin-top:10px"><b>Sistema 2×2.</b> Aplica determinantes de Cramer y avisa cuando no hay solución única.</p>
+            <p class="mbx-note" style="margin-top:14px">Los resultados se pueden pegar en la pizarra como una tarjeta clara y luego minimizar MathLab para seguir escribiendo.</p>
+          </aside>
+        </div>
+      </section>
+
+      <section class="mbx-view" data-mbx-section="probability" hidden>
+        <div class="mbx-panel-header">
+          <div><h2>Probabilidad y estadística</h2><p>Calculá distribuciones y datos con los parámetros visibles: útil para enseñar qué representa cada número.</p></div>
+          <button class="mbx-secondary" type="button" data-mbx-open="home">← Inicio</button>
+        </div>
+        <div class="mbx-tool-layout">
+          <div class="mbx-panel mbx-tool-card">
+            <label class="mbx-label" for="mbx-probability-mode">Herramienta
+              <select id="mbx-probability-mode" class="mbx-field mbx-inline-select">
+                <option value="binomial">Binomial</option>
+                <option value="poisson">Poisson</option>
+                <option value="normal">Normal</option>
+                <option value="counting">Combinatoria</option>
+                <option value="stats">Estadística descriptiva</option>
+              </select>
+            </label>
+            <div id="mbx-probability-fields" class="mbx-tool-fields" aria-live="polite"></div>
+            <div class="mbx-tool-actions">
+              <button id="mbx-calculate-probability" class="mbx-action" type="button">Calcular y explicar</button>
+              <button id="mbx-paste-probability" class="mbx-secondary mbx-paste-calculation" type="button">🖼️ Pegar cálculo</button>
+            </div>
+            <div id="mbx-probability-result" class="mbx-tool-result" aria-live="polite">Elegí una herramienta para comenzar.</div>
+          </div>
+          <aside class="mbx-panel mbx-tool-card">
+            <p class="mbx-tool-note"><b>Binomial:</b> n ensayos independientes, p probabilidad de éxito y k éxitos.</p>
+            <p class="mbx-tool-note" style="margin-top:10px"><b>Poisson:</b> λ es el promedio esperado en un intervalo y k la cantidad observada.</p>
+            <p class="mbx-tool-note" style="margin-top:10px"><b>Normal:</b> μ es la media y σ el desvío estándar. Permite probabilidades a la izquierda, derecha o entre dos valores.</p>
+            <p class="mbx-tool-note" style="margin-top:10px"><b>Datos:</b> escribí valores separados por comas: 2, 4, 6, 8.</p>
+          </aside>
         </div>
       </section>
 
@@ -5521,14 +5628,16 @@ else requestAnimationFrame(init);
               <div class="mbx-console-hint">Ejemplos: <b>sqrt(2)/2</b>, <b>sin(pi/6)</b>, <b>(3+5)^2</b>. ANS recupera el último resultado.</div>
             </div>
             <div id="mbx-keyboard" class="mbx-keyboard" aria-label="Teclado matemático"></div>
+            <div class="mbx-tool-actions"><button id="mbx-paste-console" class="mbx-secondary mbx-paste-calculation" type="button">🖼️ Pegar este cálculo en la pizarra</button></div>
           </div>
           <aside class="mbx-panel">
             <div class="mbx-panel-header"><div><h2>Entrada segura</h2><p>La consola interpreta únicamente notación matemática; no ejecuta texto como código.</p></div></div>
             <div class="mbx-help-list">
               <div class="mbx-help-row"><b>Operaciones</b><span>+  −  ×  ÷  ^  ( )</span></div>
               <div class="mbx-help-row"><b>Constantes</b><span>pi · e · ans</span></div>
-              <div class="mbx-help-row"><b>Funciones</b><span>sin(x) · cos(x) · tan(x) · sqrt(x) · abs(x)</span></div>
+              <div class="mbx-help-row"><b>Funciones</b><span>sin(x) · cos(x) · tan(x) · sqrt(x) · abs(x) · sinc(x) · sigmoid(x)</span></div>
               <div class="mbx-help-row"><b>Logaritmos</b><span>ln(x) · log(x) · exp(x)</span></div>
+              <div class="mbx-help-row"><b>Datos y conteo</b><span>mean(2,4,6) · median(…) · std(…) · comb(5,2) · perm(5,2)</span></div>
             </div>
           </aside>
         </div>
@@ -5543,7 +5652,7 @@ else requestAnimationFrame(init);
   var shell=document.getElementById('mbx-shell');
   if(!shell) return;
   var get=function(id){return document.getElementById(id);};
-  var state={view:'home',angle:45,answer:0,graphFrame:0,circleFrame:0,circleGeometry:null,graphInput:null};
+  var state={view:'home',angle:45,answer:0,graphFrame:0,circleFrame:0,circleGeometry:null,graphInput:null,minimized:false,lastCard:null};
   var specialAngles={
     0:{rad:'0',cos:'1',sin:'0'},30:{rad:'π/6',cos:'√3/2',sin:'1/2'},45:{rad:'π/4',cos:'√2/2',sin:'√2/2'},60:{rad:'π/3',cos:'1/2',sin:'√3/2'},90:{rad:'π/2',cos:'0',sin:'1'},
     120:{rad:'2π/3',cos:'−1/2',sin:'√3/2'},135:{rad:'3π/4',cos:'−√2/2',sin:'√2/2'},150:{rad:'5π/6',cos:'−√3/2',sin:'1/2'},180:{rad:'π',cos:'−1',sin:'0'},
@@ -5580,6 +5689,17 @@ else requestAnimationFrame(init);
     var abs=Math.abs(clean);
     if(abs>=1000000||(abs>0&&abs<0.000001)) return clean.toExponential(6);
     return String(Number(clean.toFixed(10)));
+  }
+  function setCalculationCard(title,lines){
+    var clean=Array.isArray(lines)?lines.filter(function(line){return String(line||'').trim().length;}):[String(lines||'')];
+    state.lastCard={title:String(title||'Cálculo MathLab'),lines:clean};
+    var summary=get('mbx-mini-summary');
+    if(summary) summary.textContent=state.lastCard.title+' · '+(clean[clean.length-1]||'Listo para pegar en la pizarra.');
+  }
+  function updateMinimizeButton(){
+    var button=get('mbx-minimize');if(!button) return;
+    button.textContent=state.minimized?'↗ Abrir':'▁ Minimizar';
+    button.title=state.minimized?'Volver a abrir MathLab':'Dejar MathLab visible mientras escribís';
   }
   function getAngleInfo(angle){
     var exact=specialAngles[angle];
@@ -5653,16 +5773,32 @@ else requestAnimationFrame(init);
     state.view=view;
     Array.prototype.forEach.call(shell.querySelectorAll('[data-mbx-section]'),function(section){section.hidden=section.getAttribute('data-mbx-section')!==view;});
     Array.prototype.forEach.call(shell.querySelectorAll('[data-mbx-view]'),function(tab){tab.classList.toggle('is-active',tab.getAttribute('data-mbx-view')===view);});
-    var titles={home:'Explicá, explorá y comprobá en la misma pizarra.',circle:'Círculo unitario',graph:'Graficador multicolor',console:'Consola matemática'};
+    var titles={home:'Explicá, explorá y comprobá en la misma pizarra.',circle:'Círculo unitario',graph:'Graficador multicolor',console:'Consola matemática',algebra:'Álgebra paso a paso',probability:'Probabilidad y estadística'};
     get('mbx-current-title').textContent=titles[view]||titles.home;
     requestAnimationFrame(function(){if(view==='circle') updateCircle();if(view==='graph') scheduleGraph();});
   }
+  function restore(){
+    state.minimized=false;shell.classList.add('mbx-open');shell.classList.remove('mbx-minimized');shell.setAttribute('aria-hidden','false');
+    document.body.classList.add('mbx-active');document.documentElement.classList.add('mbx-active');
+    var strip=get('mbx-mini-strip');if(strip) strip.hidden=true;
+    updateMinimizeButton();
+  }
+  function minimize(){
+    if(!shell.classList.contains('mbx-open')) return;
+    state.minimized=true;shell.classList.add('mbx-minimized');shell.setAttribute('aria-hidden','false');
+    document.body.classList.remove('mbx-active');document.documentElement.classList.remove('mbx-active');
+    if(document.fullscreenElement===shell&&document.exitFullscreen) document.exitFullscreen().catch(function(){});
+    var strip=get('mbx-mini-strip');if(strip) strip.hidden=false;
+    if(!state.lastCard) setCalculationCard('MathLab', ['Calculá algo y tocá “Pegar” para llevarlo a la pizarra.']);
+    updateMinimizeButton();
+  }
   function open(view){
-    shell.classList.add('mbx-open');shell.setAttribute('aria-hidden','false');document.body.classList.add('mbx-active');document.documentElement.classList.add('mbx-active');
+    restore();
     showView(view||'home');
   }
   function close(){
-    shell.classList.remove('mbx-open');shell.setAttribute('aria-hidden','true');document.body.classList.remove('mbx-active');document.documentElement.classList.remove('mbx-active');
+    state.minimized=false;shell.classList.remove('mbx-open','mbx-minimized');shell.setAttribute('aria-hidden','true');document.body.classList.remove('mbx-active');document.documentElement.classList.remove('mbx-active');
+    var strip=get('mbx-mini-strip');if(strip) strip.hidden=true;updateMinimizeButton();
     if(document.fullscreenElement===shell&&document.exitFullscreen) document.exitFullscreen().catch(function(){});
   }
   function tokenize(input){
@@ -5694,14 +5830,35 @@ else requestAnimationFrame(init);
     var atanh=Math.atanh||function(v){return .5*Math.log((1+v)/(1-v));};
     var log10=Math.log10||function(v){return Math.log(v)/Math.LN10;};
     var log2=Math.log2||function(v){return Math.log(v)/Math.LN2;};
+    var log1p=Math.log1p||function(v){return Math.log(1+v);};
+    var expm1=Math.expm1||function(v){return Math.exp(v)-1;};
     var factorial=function(v){if(v<0||Math.floor(v)!==v||v>170) return NaN;var total=1;for(var n=2;n<=v;n+=1) total*=n;return total;};
     var hypot=Math.hypot||function(){var total=0;for(var i=0;i<arguments.length;i+=1) total+=arguments[i]*arguments[i];return Math.sqrt(total);};
+    var integer=function(v){return Number.isFinite(v)&&Math.floor(v)===v?v:NaN;};
+    var root=function(v,n){if(n===0) return NaN;if(v<0&&Number.isFinite(n)&&Math.floor(n)===n&&Math.abs(n)%2===1) return -Math.pow(-v,1/n);return Math.pow(v,1/n);};
+    var erf=function(v){if(!Number.isFinite(v)) return v<0?-1:1;var signum=v<0?-1:1,absolute=Math.abs(v),t=1/(1+.3275911*absolute),y=1-(((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t)*Math.exp(-absolute*absolute);return signum*y;};
+    var gaussian=function(v,mean,deviation){if(!(deviation>0)) return NaN;var z=(v-mean)/deviation;return Math.exp(-.5*z*z)/(deviation*Math.sqrt(2*Math.PI));};
+    var normalCdf=function(v,mean,deviation){if(!(deviation>0)) return NaN;return .5*(1+erf((v-mean)/(deviation*Math.sqrt(2))));};
+    var sum=function(){var total=0;for(var i=0;i<arguments.length;i+=1) total+=arguments[i];return total;};
+    var mean=function(){return sum.apply(null,arguments)/arguments.length;};
+    var median=function(){var values=Array.prototype.slice.call(arguments).sort(function(a,b){return a-b;}),middle=Math.floor(values.length/2);return values.length%2?values[middle]:(values[middle-1]+values[middle])/2;};
+    var variance=function(){var average=mean.apply(null,arguments),total=0;for(var i=0;i<arguments.length;i+=1) total+=(arguments[i]-average)*(arguments[i]-average);return total/arguments.length;};
+    var deviation=function(){return Math.sqrt(variance.apply(null,arguments));};
+    var gcd=function(a,b){a=integer(a);b=integer(b);if(!Number.isFinite(a)||!Number.isFinite(b)) return NaN;a=Math.abs(a);b=Math.abs(b);while(b){var rest=a%b;a=b;b=rest;}return a;};
+    var lcm=function(a,b){a=integer(a);b=integer(b);if(!Number.isFinite(a)||!Number.isFinite(b)) return NaN;return a===0||b===0?0:Math.abs(a*b)/gcd(a,b);};
+    var combination=function(n,k){n=integer(n);k=integer(k);if(!Number.isFinite(n)||!Number.isFinite(k)||n<0||k<0||k>n||n>170) return NaN;k=Math.min(k,n-k);var total=1;for(var i=1;i<=k;i+=1) total=total*(n-k+i)/i;return total;};
+    var permutation=function(n,k){n=integer(n);k=integer(k);if(!Number.isFinite(n)||!Number.isFinite(k)||n<0||k<0||k>n||n>170) return NaN;var total=1;for(var i=0;i<k;i+=1) total*=n-i;return total;};
+    var fibonacci=function(n){n=integer(n);if(!Number.isFinite(n)||n<0||n>147) return NaN;var a=0,b=1;for(var i=0;i<n;i+=1){var next=a+b;a=b;b=next;}return a;};
+    var sigmoid=function(v){if(v>=0){var z=Math.exp(-v);return 1/(1+z);}var small=Math.exp(v);return small/(1+small);};
+    var softplus=function(v){if(v>35) return v;if(v<-35) return Math.exp(v);return log1p(Math.exp(v));};
     var functionDefinitions={
       sin:{min:1,max:1,fn:Math.sin},sen:{min:1,max:1,fn:Math.sin},cos:{min:1,max:1,fn:Math.cos},tan:{min:1,max:1,fn:Math.tan},tg:{min:1,max:1,fn:Math.tan},cot:{min:1,max:1,fn:function(v){return 1/Math.tan(v);}},sec:{min:1,max:1,fn:function(v){return 1/Math.cos(v);}},csc:{min:1,max:1,fn:function(v){return 1/Math.sin(v);}},
       asin:{min:1,max:1,fn:Math.asin},arcsin:{min:1,max:1,fn:Math.asin},arcsen:{min:1,max:1,fn:Math.asin},acos:{min:1,max:1,fn:Math.acos},arccos:{min:1,max:1,fn:Math.acos},atan:{min:1,max:1,fn:Math.atan},arctan:{min:1,max:1,fn:Math.atan},atan2:{min:2,max:2,fn:Math.atan2},
       sinh:{min:1,max:1,fn:sinh},cosh:{min:1,max:1,fn:cosh},tanh:{min:1,max:1,fn:tanh},asinh:{min:1,max:1,fn:asinh},acosh:{min:1,max:1,fn:acosh},atanh:{min:1,max:1,fn:atanh},
-      sqrt:{min:1,max:1,fn:Math.sqrt},cbrt:{min:1,max:1,fn:cbrt},root:{min:2,max:2,fn:function(v,n){return Math.pow(v,1/n);}},abs:{min:1,max:1,fn:Math.abs},sign:{min:1,max:1,fn:sign},floor:{min:1,max:1,fn:Math.floor},ceil:{min:1,max:1,fn:Math.ceil},round:{min:1,max:1,fn:Math.round},trunc:{min:1,max:1,fn:trunc},
-      ln:{min:1,max:1,fn:Math.log},log:{min:1,max:1,fn:log10},log10:{min:1,max:1,fn:log10},log2:{min:1,max:1,fn:log2},exp:{min:1,max:1,fn:Math.exp},pow:{min:2,max:2,fn:Math.pow},min:{min:2,max:24,fn:function(){return Math.min.apply(Math,arguments);}},max:{min:2,max:24,fn:function(){return Math.max.apply(Math,arguments);}},hypot:{min:2,max:24,fn:hypot},mod:{min:2,max:2,fn:function(a,b){return a%b;}},clamp:{min:3,max:3,fn:function(v,a,b){return Math.max(a,Math.min(b,v));}},fact:{min:1,max:1,fn:factorial},rad:{min:1,max:1,fn:function(v){return v*Math.PI/180;}},deg:{min:1,max:1,fn:function(v){return v*180/Math.PI;}}
+      sqrt:{min:1,max:1,fn:Math.sqrt},cbrt:{min:1,max:1,fn:cbrt},root:{min:2,max:2,fn:root},nroot:{min:2,max:2,fn:root},raiz:{min:2,max:2,fn:root},abs:{min:1,max:1,fn:Math.abs},sign:{min:1,max:1,fn:sign},floor:{min:1,max:1,fn:Math.floor},ceil:{min:1,max:1,fn:Math.ceil},round:{min:1,max:1,fn:Math.round},trunc:{min:1,max:1,fn:trunc},
+      ln:{min:1,max:1,fn:Math.log},log:{min:1,max:1,fn:log10},log10:{min:1,max:1,fn:log10},log2:{min:1,max:1,fn:log2},logn:{min:2,max:2,fn:function(v,base){return Math.log(v)/Math.log(base);}},log1p:{min:1,max:1,fn:log1p},exp:{min:1,max:1,fn:Math.exp},expm1:{min:1,max:1,fn:expm1},pow:{min:2,max:2,fn:Math.pow},min:{min:2,max:24,fn:function(){return Math.min.apply(Math,arguments);}},max:{min:2,max:24,fn:function(){return Math.max.apply(Math,arguments);}},hypot:{min:2,max:24,fn:hypot},dist:{min:4,max:4,fn:function(x1,y1,x2,y2){return hypot(x2-x1,y2-y1);}},lerp:{min:3,max:3,fn:function(a,b,t){return a+(b-a)*t;}},mod:{min:2,max:2,fn:function(a,b){return a%b;}},clamp:{min:3,max:3,fn:function(v,a,b){return Math.max(a,Math.min(b,v));}},fact:{min:1,max:1,fn:factorial},fib:{min:1,max:1,fn:fibonacci},comb:{min:2,max:2,fn:combination},ncr:{min:2,max:2,fn:combination},permutation:{min:2,max:2,fn:permutation},perm:{min:2,max:2,fn:permutation},npr:{min:2,max:2,fn:permutation},gcd:{min:2,max:2,fn:gcd},lcm:{min:2,max:2,fn:lcm},
+      sum:{min:1,max:24,fn:sum},mean:{min:1,max:24,fn:mean},avg:{min:1,max:24,fn:mean},media:{min:1,max:24,fn:mean},median:{min:1,max:24,fn:median},mediana:{min:1,max:24,fn:median},variance:{min:1,max:24,fn:variance},varianza:{min:1,max:24,fn:variance},std:{min:1,max:24,fn:deviation},stdev:{min:1,max:24,fn:deviation},desvio:{min:1,max:24,fn:deviation},desviacion:{min:1,max:24,fn:deviation},prod:{min:1,max:24,fn:function(){var total=1;for(var i=0;i<arguments.length;i+=1) total*=arguments[i];return total;}},
+      sinc:{min:1,max:1,fn:function(v){return Math.abs(v)<1e-12?1:Math.sin(v)/v;}},erf:{min:1,max:1,fn:erf},gauss:{min:3,max:3,fn:gaussian},normalpdf:{min:3,max:3,fn:gaussian},normalcdf:{min:3,max:3,fn:normalCdf},sigmoid:{min:1,max:1,fn:sigmoid},relu:{min:1,max:1,fn:function(v){return Math.max(0,v);}},softplus:{min:1,max:1,fn:softplus},step:{min:1,max:1,fn:function(v){return v<0?0:1;}},heaviside:{min:1,max:1,fn:function(v){return v<0?0:(v>0?1:.5);}},square:{min:1,max:1,fn:function(v){return Math.sin(v)>=0?1:-1;}},triangle:{min:1,max:1,fn:function(v){return 2*Math.asin(Math.sin(v))/Math.PI;}},saw:{min:1,max:1,fn:function(v){return 2*(v/(2*Math.PI)-Math.floor(v/(2*Math.PI)+.5));}},rad:{min:1,max:1,fn:function(v){return v*Math.PI/180;}},deg:{min:1,max:1,fn:function(v){return v*180/Math.PI;}}
     };
     function combine(left,right,operation){return function(scope){return operation(left(scope),right(scope));};}
     function peek(){return tokens[index];}
@@ -5814,8 +5971,106 @@ else requestAnimationFrame(init);
       var evaluator=compileExpression(expression);
       var value=evaluator({ans:state.answer});
       if(!Number.isFinite(value)) throw new Error('El resultado no es un número finito.');
-      state.answer=value;setConsoleResult(numberText(value),false);
+      state.answer=value;setConsoleResult(numberText(value),false);setCalculationCard('Consola matemática',[expression+' = '+numberText(value)]);
     }catch(error){setConsoleResult(error&&error.message?error.message:'No se pudo calcular.',true);}
+  }
+  function toolResult(id,lines,isError){
+    var output=get(id),text=Array.isArray(lines)?lines.join('\n'):String(lines||'');
+    output.textContent=text;output.classList.toggle('is-error',!!isError);return text;
+  }
+  function algebraField(label,id,value){return '<label class="mbx-label" for="'+id+'">'+label+'<input id="'+id+'" class="mbx-field" type="number" step="any" inputmode="decimal" value="'+value+'"></label>';}
+  function renderAlgebraFields(){
+    var mode=get('mbx-algebra-mode').value,box=get('mbx-algebra-fields');
+    if(mode==='linear') box.innerHTML=algebraField('a', 'mbx-algebra-a', '2')+algebraField('b', 'mbx-algebra-b', '-8');
+    else if(mode==='quadratic') box.innerHTML=algebraField('a', 'mbx-algebra-a', '1')+algebraField('b', 'mbx-algebra-b', '-5')+algebraField('c', 'mbx-algebra-c', '6');
+    else box.innerHTML=algebraField('a', 'mbx-system-a', '1')+algebraField('b', 'mbx-system-b', '1')+algebraField('c', 'mbx-system-c', '5')+algebraField('d', 'mbx-system-d', '2')+algebraField('e', 'mbx-system-e', '-1')+algebraField('f', 'mbx-system-f', '4');
+  }
+  function toolNumber(id,label){var raw=String(get(id).value||'').trim(),value=Number(raw);if(!raw||!Number.isFinite(value)) throw new Error('Ingresá un valor válido para '+label+'.');return value;}
+  function isZero(value){return Math.abs(value)<1e-12;}
+  function signedNumber(value){return value<0?'− '+numberText(Math.abs(value)):'+ '+numberText(value);}
+  function linearEquationText(a,b){return numberText(a)+'x '+signedNumber(b)+' = 0';}
+  function quadraticEquationText(a,b,c){return numberText(a)+'x² '+signedNumber(b)+'x '+signedNumber(c)+' = 0';}
+  function solveAlgebra(){
+    try{
+      var mode=get('mbx-algebra-mode').value,lines,title;
+      if(mode==='linear'){
+        var a=toolNumber('mbx-algebra-a','a'),b=toolNumber('mbx-algebra-b','b');title='Álgebra · ecuación lineal';
+        lines=['Ecuación: '+linearEquationText(a,b)];
+        if(isZero(a)){
+          if(isZero(b)) lines.push('0 = 0 → hay infinitas soluciones.');
+          else lines.push(numberText(b)+' = 0 → no tiene solución.');
+        }else{var x=-b/a;lines.push(numberText(a)+'x = '+numberText(-b));lines.push('x = '+numberText(-b)+' / '+numberText(a));lines.push('Solución: x = '+numberText(x));}
+      }else if(mode==='quadratic'){
+        var qa=toolNumber('mbx-algebra-a','a'),qb=toolNumber('mbx-algebra-b','b'),qc=toolNumber('mbx-algebra-c','c');title='Álgebra · ecuación cuadrática';
+        if(isZero(qa)){
+          lines=['Como a = 0, la expresión se reduce a una ecuación lineal.',linearEquationText(qb,qc)];
+          if(isZero(qb)) lines.push(isZero(qc)?'0 = 0 → hay infinitas soluciones.':numberText(qc)+' = 0 → no tiene solución.');
+          else lines.push('x = '+numberText(-qc/qb));
+        }else{
+          var delta=qb*qb-4*qa*qc,vertexX=-qb/(2*qa),vertexY=qa*vertexX*vertexX+qb*vertexX+qc;
+          lines=['Ecuación: '+quadraticEquationText(qa,qb,qc),'Δ = b² − 4ac = '+numberText(delta),'x = (−b ± √Δ) / (2a)'];
+          if(delta>1e-12){var r1=(-qb+Math.sqrt(delta))/(2*qa),r2=(-qb-Math.sqrt(delta))/(2*qa);lines.push('x₁ = '+numberText(r1)+' · x₂ = '+numberText(r2));lines.push('Forma factorizada: '+numberText(qa)+'(x − ('+numberText(r1)+'))(x − ('+numberText(r2)+'))');}
+          else if(isZero(delta)){var root=-qb/(2*qa);lines.push('Raíz doble: x = '+numberText(root));lines.push('Forma factorizada: '+numberText(qa)+'(x − ('+numberText(root)+'))²');}
+          else{var real=-qb/(2*qa),imaginary=Math.sqrt(-delta)/Math.abs(2*qa);lines.push('No hay raíces reales.');lines.push('x = '+numberText(real)+' ± '+numberText(imaginary)+'i');}
+          lines.push('Vértice: ('+numberText(vertexX)+', '+numberText(vertexY)+')');
+        }
+      }else{
+        var sa=toolNumber('mbx-system-a','a'),sb=toolNumber('mbx-system-b','b'),sc=toolNumber('mbx-system-c','c'),sd=toolNumber('mbx-system-d','d'),se=toolNumber('mbx-system-e','e'),sf=toolNumber('mbx-system-f','f'),det=sa*se-sb*sd;
+        title='Álgebra · sistema 2×2';lines=['Sistema: '+numberText(sa)+'x '+signedNumber(sb)+'y = '+numberText(sc),numberText(sd)+'x '+signedNumber(se)+'y = '+numberText(sf),'Δ = ae − bd = '+numberText(det)];
+        if(isZero(det)) lines.push('Δ = 0 → el sistema no tiene una solución única. Puede ser incompatible o tener infinitas soluciones.');
+        else{var dx=sc*se-sb*sf,dy=sa*sf-sc*sd,xv=dx/det,yv=dy/det;lines.push('Δx = ce − bf = '+numberText(dx)+' · Δy = af − cd = '+numberText(dy));lines.push('x = Δx/Δ = '+numberText(xv));lines.push('y = Δy/Δ = '+numberText(yv));lines.push('Solución: ('+numberText(xv)+', '+numberText(yv)+')');}
+      }
+      toolResult('mbx-algebra-result',lines,false);setCalculationCard(title,lines);
+    }catch(error){toolResult('mbx-algebra-result',error&&error.message?error.message:'No se pudo resolver.',true);}
+  }
+  function probabilityField(label,id,value,kind){var type=kind||'number',step=type==='number'?' step="any" inputmode="decimal"':'';return '<label class="mbx-label" for="'+id+'">'+label+'<input id="'+id+'" class="mbx-field" type="'+type+'"'+step+' value="'+value+'"></label>';}
+  function renderProbabilityFields(){
+    var mode=get('mbx-probability-mode').value,box=get('mbx-probability-fields');
+    if(mode==='binomial') box.innerHTML=probabilityField('n · ensayos','mbx-binomial-n','10')+probabilityField('p · éxito','mbx-binomial-p','0.5')+probabilityField('k · éxitos','mbx-binomial-k','4')+'<label class="mbx-label" for="mbx-binomial-event">Evento<select id="mbx-binomial-event" class="mbx-field"><option value="exact">Exactamente k</option><option value="atmost">A lo sumo k</option><option value="atleast">Al menos k</option></select></label>';
+    else if(mode==='poisson') box.innerHTML=probabilityField('λ · promedio','mbx-poisson-lambda','3')+probabilityField('k · ocurrencias','mbx-poisson-k','2')+'<label class="mbx-label" for="mbx-poisson-event">Evento<select id="mbx-poisson-event" class="mbx-field"><option value="exact">Exactamente k</option><option value="atmost">A lo sumo k</option><option value="atleast">Al menos k</option></select></label>';
+    else if(mode==='normal') box.innerHTML=probabilityField('μ · media','mbx-normal-mean','50')+probabilityField('σ · desvío','mbx-normal-sd','10')+probabilityField('Límite a','mbx-normal-a','60')+probabilityField('Límite b','mbx-normal-b','70')+'<label class="mbx-label" for="mbx-normal-event">Evento<select id="mbx-normal-event" class="mbx-field"><option value="left">P(X ≤ a)</option><option value="right">P(X ≥ a)</option><option value="between">P(a ≤ X ≤ b)</option></select></label>';
+    else if(mode==='counting') box.innerHTML=probabilityField('n · elementos','mbx-counting-n','8')+probabilityField('r · elegidos','mbx-counting-r','3')+'<label class="mbx-label" for="mbx-counting-mode">Orden<select id="mbx-counting-mode" class="mbx-field"><option value="combination">Combinaciones · no importa</option><option value="permutation">Permutaciones · importa</option></select></label>';
+    else box.innerHTML='<label class="mbx-label" for="mbx-stats-values" style="grid-column:1/-1">Datos separados por comas<input id="mbx-stats-values" class="mbx-field" type="text" inputmode="decimal" autocomplete="off" value="2, 4, 6, 8, 10"></label>';
+  }
+  function wholeToolNumber(id,label,min,max){var value=toolNumber(id,label);if(Math.floor(value)!==value||value<min||value>max) throw new Error(label+' debe ser un entero entre '+min+' y '+max+'.');return value;}
+  function logFactorial(value){var total=0;for(var index=2;index<=value;index+=1) total+=Math.log(index);return total;}
+  function binomialPmf(n,p,k){if(k<0||k>n) return 0;if(p===0) return k===0?1:0;if(p===1) return k===n?1:0;return Math.exp(logFactorial(n)-logFactorial(k)-logFactorial(n-k)+k*Math.log(p)+(n-k)*Math.log(1-p));}
+  function poissonPmf(lambda,k){if(k<0) return 0;if(lambda===0) return k===0?1:0;return Math.exp(-lambda+k*Math.log(lambda)-logFactorial(k));}
+  function probabilitySum(fn,start,end){var total=0;for(var index=start;index<=end;index+=1) total+=fn(index);return Math.max(0,Math.min(1,total));}
+  function probabilityErf(value){var sign=value<0?-1:1,absolute=Math.abs(value),t=1/(1+.3275911*absolute),y=1-(((((1.061405429*t-1.453152027)*t+1.421413741)*t-.284496736)*t+.254829592)*t)*Math.exp(-absolute*absolute);return sign*y;}
+  function normalCdfValue(value,mean,deviation){return .5*(1+probabilityErf((value-mean)/(deviation*Math.sqrt(2))));}
+  function countWays(n,r,permutation){var result=1,index;if(permutation){for(index=0;index<r;index+=1) result*=n-index;return result;}r=Math.min(r,n-r);for(index=1;index<=r;index+=1) result=result*(n-r+index)/index;return result;}
+  function calculateProbability(){
+    try{
+      var mode=get('mbx-probability-mode').value,lines,title;
+      if(mode==='binomial'){
+        var n=wholeToolNumber('mbx-binomial-n','n',1,1000),p=toolNumber('mbx-binomial-p','p'),k=wholeToolNumber('mbx-binomial-k','k',0,n),event=get('mbx-binomial-event').value;
+        if(p<0||p>1) throw new Error('p debe estar entre 0 y 1.');
+        var bp=event==='exact'?binomialPmf(n,p,k):(event==='atmost'?probabilitySum(function(i){return binomialPmf(n,p,i);},0,k):probabilitySum(function(i){return binomialPmf(n,p,i);},k,n));
+        var eventText=event==='exact'?'P(X = '+k+')':(event==='atmost'?'P(X ≤ '+k+')':'P(X ≥ '+k+')');title='Probabilidad · binomial';lines=['X ~ B('+n+', '+numberText(p)+')',eventText+' = '+numberText(bp),'Fórmula base: C(n,k)·p^k·(1−p)^(n−k)','Media: '+numberText(n*p)+' · Desvío: '+numberText(Math.sqrt(n*p*(1-p)))];
+      }else if(mode==='poisson'){
+        var lambda=toolNumber('mbx-poisson-lambda','λ'),pk=wholeToolNumber('mbx-poisson-k','k',0,1000),pevent=get('mbx-poisson-event').value;
+        if(lambda<0||lambda>1000) throw new Error('λ debe estar entre 0 y 1000.');
+        var pp=pevent==='exact'?poissonPmf(lambda,pk):(pevent==='atmost'?probabilitySum(function(i){return poissonPmf(lambda,i);},0,pk):1-probabilitySum(function(i){return poissonPmf(lambda,i);},0,pk-1));
+        var peventText=pevent==='exact'?'P(X = '+pk+')':(pevent==='atmost'?'P(X ≤ '+pk+')':'P(X ≥ '+pk+')');title='Probabilidad · Poisson';lines=['X ~ Poisson('+numberText(lambda)+')',peventText+' = '+numberText(pp),'Fórmula base: e^(−λ)·λ^k/k!','Media = desvío² = '+numberText(lambda)];
+      }else if(mode==='normal'){
+        var mean=toolNumber('mbx-normal-mean','μ'),sd=toolNumber('mbx-normal-sd','σ'),na=toolNumber('mbx-normal-a','límite a'),nb=toolNumber('mbx-normal-b','límite b'),nevent=get('mbx-normal-event').value;
+        if(!(sd>0)) throw new Error('σ debe ser mayor que 0.');
+        var np,eventLabel;
+        if(nevent==='left'){np=normalCdfValue(na,mean,sd);eventLabel='P(X ≤ '+numberText(na)+')';}
+        else if(nevent==='right'){np=1-normalCdfValue(na,mean,sd);eventLabel='P(X ≥ '+numberText(na)+')';}
+        else{if(nb<na) throw new Error('En “entre”, b debe ser mayor o igual que a.');np=normalCdfValue(nb,mean,sd)-normalCdfValue(na,mean,sd);eventLabel='P('+numberText(na)+' ≤ X ≤ '+numberText(nb)+')';}
+        title='Probabilidad · normal';lines=['X ~ N('+numberText(mean)+', '+numberText(sd)+')',eventLabel+' = '+numberText(np),'z(a) = '+numberText((na-mean)/sd)+(nevent==='between'?' · z(b) = '+numberText((nb-mean)/sd):''),'Área bajo la curva normal = '+numberText(np*100)+' %'];
+      }else if(mode==='counting'){
+        var cn=wholeToolNumber('mbx-counting-n','n',0,170),cr=wholeToolNumber('mbx-counting-r','r',0,cn),cmode=get('mbx-counting-mode').value,ways=countWays(cn,cr,cmode==='permutation');
+        title='Conteo · '+(cmode==='permutation'?'permutaciones':'combinaciones');lines=[cmode==='permutation'?'El orden importa.':'El orden no importa.',cmode==='permutation'?'P(n,r) = n!/(n−r)!':'C(n,r) = n!/[r!(n−r)!]',(cmode==='permutation'?'P':'C')+'('+cn+', '+cr+') = '+numberText(ways)];
+      }else{
+        var raw=get('mbx-stats-values').value.trim();if(!raw) throw new Error('Ingresá al menos un dato.');var values=raw.split(/[;,\s]+/).filter(Boolean).map(function(item){var value=Number(item);if(!Number.isFinite(value)) throw new Error('Cada dato debe ser numérico.');return value;});
+        values.sort(function(a,b){return a-b;});var total=values.reduce(function(sum,value){return sum+value;},0),average=total/values.length,middle=Math.floor(values.length/2),med=values.length%2?values[middle]:(values[middle-1]+values[middle])/2,varPop=values.reduce(function(sum,value){return sum+(value-average)*(value-average);},0)/values.length;
+        title='Estadística descriptiva';lines=['Datos ordenados: '+values.map(numberText).join(', '),'n = '+values.length+' · media = '+numberText(average)+' · mediana = '+numberText(med),'mín = '+numberText(values[0])+' · máx = '+numberText(values[values.length-1])+' · rango = '+numberText(values[values.length-1]-values[0]),'varianza = '+numberText(varPop)+' · desvío poblacional = '+numberText(Math.sqrt(varPop))];
+      }
+      toolResult('mbx-probability-result',lines,false);setCalculationCard(title,lines);
+    }catch(error){toolResult('mbx-probability-result',error&&error.message?error.message:'No se pudo calcular.',true);}
   }
   function renderKeyboard(){
     var keyboard=get('mbx-keyboard');keyboard.textContent='';
@@ -6087,15 +6342,40 @@ else requestAnimationFrame(init);
     input.value='x<0:-x; x>=0:x^2';input.selectionStart=input.selectionEnd=input.value.length;selectGraphInput(input);
     get('mbx-xmin').value='-4';get('mbx-xmax').value='4';refreshAnalysisFunctions();scheduleGraph();
   }
-  function pasteGraphToBoard(){
-    var plot=get('mbx-plot-canvas'),board=document.getElementById('board');
-    if(!plot||!board) return;
-    drawGraph();
-    var maxPixels=1100000,scale=Math.min(1,Math.sqrt(maxPixels/Math.max(1,plot.width*plot.height)));
-    var exportCanvas=document.createElement('canvas');
-    exportCanvas.width=Math.max(1,Math.round(plot.width*scale));exportCanvas.height=Math.max(1,Math.round(plot.height*scale));
-    exportCanvas.getContext('2d').drawImage(plot,0,0,exportCanvas.width,exportCanvas.height);
-    var source=exportCanvas.toDataURL('image/png'),image=new Image();
+  function wrappedCardLines(ctx,text,maxWidth){
+    var output=[];
+    String(text||'').split('\n').forEach(function(paragraph){
+      var words=paragraph.split(/\s+/),line='';
+      words.forEach(function(word){
+        var next=line?line+' '+word:word;
+        if(ctx.measureText(next).width<=maxWidth){line=next;return;}
+        if(line){output.push(line);line=word;}else line=word;
+        while(ctx.measureText(line).width>maxWidth&&line.length>1){
+          var cut=line.length-1;while(cut>1&&ctx.measureText(line.slice(0,cut)+'–').width>maxWidth) cut-=1;
+          output.push(line.slice(0,cut)+'–');line=line.slice(cut);
+        }
+      });
+      output.push(line||' ');
+    });
+    return output;
+  }
+  function calculationCardSource(card){
+    var canvas=document.createElement('canvas'),width=1160,preview=canvas.getContext('2d'),padding=54;
+    preview.font='600 31px "SFMono-Regular",Consolas,monospace';
+    var lines=[];(card.lines||[]).forEach(function(line){lines=lines.concat(wrappedCardLines(preview,line,width-padding*2));});
+    var height=Math.max(280,160+lines.length*48);canvas.width=width;canvas.height=height;
+    var ctx=canvas.getContext('2d'),gradient=ctx.createLinearGradient(0,0,width,height);gradient.addColorStop(0,'#032b1a');gradient.addColorStop(1,'#075b36');ctx.fillStyle=gradient;ctx.fillRect(0,0,width,height);
+    ctx.strokeStyle='rgba(160,255,207,.7)';ctx.lineWidth=4;ctx.strokeRect(18,18,width-36,height-36);
+    ctx.fillStyle='#73f6ae';ctx.font='800 21px system-ui';ctx.fillText('MATHBOARD PRO · MATHLAB',padding,55);
+    ctx.fillStyle='#f0fff6';ctx.font='800 40px system-ui';ctx.fillText(String(card.title||'Cálculo MathLab'),padding,108);
+    ctx.strokeStyle='rgba(158,255,207,.34)';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(padding,130);ctx.lineTo(width-padding,130);ctx.stroke();
+    ctx.fillStyle='#d8ffea';ctx.font='600 31px "SFMono-Regular",Consolas,monospace';
+    lines.forEach(function(line,index){ctx.fillText(line,padding,177+index*48);});
+    return canvas.toDataURL('image/png');
+  }
+  function stampOnBoard(source,onSuccess,onError){
+    var board=document.getElementById('board');if(!board){if(onError) onError();return;}
+    var image=new Image();
     image.onload=function(){
       var ratio=Math.min(1,board.width*.72/image.naturalWidth,board.height*.68/image.naturalHeight);
       var width=Math.max(120,Math.round(image.naturalWidth*ratio)),height=Math.max(80,Math.round(image.naturalHeight*ratio));
@@ -6105,11 +6385,30 @@ else requestAnimationFrame(init);
       try{window.refreshCtxState?.();}catch(_){}
       try{window.broadcastData?.({type:'image',src:source,x:x/board.width,y:y/board.height,w:width/board.width,h:height/board.height});}catch(_){}
       try{window.MathBoardPages?.save?.();window.mbScheduleRecovery?.();}catch(_){}
-      get('mbx-plot-summary').textContent='✓ Gráfico pegado en la pizarra.';
-      close();
+      if(onSuccess) onSuccess();
     };
-    image.onerror=function(){get('mbx-plot-summary').textContent='No se pudo preparar el gráfico para pegar.';};
-    image.src=source;
+    image.onerror=function(){if(onError) onError();};image.src=source;
+  }
+  function pasteCalculationToBoard(){
+    if(!state.lastCard){setCalculationCard('MathLab',['Todavía no hay un resultado para pegar.']);if(!state.minimized) minimize();return;}
+    var source=calculationCardSource(state.lastCard);
+    stampOnBoard(source,function(){
+      var summary=get('mbx-mini-summary');if(summary) summary.textContent='✓ Cálculo pegado. Podés seguir escribiendo en la pizarra.';
+      minimize();
+    },function(){
+      var summary=get('mbx-mini-summary');if(summary) summary.textContent='No se pudo pegar el cálculo.';
+    });
+  }
+  function pasteGraphToBoard(){
+    var plot=get('mbx-plot-canvas');
+    if(!plot) return;
+    drawGraph();
+    var maxPixels=1100000,scale=Math.min(1,Math.sqrt(maxPixels/Math.max(1,plot.width*plot.height)));
+    var exportCanvas=document.createElement('canvas');
+    exportCanvas.width=Math.max(1,Math.round(plot.width*scale));exportCanvas.height=Math.max(1,Math.round(plot.height*scale));
+    exportCanvas.getContext('2d').drawImage(plot,0,0,exportCanvas.width,exportCanvas.height);
+    var source=exportCanvas.toDataURL('image/png');
+    stampOnBoard(source,function(){get('mbx-plot-summary').textContent='✓ Gráfico pegado en la pizarra.';setCalculationCard('Gráfico MathLab',['Gráfico pegado en la pizarra.']);minimize();},function(){get('mbx-plot-summary').textContent='No se pudo preparar el gráfico para pegar.';});
   }
   function installCircleChips(){
     var box=get('mbx-angle-chips');box.textContent='';
@@ -6118,6 +6417,7 @@ else requestAnimationFrame(init);
     });
   }
   function openNativeFullscreen(){
+    if(state.minimized) restore();
     if(document.fullscreenElement===shell){if(document.exitFullscreen) document.exitFullscreen().catch(function(){});return;}
     if(shell.requestFullscreen) shell.requestFullscreen().catch(function(){});
   }
@@ -6132,6 +6432,9 @@ else requestAnimationFrame(init);
   }
   get('mbx-toggle').addEventListener('click',function(){open('home');});
   get('mbx-close').addEventListener('click',close);
+  get('mbx-minimize').addEventListener('click',function(){if(state.minimized) restore();else minimize();});
+  get('mbx-mini-paste').addEventListener('click',pasteCalculationToBoard);
+  get('mbx-mini-strip').addEventListener('click',function(event){if(event.target!==get('mbx-mini-paste')) restore();});
   get('mbx-native-fullscreen').addEventListener('click',openNativeFullscreen);
   shell.addEventListener('click',function(event){
     var viewTrigger=event.target.closest('[data-mbx-view],[data-mbx-open]');
@@ -6162,13 +6465,22 @@ else requestAnimationFrame(init);
   get('mbx-trig-window').addEventListener('click',setTrigonometricWindow);
   get('mbx-piecewise-example').addEventListener('click',setPiecewiseExample);
   get('mbx-paste-graph').addEventListener('click',pasteGraphToBoard);
+  get('mbx-paste-console').addEventListener('click',pasteCalculationToBoard);
+  get('mbx-algebra-mode').addEventListener('change',renderAlgebraFields);
+  get('mbx-solve-algebra').addEventListener('click',solveAlgebra);
+  get('mbx-paste-algebra').addEventListener('click',pasteCalculationToBoard);
+  get('mbx-probability-mode').addEventListener('change',renderProbabilityFields);
+  get('mbx-calculate-probability').addEventListener('click',calculateProbability);
+  get('mbx-paste-probability').addEventListener('click',pasteCalculationToBoard);
   get('mbx-graph-rows').addEventListener('input',function(){refreshAnalysisFunctions();scheduleGraph();});
   get('mbx-graph-rows').addEventListener('focusin',function(event){var input=event.target&&event.target.closest?event.target.closest('[data-mbx-expression]'):null;if(input) selectGraphInput(input);});
-  get('mbx-graph-keyboard').addEventListener('click',function(event){
+  function useGraphInsertKey(event){
     var key=event.target&&event.target.closest?event.target.closest('[data-mbx-graph-insert],[data-mbx-graph-action]'):null;
     if(!key) return;
     editGraphExpression(key.getAttribute('data-mbx-graph-insert'),key.getAttribute('data-mbx-graph-action'));
-  });
+  }
+  get('mbx-graph-keyboard').addEventListener('click',useGraphInsertKey);
+  get('mbx-function-bank').addEventListener('click',useGraphInsertKey);
   get('mbx-analysis-mode').addEventListener('change',function(){updateAnalysisControls();scheduleGraph();});
   get('mbx-analysis-function').addEventListener('change',scheduleGraph);
   get('mbx-integral-a').addEventListener('input',scheduleGraph);get('mbx-integral-b').addEventListener('input',scheduleGraph);
@@ -6176,7 +6488,7 @@ else requestAnimationFrame(init);
   get('mbx-run-analysis').addEventListener('click',scheduleGraph);
   get('mbx-xmin').addEventListener('input',scheduleGraph);get('mbx-xmax').addEventListener('input',scheduleGraph);
   document.addEventListener('keydown',function(event){
-    if(!shell.classList.contains('mbx-open')) return;
+    if(!shell.classList.contains('mbx-open')||state.minimized) return;
     if(event.key==='Escape'){event.preventDefault();close();return;}
     if(state.view==='console'&&event.target!==get('mbx-console-input')&&!['INPUT','TEXTAREA','SELECT'].includes(event.target.tagName)){
       if(event.key==='Enter'){event.preventDefault();evaluateConsole();return;}
@@ -6189,8 +6501,8 @@ else requestAnimationFrame(init);
     var observer=new ResizeObserver(function(){if(state.view==='circle') updateCircle();if(state.view==='graph') scheduleGraph();});
     observer.observe(get('mbx-circle-canvas').parentElement);observer.observe(get('mbx-plot-canvas').parentElement);
   }
-  installCircleChips();renderKeyboard();renderGraphKeyboard();refreshAnalysisFunctions();updateAnalysisControls();
-  window.MBX={open:open,close:close,show:showView,setAngle:setAngle,drawGraph:scheduleGraph,setTrigWindow:setTrigonometricWindow,setPiecewiseExample:setPiecewiseExample,pasteGraph:pasteGraphToBoard,evaluate:function(expression,scope){return compileExpression(expression)(scope||{ans:state.answer});},evaluateGraph:function(expression,x){return compileGraphExpression(expression)({x:x,ans:state.answer});}};
+  installCircleChips();renderKeyboard();renderGraphKeyboard();renderAlgebraFields();renderProbabilityFields();refreshAnalysisFunctions();updateAnalysisControls();updateMinimizeButton();
+  window.MBX={open:open,close:close,minimize:minimize,restore:restore,show:showView,setAngle:setAngle,drawGraph:scheduleGraph,setTrigWindow:setTrigonometricWindow,setPiecewiseExample:setPiecewiseExample,pasteGraph:pasteGraphToBoard,pasteCalculation:pasteCalculationToBoard,evaluate:function(expression,scope){return compileExpression(expression)(scope||{ans:state.answer});},evaluateGraph:function(expression,x){return compileGraphExpression(expression)({x:x,ans:state.answer});}};
 })();
 </script>
 
