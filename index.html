@@ -265,7 +265,7 @@
     <div id="writingCursor" aria-hidden="true"></div>
     <aside id="zoomPanel" aria-label="Controles de la lupa circular">
         <div class="zoom-panel-head"><span>🔍 Lupa circular</span><button onclick="toggleMagnifier(false)" title="Apagar lupa" aria-label="Apagar lupa">×</button></div>
-        <p class="zoom-panel-help" id="magnifierStatus">Mové el cursor o el dedo sobre la hoja: la lente amplía esa zona en tiempo real.</p>
+        <p class="zoom-panel-help" id="magnifierStatus">Mové el cursor o el dedo sobre la hoja: la lente amplía esa zona, se ubica del lado libre y se adapta a la pantalla.</p>
         <label class="zoom-control"><span>Diámetro de la lente</span><output id="magnifierSizeValue">200 px</output><input id="magnifierSizeRange" type="range" min="120" max="360" step="10" value="200" oninput="setMagnifierSize(this.value)" aria-label="Tamaño de la lupa"></label>
         <label class="zoom-control"><span>Aumento de la lente</span><output id="magnifierPowerValue">2×</output><input id="magnifierPowerRange" type="range" min="1.25" max="4" step="0.25" value="2" oninput="setMagnifierPower(this.value)" aria-label="Aumento de la lupa"></label>
         <button id="magnifierToggleButton" class="zoom-lens-toggle" onclick="toggleMagnifier(false)">Apagar lupa</button>
@@ -526,9 +526,40 @@
             if(powerRange)powerRange.value=String(magnifierPower);
             if(powerValue)powerValue.textContent=formatMagnifierPower(magnifierPower);
             if(toggle)toggle.textContent=magnifierEnabled?'Apagar lupa':'Activar lupa';
-            if(status)status.textContent=magnifierEnabled?'Mové el cursor o el dedo sobre la hoja: la lente circular sigue el punto y lo amplía.':'La lupa está apagada.';
+            if(status)status.textContent=magnifierEnabled?'Mové el cursor o el dedo sobre la hoja: la lente circular sigue el punto, busca el lado libre y se adapta a la pantalla.':'La lupa está apagada.';
         }
-        function getMagnifierSizeOnScreen(){return Math.max(110,Math.min(magnifierSize,window.innerWidth-26,window.innerHeight-26));}
+        function getMagnifierSafeBounds(){
+            const toolbar=document.getElementById('toolbar'),toolbarBottom=document.fullscreenElement?8:(toolbar?.getBoundingClientRect?.().bottom||0)+8;
+            return {left:8,top:Math.max(8,toolbarBottom),right:Math.max(16,window.innerWidth-8),bottom:Math.max(16,window.innerHeight-8)};
+        }
+        function getMagnifierSizeOnScreen(){
+            const bounds=getMagnifierSafeBounds(),availableWidth=Math.max(110,bounds.right-bounds.left),availableHeight=Math.max(110,bounds.bottom-bounds.top);
+            // En móviles la lente nunca domina la pantalla: conserva alrededor de la
+            // mitad libre para seguir viendo la hoja y continuar escribiendo.
+            const adaptiveLimit=Math.max(110,Math.floor(Math.min(availableWidth,availableHeight)*.48));
+            return Math.max(110,Math.min(magnifierSize,adaptiveLimit));
+        }
+        function magnifierOverlapArea(left,top,size,element){
+            if(!element||!element.getBoundingClientRect)return 0;
+            const r=element.getBoundingClientRect(),w=Math.max(0,Math.min(left+size,r.right)-Math.max(left,r.left)),h=Math.max(0,Math.min(top+size,r.bottom)-Math.max(top,r.top));
+            return w*h;
+        }
+        function getSmartMagnifierPosition(pointerX,pointerY,size){
+            const bounds=getMagnifierSafeBounds(),gap=28,candidates=[
+                {left:pointerX+gap,top:pointerY+gap},
+                {left:pointerX-size-gap,top:pointerY+gap},
+                {left:pointerX+gap,top:pointerY-size-gap},
+                {left:pointerX-size-gap,top:pointerY-size-gap}
+            ],obstacles=[document.getElementById('zoomPanel'),document.getElementById('mathLab'),document.getElementById('nb-launcher'),document.getElementById('pageIndicator')].filter(el=>el&&getComputedStyle(el).display!=='none');
+            let best=null;
+            for(const candidate of candidates){
+                const visibleWidth=Math.max(0,Math.min(candidate.left+size,bounds.right)-Math.max(candidate.left,bounds.left)),visibleHeight=Math.max(0,Math.min(candidate.top+size,bounds.bottom)-Math.max(candidate.top,bounds.top));
+                const visibleArea=visibleWidth*visibleHeight,overlap=obstacles.reduce((total,element)=>total+magnifierOverlapArea(candidate.left,candidate.top,size,element),0),score=visibleArea-overlap*.72;
+                if(!best||score>best.score)best={...candidate,score};
+            }
+            const maxLeft=Math.max(bounds.left,bounds.right-size),maxTop=Math.max(bounds.top,bounds.bottom-size);
+            return {left:clamp(best.left,bounds.left,maxLeft),top:clamp(best.top,bounds.top,maxTop)};
+        }
         function getMagnifierPage(clientX,clientY){
             const hit=document.elementFromPoint?.(clientX,clientY),container=hit?.closest?.('.page-container');
             let page=container?pagesData.find(item=>item.container===container):null;
@@ -561,11 +592,8 @@
                 if(box.right<cropLeft||box.left>cropLeft+size/magnifierPower||box.bottom<cropTop||box.top>cropTop+size/magnifierPower)continue;
                 try{ctx.drawImage(image,(box.left-cropLeft)*magnifierPower,(box.top-cropTop)*magnifierPower,box.width*magnifierPower,box.height*magnifierPower);}catch(_){}
             }
-            let left=magnifierPointer.x+22,top=magnifierPointer.y+22;
-            if(left+size>window.innerWidth-10)left=magnifierPointer.x-size-22;
-            if(top+size>window.innerHeight-10)top=magnifierPointer.y-size-22;
-            left=clamp(left,10,Math.max(10,window.innerWidth-size-10));top=clamp(top,10,Math.max(10,window.innerHeight-size-10));
-            lens.style.transform='translate3d('+Math.round(left)+'px,'+Math.round(top)+'px,0)';lens.style.visibility='visible';
+            const position=getSmartMagnifierPosition(magnifierPointer.x,magnifierPointer.y,size);
+            lens.style.transform='translate3d('+Math.round(position.left)+'px,'+Math.round(position.top)+'px,0)';lens.style.visibility='visible';
         }
         function queueMagnifierRender(clientX,clientY){
             if(!magnifierEnabled)return;
