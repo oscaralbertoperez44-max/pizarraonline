@@ -52,6 +52,32 @@
         #pageIndicator { position: fixed; left: 16px; bottom: 16px; z-index: 450; background: rgba(15,15,15,.9); padding: 8px 12px; border-radius: 8px; font-size: 13px; border: 1px solid var(--ui-border); font-weight: bold; pointer-events: none; }
         #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%) translateY(20px); opacity: 0; z-index: 9999; background: #222; color: #fff; border: 1px solid #555; border-radius: 8px; padding: 10px 16px; font-size: 14px; pointer-events: none; transition: .2s ease-out; box-shadow: 0 8px 25px rgba(0,0,0,.5); }
         #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+        #zoomPanel { position: fixed; right: 18px; bottom: 18px; z-index: 7100; width: min(305px, calc(100vw - 36px)); display: none; gap: 9px; padding: 12px; color: #e8f5f4; background: linear-gradient(145deg,#10283a,#0a1724); border: 1px solid #256b68; border-radius: 13px; box-shadow: 0 16px 42px rgba(0,0,0,.54); }
+        #zoomPanel.open { display: grid; }
+        .zoom-panel-head, .zoom-panel-row { display: flex; align-items: center; gap: 8px; }
+        .zoom-panel-head { justify-content: space-between; color: #c9fff8; font-size: 13px; font-weight: 800; }
+        .zoom-panel-head button { width: 26px; height: 26px; padding: 0; border-radius: 7px; font-size: 16px; }
+        .zoom-panel-help { margin: 0; color: #9fc5cf; font-size: 11px; line-height: 1.38; }
+        .zoom-control { display: grid; grid-template-columns: 1fr auto; gap: 5px 8px; color: #d4eeee; font-size: 11px; font-weight: 750; }
+        .zoom-control output { color: #74f1df; font: 800 11px/1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; }
+        .zoom-control input[type="range"] { grid-column: 1 / -1; width: 100%; margin: 0; padding: 0; accent-color: #5eead4; }
+        .zoom-lens-toggle { min-height: 33px; color: #032d28; background: #5eead4; border-color: #99f6e4; font-weight: 850; }
+        .zoom-lens-toggle:hover { color: #fff; background: #159687; border-color: #99f6e4; }
+        .zoom-divider { height: 1px; margin: 2px 0; background: rgba(148,163,184,.22); position: relative; }
+        .zoom-divider span { position: absolute; top: -8px; left: 9px; padding: 0 6px; color: #82a4b6; background: #0d1e2e; font-size: 10px; font-weight: 750; }
+        .zoom-panel-row button { min-width: 34px; height: 32px; padding: 0 9px; font-size: 18px; line-height: 1; }
+        .zoom-panel-row input[type="range"] { flex: 1; min-width: 80px; padding: 0; accent-color: #5eead4; }
+        .zoom-panel-foot { justify-content: space-between; color: #9cc9c8; font-size: 12px; }
+        #notebookZoomValue { min-width: 48px; color: #fff; font-weight: 850; text-align: center; }
+        .zoom-reset { height: 28px !important; min-width: auto !important; padding: 0 9px !important; color: #d7fff7; background: #145e58; border-color: #278f83; font-size: 11px !important; font-weight: 750; }
+        #magnifierLens { position: fixed; z-index: 9400; width: 200px; height: 200px; display: none; pointer-events: none; user-select: none; transform: translate3d(-1000px,-1000px,0); filter: drop-shadow(0 13px 18px rgba(0,0,0,.46)); }
+        #magnifierLens.open { display: block; }
+        #magnifierCanvas { display: block; box-sizing: border-box; width: 100%; height: 100%; border: 5px solid #d7fff9; border-radius: 50%; background: #fff; box-shadow: 0 0 0 3px #125d63, inset 0 0 0 1px rgba(7,20,31,.55); }
+        #magnifierLens::after { content: ''; position: absolute; z-index: -1; right: -31px; bottom: -17px; width: 63px; height: 18px; border: 4px solid #d7fff9; border-left: 0; border-radius: 0 12px 12px 0; background: linear-gradient(90deg,#16666b,#0e3a49); transform: rotate(42deg); transform-origin: left center; box-shadow: 0 0 0 3px #125d63; }
+        .magnifier-crosshair { position: absolute; left: 50%; top: 50%; width: 20px; height: 20px; transform: translate(-50%,-50%); border: 1px solid rgba(9,44,55,.72); border-radius: 50%; box-shadow: 0 0 0 1px rgba(255,255,255,.68); }
+        .magnifier-crosshair::before, .magnifier-crosshair::after { content: ''; position: absolute; left: 50%; top: 50%; background: rgba(8,50,60,.8); transform: translate(-50%,-50%); }
+        .magnifier-crosshair::before { width: 1px; height: 30px; }
+        .magnifier-crosshair::after { width: 30px; height: 1px; }
 
         /* Gestor de Materias */
         #nb-launcher { position: fixed; left: 16px; top: 70px; z-index: 5000; background: #1a202c; color: #fff; border: 1px solid #4a5568; border-radius: 8px; padding: 10px 14px; font-weight: bold; box-shadow: 0 6px 20px rgba(0,0,0,0.6); cursor: pointer; }
@@ -104,6 +130,7 @@
         .math-tabs button.active { color: #022c22; background: #5eead4; border-color: #99f6e4; }
         #mathKeyboard { display: none; padding: 9px; border-bottom: 1px solid rgba(148,163,184,.16); background: linear-gradient(180deg,rgba(2,12,23,.95),rgba(10,27,42,.92)); }
         #mathLab.keyboard-open #mathKeyboard { display: block; }
+        #mathLab.keyboard-open input[data-ml-keyboard-readonly="1"], #mathLab.keyboard-open textarea[data-ml-keyboard-readonly="1"] { caret-color: #5eead4; }
         .math-keyboard-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin: 0 2px 7px; color: #d6f8f3; font-size: 11px; font-weight: 800; }
         .math-keyboard-top small { color: #7896aa; font-size: 10px; font-weight: 600; }
         .math-key-grid { display: grid; grid-template-columns: repeat(8, minmax(0,1fr)); gap: 5px; }
@@ -142,6 +169,7 @@
         .math-output-tools button:first-child { flex: 1; }
         .math-hint { padding: 8px 9px; border-left: 3px solid #2dd4bf; border-radius: 0 7px 7px 0; color: #b8d7d8; background: rgba(45,212,191,.07); font-size: 11px; line-height: 1.4; }
         @media (max-width: 760px) {
+            #zoomPanel { right: 8px; bottom: 12px; width: min(290px, calc(100vw - 16px)); }
             #mathLab { top: 56px; right: 8px; width: calc(100vw - 16px); height: min(78vh, 720px); min-width: 0; min-height: 300px; border-radius: 12px; resize: vertical; }
             .math-lab-workspace { grid-template-columns: 1fr; grid-template-rows: minmax(235px, .87fr) minmax(220px, 1.13fr); overflow: auto; }
             .math-control-column { border-right: 0; border-bottom: 1px solid rgba(148,163,184,.16); }
@@ -181,6 +209,9 @@
         </div>
         <div class="tool-group" style="border-right:none;">
             <button id="btnMathLab" onclick="toggleMathLab()" title="Gráficas, cálculo, álgebra, matrices, probabilidad y geometría 3D">✦ Math Lab</button>
+        </div>
+        <div class="tool-group" style="border-right:none;">
+            <button id="btnZoom" onclick="toggleMagnifier()" title="Activar lupa circular flotante" aria-expanded="false" aria-pressed="false">🔍 Lupa</button>
         </div>
         <div class="tool-group">
             <button id="btnPen" class="active" onclick="setTool('pen')">✒️ Lapicera</button>
@@ -232,6 +263,21 @@
     <div id="toast"></div>
     <div id="recordingIndicator"><span class="rec-dot"></span><span>GRABANDO</span><span id="recordingTime">00:00</span><button class="rec-fullscreen" onclick="toggleFullScreen()" title="Entrar/salir de pantalla completa durante la grabación">⛶</button></div>
     <div id="writingCursor" aria-hidden="true"></div>
+    <aside id="zoomPanel" aria-label="Controles de la lupa circular">
+        <div class="zoom-panel-head"><span>🔍 Lupa circular</span><button onclick="toggleMagnifier(false)" title="Apagar lupa" aria-label="Apagar lupa">×</button></div>
+        <p class="zoom-panel-help" id="magnifierStatus">Mové el cursor o el dedo sobre la hoja: la lente amplía esa zona en tiempo real.</p>
+        <label class="zoom-control"><span>Diámetro de la lente</span><output id="magnifierSizeValue">200 px</output><input id="magnifierSizeRange" type="range" min="120" max="360" step="10" value="200" oninput="setMagnifierSize(this.value)" aria-label="Tamaño de la lupa"></label>
+        <label class="zoom-control"><span>Aumento de la lente</span><output id="magnifierPowerValue">2×</output><input id="magnifierPowerRange" type="range" min="1.25" max="4" step="0.25" value="2" oninput="setMagnifierPower(this.value)" aria-label="Aumento de la lupa"></label>
+        <button id="magnifierToggleButton" class="zoom-lens-toggle" onclick="toggleMagnifier(false)">Apagar lupa</button>
+        <div class="zoom-divider"><span>Zoom de toda la hoja</span></div>
+        <div class="zoom-panel-row">
+            <button onclick="adjustNotebookZoom(-10)" title="Alejar">−</button>
+            <input id="notebookZoomRange" type="range" min="75" max="250" step="5" value="100" oninput="setNotebookZoom(this.value)" aria-label="Nivel de zoom de la hoja">
+            <button onclick="adjustNotebookZoom(10)" title="Acercar">+</button>
+        </div>
+        <div class="zoom-panel-row zoom-panel-foot"><output id="notebookZoomValue" aria-live="polite">100%</output><button class="zoom-reset" onclick="setNotebookZoom(100,true)">Restablecer</button></div>
+    </aside>
+    <div id="magnifierLens" aria-hidden="true"><canvas id="magnifierCanvas"></canvas><span class="magnifier-crosshair"></span></div>
 
     <div id="notebook">
         <!-- Las hojas se generan dinámicamente -->
@@ -296,7 +342,7 @@
             <button data-math-tab="geometry3d" onclick="switchMathTab('geometry3d')">◈ Geo 3D</button>
           </nav>
           <div id="mathKeyboard" aria-label="Teclado matemático">
-            <div class="math-keyboard-top"><span>⌨ Teclado matemático</span><small>Elegí un campo y escribí</small></div>
+            <div class="math-keyboard-top"><span>⌨ Teclado matemático</span><small id="mathKeyboardHint">Elegí un campo y escribí</small></div>
             <div class="math-key-grid">
               <button onclick="mathKey('7')">7</button><button onclick="mathKey('8')">8</button><button onclick="mathKey('9')">9</button><button class="math-key-op" onclick="mathKey('/')">÷</button><button class="math-key-op" onclick="mathKey('(')">(</button><button class="math-key-op" onclick="mathKey(')')">)</button><button class="math-key-op" onclick="mathKey('^')">xʸ</button><button class="math-key-danger" onclick="mathKey('backspace')">⌫</button>
               <button onclick="mathKey('4')">4</button><button onclick="mathKey('5')">5</button><button onclick="mathKey('6')">6</button><button class="math-key-op" onclick="mathKey('*')">×</button><button class="math-key-op" onclick="mathKey('+')">+</button><button class="math-key-op" onclick="mathKey('-')">−</button><button class="math-key-op" onclick="mathKey('.')">.</button><button class="math-key-danger" onclick="mathKey('clear')">CLR</button>
@@ -450,6 +496,137 @@
 
         const clamp = (n, min, max) => Math.max(min, Math.min(max, n));
         const nextFrame = () => new Promise(resolve => requestAnimationFrame(resolve));
+
+        // ---------- LUPA / ZOOM DE LA HOJA ----------
+        // La lente copia sólo una pequeña zona visible de la hoja a demanda (máximo
+        // una vez por frame). No altera el canvas ni los eventos de escritura.
+        const NOTEBOOK_ZOOM_STORAGE_KEY='cuaderno_view_zoom_v1';
+        let notebookZoomPercent=100;
+        let magnifierEnabled=false;
+        let magnifierSize=200;
+        let magnifierPower=2;
+        let magnifierPointer=null;
+        let magnifierRaf=0;
+        let magnifierListening=false;
+        function updateZoomButton(){
+            const panel=document.getElementById('zoomPanel'),button=document.getElementById('btnZoom');
+            if(!button)return;
+            const open=!!panel?.classList.contains('open');
+            button.classList.toggle('active',magnifierEnabled||notebookZoomPercent!==100);
+            button.setAttribute('aria-expanded',String(open));
+            button.setAttribute('aria-pressed',String(magnifierEnabled));
+            button.textContent=magnifierEnabled?'🔍 Lupa activa':'🔍 Lupa';
+            button.setAttribute('title',magnifierEnabled?'Apagar lupa circular':'Activar lupa circular flotante');
+        }
+        function formatMagnifierPower(value){return (Math.round(value*100)/100).toString().replace('.0','')+'×';}
+        function updateMagnifierControls(){
+            const sizeRange=document.getElementById('magnifierSizeRange'),sizeValue=document.getElementById('magnifierSizeValue'),powerRange=document.getElementById('magnifierPowerRange'),powerValue=document.getElementById('magnifierPowerValue'),toggle=document.getElementById('magnifierToggleButton'),status=document.getElementById('magnifierStatus');
+            if(sizeRange)sizeRange.value=String(magnifierSize);
+            if(sizeValue)sizeValue.textContent=magnifierSize+' px';
+            if(powerRange)powerRange.value=String(magnifierPower);
+            if(powerValue)powerValue.textContent=formatMagnifierPower(magnifierPower);
+            if(toggle)toggle.textContent=magnifierEnabled?'Apagar lupa':'Activar lupa';
+            if(status)status.textContent=magnifierEnabled?'Mové el cursor o el dedo sobre la hoja: la lente circular sigue el punto y lo amplía.':'La lupa está apagada.';
+        }
+        function getMagnifierSizeOnScreen(){return Math.max(110,Math.min(magnifierSize,window.innerWidth-26,window.innerHeight-26));}
+        function getMagnifierPage(clientX,clientY){
+            const hit=document.elementFromPoint?.(clientX,clientY),container=hit?.closest?.('.page-container');
+            let page=container?pagesData.find(item=>item.container===container):null;
+            if(page)return page;
+            return pagesData.find(item=>{const r=item.container.getBoundingClientRect();return clientX>=r.left&&clientX<=r.right&&clientY>=r.top&&clientY<=r.bottom;})||null;
+        }
+        function drawMagnifierLayer(ctx,layer,sx,sy,sourceWidth,sourceHeight,size){
+            const ix0=Math.max(0,sx),iy0=Math.max(0,sy),ix1=Math.min(layer.width,sx+sourceWidth),iy1=Math.min(layer.height,sy+sourceHeight);
+            if(ix1<=ix0||iy1<=iy0)return;
+            const dx=(ix0-sx)/sourceWidth*size,dy=(iy0-sy)/sourceHeight*size,dw=(ix1-ix0)/sourceWidth*size,dh=(iy1-iy0)/sourceHeight*size;
+            ctx.drawImage(layer,ix0,iy0,ix1-ix0,iy1-iy0,dx,dy,dw,dh);
+        }
+        function renderMagnifier(){
+            if(!magnifierEnabled||!magnifierPointer)return;
+            const lens=document.getElementById('magnifierLens'),canvas=document.getElementById('magnifierCanvas'),page=getMagnifierPage(magnifierPointer.x,magnifierPointer.y);
+            if(!lens||!canvas)return;
+            if(!page){lens.style.visibility='hidden';return;}
+            const rect=page.container.getBoundingClientRect();
+            if(!rect.width||!rect.height){lens.style.visibility='hidden';return;}
+            const size=getMagnifierSizeOnScreen(),ratio=Math.max(1,Math.min(2,window.devicePixelRatio||1)),pixels=Math.round(size*ratio);
+            lens.style.width=size+'px';lens.style.height=size+'px';
+            if(canvas.width!==pixels||canvas.height!==pixels){canvas.width=pixels;canvas.height=pixels;}
+            const ctx=canvas.getContext('2d'),centerX=(magnifierPointer.x-rect.left)/rect.width*page.bgCanvas.width,centerY=(magnifierPointer.y-rect.top)/rect.height*page.bgCanvas.height,sourceWidth=page.bgCanvas.width*size/(magnifierPower*rect.width),sourceHeight=page.bgCanvas.height*size/(magnifierPower*rect.height),sx=centerX-sourceWidth/2,sy=centerY-sourceHeight/2;
+            ctx.setTransform(ratio,0,0,ratio,0,0);ctx.clearRect(0,0,size,size);ctx.fillStyle='#f8fafc';ctx.fillRect(0,0,size,size);
+            drawMagnifierLayer(ctx,page.bgCanvas,sx,sy,sourceWidth,sourceHeight,size);
+            drawMagnifierLayer(ctx,page.drawCanvas,sx,sy,sourceWidth,sourceHeight,size);
+            const cropLeft=magnifierPointer.x-size/(2*magnifierPower),cropTop=magnifierPointer.y-size/(2*magnifierPower);
+            for(const image of page.container.querySelectorAll('.pasted-image')){
+                const box=image.getBoundingClientRect();
+                if(box.right<cropLeft||box.left>cropLeft+size/magnifierPower||box.bottom<cropTop||box.top>cropTop+size/magnifierPower)continue;
+                try{ctx.drawImage(image,(box.left-cropLeft)*magnifierPower,(box.top-cropTop)*magnifierPower,box.width*magnifierPower,box.height*magnifierPower);}catch(_){}
+            }
+            let left=magnifierPointer.x+22,top=magnifierPointer.y+22;
+            if(left+size>window.innerWidth-10)left=magnifierPointer.x-size-22;
+            if(top+size>window.innerHeight-10)top=magnifierPointer.y-size-22;
+            left=clamp(left,10,Math.max(10,window.innerWidth-size-10));top=clamp(top,10,Math.max(10,window.innerHeight-size-10));
+            lens.style.transform='translate3d('+Math.round(left)+'px,'+Math.round(top)+'px,0)';lens.style.visibility='visible';
+        }
+        function queueMagnifierRender(clientX,clientY){
+            if(!magnifierEnabled)return;
+            magnifierPointer={x:clientX,y:clientY};
+            if(!magnifierRaf)magnifierRaf=requestAnimationFrame(()=>{magnifierRaf=0;renderMagnifier();});
+        }
+        const magnifierPointerHandler=event=>queueMagnifierRender(event.clientX,event.clientY);
+        const magnifierResizeHandler=()=>{if(magnifierPointer)queueMagnifierRender(magnifierPointer.x,magnifierPointer.y);};
+        function setMagnifierListeners(enabled){
+            if(enabled===magnifierListening)return;
+            magnifierListening=enabled;
+            if(enabled){
+                document.addEventListener('pointermove',magnifierPointerHandler,{passive:true});
+                document.addEventListener('pointerdown',magnifierPointerHandler,{passive:true});
+                window.addEventListener('resize',magnifierResizeHandler,{passive:true});
+            }else{
+                document.removeEventListener('pointermove',magnifierPointerHandler);
+                document.removeEventListener('pointerdown',magnifierPointerHandler);
+                window.removeEventListener('resize',magnifierResizeHandler);
+            }
+        }
+        window.setMagnifierSize=function(value){
+            magnifierSize=Math.round(clamp(Number(value)||200,120,360)/10)*10;updateMagnifierControls();
+            if(magnifierPointer)queueMagnifierRender(magnifierPointer.x,magnifierPointer.y);
+        };
+        window.setMagnifierPower=function(value){
+            magnifierPower=Math.round(clamp(Number(value)||2,1.25,4)*4)/4;updateMagnifierControls();
+            if(magnifierPointer)queueMagnifierRender(magnifierPointer.x,magnifierPointer.y);
+        };
+        window.toggleMagnifier=function(force){
+            const next=typeof force==='boolean'?force:!magnifierEnabled;
+            magnifierEnabled=next;
+            const panel=document.getElementById('zoomPanel'),lens=document.getElementById('magnifierLens');
+            panel?.classList.toggle('open',next);lens?.classList.toggle('open',next);
+            setMagnifierListeners(next);
+            if(!next&&lens){lens.style.visibility='hidden';lens.style.transform='translate3d(-1000px,-1000px,0)';}
+            updateMagnifierControls();updateZoomButton();
+            if(next){if(magnifierPointer)queueMagnifierRender(magnifierPointer.x,magnifierPointer.y);toast('🔍 Lupa circular activada');}
+            else toast('🔍 Lupa desactivada');
+        };
+        window.setNotebookZoom=function(value,announce=false){
+            const next=Math.round(clamp(Number(value)||100,75,250)/5)*5;
+            notebookZoomPercent=next;
+            // CSS zoom cambia también el rectángulo que usa el motor de dibujo, por
+            // eso escribir, borrar y trazar líneas sigue coincidiendo con el puntero.
+            notebookEl.style.zoom=String(next/100);
+            drawRectCache=null;
+            const range=document.getElementById('notebookZoomRange'),label=document.getElementById('notebookZoomValue');
+            if(range)range.value=String(next);
+            if(label)label.textContent=next+'%';
+            try{localStorage.setItem(NOTEBOOK_ZOOM_STORAGE_KEY,String(next));}catch(_){}
+            updateZoomButton();
+            if(magnifierPointer)queueMagnifierRender(magnifierPointer.x,magnifierPointer.y);
+            if(announce)toast('🔍 Vista de la hoja: '+next+'%');
+        };
+        window.adjustNotebookZoom=function(delta){
+            window.setNotebookZoom(notebookZoomPercent+Number(delta||0),true);
+        };
+        window.toggleZoomPanel=()=>window.toggleMagnifier();
+        try{window.setNotebookZoom(localStorage.getItem(NOTEBOOK_ZOOM_STORAGE_KEY)||100);}catch(_){window.setNotebookZoom(100);}
+        updateMagnifierControls();
 
         function toast(msg, ms = 1700){
             const el = document.getElementById('toast');
@@ -2274,19 +2451,48 @@ Se borrarán sus hojas, imágenes y PDFs guardados. Esta acción no se puede des
         // Inserta símbolos en el último campo del Math Lab que recibió foco. No captura
         // teclas del cuaderno ni modifica los eventos del lienzo de dibujo.
         let mathKeyboardTarget=null;
-        function mlKeyboardCanEdit(element){
+        function mlKeyboardIsField(element){
             return !!(element&&element.closest&&element.closest('#mathLab')&&
-                (element.tagName==='INPUT'||element.tagName==='TEXTAREA')&&!element.disabled&&!element.readOnly);
+                (element.tagName==='INPUT'||element.tagName==='TEXTAREA')&&!element.disabled);
+        }
+        function mlKeyboardCanEdit(element){
+            return mlKeyboardIsField(element)&&(!element.readOnly||element.dataset.mlKeyboardReadonly==='1');
         }
         function mlRememberKeyboardTarget(event){
             if(mlKeyboardCanEdit(event.target))mathKeyboardTarget=event.target;
         }
+        function mlSetNativeKeyboardSuppression(enabled){
+            document.querySelectorAll('#mathLab input, #mathLab textarea').forEach(field=>{
+                if(field.disabled)return;
+                if(enabled){
+                    if(!field.readOnly){field.readOnly=true;field.dataset.mlKeyboardReadonly='1';}
+                    field.dataset.mlKeyboardHadInputmode=field.hasAttribute('inputmode')?'1':'0';
+                    if(field.hasAttribute('inputmode'))field.dataset.mlKeyboardInputmode=field.getAttribute('inputmode')||'';
+                    field.setAttribute('inputmode','none');
+                }else{
+                    if(field.dataset.mlKeyboardReadonly==='1'){field.readOnly=false;delete field.dataset.mlKeyboardReadonly;}
+                    if(field.dataset.mlKeyboardHadInputmode==='1')field.setAttribute('inputmode',field.dataset.mlKeyboardInputmode||'');
+                    else field.removeAttribute('inputmode');
+                    delete field.dataset.mlKeyboardHadInputmode;delete field.dataset.mlKeyboardInputmode;
+                }
+            });
+        }
         window.toggleMathKeyboard=function(){
             const lab=document.getElementById('mathLab'),button=document.getElementById('mathKeyboardToggle');
             if(!lab)return;
+            const focused=document.activeElement;
+            if(mlKeyboardCanEdit(focused))mathKeyboardTarget=focused;
             const open=lab.classList.toggle('keyboard-open');
+            mlSetNativeKeyboardSuppression(open);
             button?.setAttribute('aria-pressed',String(open));
             button?.setAttribute('title',open?'Ocultar teclado matemático':'Mostrar teclado matemático');
+            button?.classList.toggle('active',open);
+            const hint=document.getElementById('mathKeyboardHint');
+            if(hint)hint.textContent=open?'Modo interno: teclado del sistema bloqueado':'Elegí un campo y escribí';
+            if(open)requestAnimationFrame(()=>{
+                const active=document.activeElement;
+                if(mlKeyboardIsField(active))active.blur?.();
+            });
         };
         window.mathKey=function(key){
             const active=document.activeElement,target=mlKeyboardCanEdit(active)?active:mathKeyboardTarget;
